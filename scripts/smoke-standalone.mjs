@@ -10,6 +10,8 @@ class FakeElement {
     this.id = id;
     this.disabled = false;
     this.textContent = "";
+    this.value = "";
+    this.checked = false;
     this.attributes = new Map();
     this.listeners = new Map();
     this._innerHTML = "";
@@ -18,7 +20,15 @@ class FakeElement {
     this.attributes.set(name, String(value));
   }
   addEventListener(name, callback) {
-    this.listeners.set(name, callback);
+    const callbacks = this.listeners.get(name) ?? new Set();
+    callbacks.add(callback);
+    this.listeners.set(name, callbacks);
+  }
+  removeEventListener(name, callback) {
+    this.listeners.get(name)?.delete(callback);
+  }
+  dispatch(name) {
+    for (const callback of this.listeners.get(name) ?? []) callback({ target: this });
   }
   querySelector() {
     return null;
@@ -62,14 +72,16 @@ class FakeHost extends FakeElement {
 
 const elements = new Map();
 for (const id of [
-  "start-button",
-  "pause-button",
-  "step-button",
-  "reset-button",
-  "time-value",
-  "position-value",
-  "velocity-value",
-  "phase-value",
+  "start-button", "pause-button", "step-button", "reset-button",
+  "time-value", "position-value", "velocity-value", "phase-value",
+  "parameter-error",
+  "m1-range", "m1-number", "m2-range", "m2-number",
+  "drop-height-range", "drop-height-number",
+  "track-length-range", "track-length-number",
+  "friction-range", "friction-number",
+  "sensor-count-range", "sensor-count-number",
+  "playback-speed-range", "playback-speed-number",
+  "gravity-earth", "gravity-moon",
 ]) {
   elements.set(`#${id}`, new FakeElement(id));
 }
@@ -118,5 +130,17 @@ if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
 }
 if (elements.get("#time-value").textContent !== "0.00 s") {
   throw new Error("L'affichage initial du temps est incorrect.");
+}
+if (elements.get("#m1-number").value !== "0.5") {
+  throw new Error("Les paramètres n'ont pas été synchronisés avec l'état central.");
+}
+
+elements.get("#m2-range").value = "0.4";
+elements.get("#m2-range").dispatch("input");
+if (!host._innerHTML.includes("8 capteurs")) {
+  throw new Error("Le montage n'a pas été reconstruit après modification.");
+}
+if (elements.get("#m2-number").value !== "0.4") {
+  throw new Error("La paire de contrôles m2 n'est pas synchronisée.");
 }
 console.log("Smoke test autonome réussi.");

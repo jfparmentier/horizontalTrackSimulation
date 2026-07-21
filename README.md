@@ -1,34 +1,37 @@
-# Étape 5 — Animation SVG de S1, S2 et du fil
+# Étape 6 — Paramètres reliés à l’état central
 
-Cette version relie le moteur physique des étapes précédentes au montage SVG.
+Cette version ajoute une source unique de vérité pour les paramètres, l’état physique courant et les réglages de l’expérience.
 
 ## Fonctionnalités ajoutées
 
-- déplacement horizontal de S1 selon la position physique calculée ;
-- descente de S2 pendant la phase 1 ;
-- immobilisation de S2 lorsque son bord inférieur atteint le haut du support ;
-- fil horizontal et tendu pendant la phase 1 ;
-- fil détendu et incurvé pendant la phase 2 ;
-- interpolation entre deux pas physiques pour un rendu fluide ;
-- arrêt visuel exact de S1 au bord du banc ;
-- commandes minimales de démonstration : démarrer, pause, pas à pas et réinitialiser ;
-- fichier `index.html` entièrement autonome, ouvrable directement par double-clic.
+- état central immuable avec abonnement aux changements ;
+- paramètres physiques reliés à des curseurs et champs numériques synchronisés ;
+- choix Terre ou Lune ;
+- réglage du nombre de capteurs ;
+- réglage de la vitesse de lecture ;
+- validation des valeurs et affichage des erreurs ;
+- réinitialisation automatique de l’expérience après modification d’un paramètre physique ;
+- reconstruction cohérente du SVG lorsque la longueur du banc, la hauteur, la gravité ou le nombre de capteurs change ;
+- synchronisation de l’état central avec la boucle temporelle ;
+- conservation des réglages d’affichage futurs pour les mesures et courbes ;
+- fichier `index.html` autonome, ouvrable directement par double-clic.
 
 ## Fichiers principaux
 
-- `src/apparatus-animation.js` : calcul pur de la géométrie animée et rendu DOM/SVG ;
-- `src/animated-app.js` : raccordement du montage, de l’animateur et de la boucle temporelle ;
-- `src/apparatus-view.js` : construction du SVG statique ;
-- `src/time-loop.js` : boucle à pas physique fixe ;
-- `index.html` : démonstration autonome sans ressource externe ;
-- `scripts/build-standalone.mjs` : reconstruction du fichier HTML autonome ;
-- `scripts/smoke-standalone.mjs` : contrôle d’exécution du JavaScript autonome.
+- `src/app-state.js` : état central de l’application ;
+- `src/parameter-controls.js` : liaison bidirectionnelle entre les champs et l’état central ;
+- `src/animated-app.js` : orchestration du moteur, du SVG et de l’état central ;
+- `src/apparatus-animation.js` : animation de S1, S2 et du fil ;
+- `src/time-loop.js` : boucle temporelle à pas fixe ;
+- `index.html` : application autonome ;
+- `scripts/build-standalone.mjs` : génération du fichier HTML autonome ;
+- `scripts/smoke-standalone.mjs` : contrôle d’exécution du paquet autonome.
 
 ## Utilisation
 
 Ouvrir directement `index.html` dans un navigateur récent.
 
-## Tests
+## Validation
 
 ```bash
 npm test
@@ -36,4 +39,4 @@ npm run build
 npm run smoke
 ```
 
-La suite comprend 95 tests automatisés portant sur le moteur physique, les changements de phase, la boucle temporelle, le SVG et l’intégration de l’animation.
+La suite comprend 106 tests automatisés. Le test d’exécution autonome est également validé.
