@@ -1,176 +1,224 @@
 
-> simulation-banc-horizontal-physics@0.1.0 test
+> simulation-banc-horizontal-phase-transitions@0.2.0 test
 > node --test
 
 TAP version 13
 # Subtest: getGravity retourne les valeurs terrestre et lunaire
 ok 1 - getGravity retourne les valeurs terrestre et lunaire
   ---
-  duration_ms: 1.558374
+  duration_ms: 0.980244
   type: 'test'
   ...
 # Subtest: getGravity refuse un milieu inconnu
 ok 2 - getGravity refuse un milieu inconnu
   ---
-  duration_ms: 0.717658
+  duration_ms: 0.790967
   type: 'test'
   ...
 # Subtest: validateParameters accepte les paramètres par défaut et retourne une copie figée
 ok 3 - validateParameters accepte les paramètres par défaut et retourne une copie figée
   ---
-  duration_ms: 0.995379
+  duration_ms: 1.275782
   type: 'test'
   ...
-# Subtest: validateParameters accepte toutes les bornes définies
-ok 4 - validateParameters accepte toutes les bornes définies
+# Subtest: validateParameters accepte les bornes définies
+ok 4 - validateParameters accepte les bornes définies
   ---
-  duration_ms: 0.277424
+  duration_ms: 0.393969
   type: 'test'
   ...
 # Subtest: validateParameters refuse les valeurs hors plage
 ok 5 - validateParameters refuse les valeurs hors plage
   ---
-  duration_ms: 0.526494
+  duration_ms: 0.421425
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration applique la relation sans frottement
 ok 6 - computePhase1Acceleration applique la relation sans frottement
   ---
-  duration_ms: 0.256996
+  duration_ms: 0.243039
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration tient compte du frottement
 ok 7 - computePhase1Acceleration tient compte du frottement
   ---
-  duration_ms: 0.259382
+  duration_ms: 0.216449
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration renvoie zéro si la force motrice est insuffisante
 ok 8 - computePhase1Acceleration renvoie zéro si la force motrice est insuffisante
   ---
-  duration_ms: 0.145089
+  duration_ms: 0.146853
   type: 'test'
   ...
-# Subtest: l'accélération sur la Lune est proportionnelle à g
-ok 9 - l'accélération sur la Lune est proportionnelle à g
+# Subtest: l'accélération lunaire est proportionnelle à g
+ok 9 - l'accélération lunaire est proportionnelle à g
   ---
-  duration_ms: 0.425879
+  duration_ms: 0.331235
   type: 'test'
   ...
 # Subtest: computePhase2Acceleration renvoie zéro sans frottement
 ok 10 - computePhase2Acceleration renvoie zéro sans frottement
   ---
-  duration_ms: 0.435844
+  duration_ms: 1.475584
   type: 'test'
   ...
 # Subtest: computePhase2Acceleration renvoie -µg avec frottement
 ok 11 - computePhase2Acceleration renvoie -µg avec frottement
   ---
-  duration_ms: 1.24061
-  type: 'test'
-  ...
-# Subtest: computePhase2Acceleration devient nulle lorsque le mobile est arrêté
-ok 12 - computePhase2Acceleration devient nulle lorsque le mobile est arrêté
-  ---
-  duration_ms: 0.130629
+  duration_ms: 0.179368
   type: 'test'
   ...
 # Subtest: computePhase1EndVelocity respecte v² = 2ah
-ok 13 - computePhase1EndVelocity respecte v² = 2ah
+ok 12 - computePhase1EndVelocity respecte v² = 2ah
   ---
-  duration_ms: 0.118425
+  duration_ms: 0.145419
   type: 'test'
   ...
-# Subtest: timeToReachPosition résout un mouvement accéléré depuis le repos
-ok 14 - timeToReachPosition résout un mouvement accéléré depuis le repos
+# Subtest: timeToReachPosition résout les mouvements accéléré et uniforme
+ok 13 - timeToReachPosition résout les mouvements accéléré et uniforme
   ---
-  duration_ms: 0.185474
-  type: 'test'
-  ...
-# Subtest: timeToReachPosition traite le mouvement uniforme
-ok 15 - timeToReachPosition traite le mouvement uniforme
-  ---
-  duration_ms: 0.090102
+  duration_ms: 0.229912
   type: 'test'
   ...
 # Subtest: timeToReachPosition renvoie Infinity pour une cible inaccessible
-ok 16 - timeToReachPosition renvoie Infinity pour une cible inaccessible
+ok 14 - timeToReachPosition renvoie Infinity pour une cible inaccessible
   ---
-  duration_ms: 0.070325
+  duration_ms: 0.107403
   type: 'test'
   ...
 # Subtest: timeToStop calcule exactement le temps d'arrêt
-ok 17 - timeToStop calcule exactement le temps d'arrêt
+ok 15 - timeToStop calcule exactement le temps d'arrêt
   ---
-  duration_ms: 0.089913
+  duration_ms: 0.121051
   type: 'test'
   ...
 # Subtest: integrateConstantAcceleration calcule position et vitesse exactement
-ok 18 - integrateConstantAcceleration calcule position et vitesse exactement
+ok 16 - integrateConstantAcceleration calcule position et vitesse exactement
   ---
-  duration_ms: 0.141332
+  duration_ms: 0.167571
   type: 'test'
   ...
 # Subtest: createInitialState impose x0 = 0 et v0 = 0
-ok 19 - createInitialState impose x0 = 0 et v0 = 0
+ok 17 - createInitialState impose x0 = 0 et v0 = 0
   ---
-  duration_ms: 0.137205
+  duration_ms: 0.107771
   type: 'test'
   ...
-# Subtest: advanceSimulation fait progresser correctement la phase 1
-ok 20 - advanceSimulation fait progresser correctement la phase 1
+# Subtest: validateSimulationState refuse un état situé hors du banc
+ok 18 - validateSimulationState refuse un état situé hors du banc
   ---
-  duration_ms: 0.47593
+  duration_ms: 0.19775
   type: 'test'
   ...
-# Subtest: advanceSimulation traite exactement la transition phase 1 -> phase 2
-ok 21 - advanceSimulation traite exactement la transition phase 1 -> phase 2
+# Subtest: getNextPhysicalEvent détermine exactement la transition vers la phase 2
+ok 19 - getNextPhysicalEvent détermine exactement la transition vers la phase 2
   ---
-  duration_ms: 0.187827
+  duration_ms: 2.101469
   type: 'test'
   ...
-# Subtest: advanceSimulation arrête exactement S1 par frottement en phase 2
-ok 22 - advanceSimulation arrête exactement S1 par frottement en phase 2
+# Subtest: advanceToPhysicalEvent conserve la vitesse lors du changement de phase
+ok 20 - advanceToPhysicalEvent conserve la vitesse lors du changement de phase
   ---
-  duration_ms: 0.138179
+  duration_ms: 0.846548
   type: 'test'
   ...
-# Subtest: advanceSimulation arrête S1 exactement à la fin du banc
-ok 23 - advanceSimulation arrête S1 exactement à la fin du banc
+# Subtest: un changement de phase placé exactement en fin de pas met déjà l'accélération de phase 2
+ok 21 - un changement de phase placé exactement en fin de pas met déjà l'accélération de phase 2
   ---
-  duration_ms: 0.122195
+  duration_ms: 0.475398
   type: 'test'
   ...
-# Subtest: advanceSimulation signale un système bloqué
-ok 24 - advanceSimulation signale un système bloqué
+# Subtest: advanceSimulation traite le temps restant après la transition
+ok 22 - advanceSimulation traite le temps restant après la transition
   ---
-  duration_ms: 0.214318
+  duration_ms: 0.433937
   type: 'test'
   ...
-# Subtest: advanceSimulation ne modifie jamais l'état fourni
-ok 25 - advanceSimulation ne modifie jamais l'état fourni
+# Subtest: un grand pas peut produire une transition puis un arrêt par frottement
+ok 23 - un grand pas peut produire une transition puis un arrêt par frottement
   ---
-  duration_ms: 0.131371
+  duration_ms: 2.28146
   type: 'test'
   ...
-# Subtest: advanceSimulation traite transition et fin du banc dans un grand pas
-ok 26 - advanceSimulation traite transition et fin du banc dans un grand pas
+# Subtest: un grand pas peut produire une transition puis la fin du banc
+ok 24 - un grand pas peut produire une transition puis la fin du banc
   ---
-  duration_ms: 0.116638
+  duration_ms: 0.29653
+  type: 'test'
+  ...
+# Subtest: la fin du banc est prioritaire si elle coïncide avec la fin de chute
+ok 25 - la fin du banc est prioritaire si elle coïncide avec la fin de chute
+  ---
+  duration_ms: 0.480409
+  type: 'test'
+  ...
+# Subtest: la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottement
+ok 26 - la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottement
+  ---
+  duration_ms: 0.336667
+  type: 'test'
+  ...
+# Subtest: la transition est traitée immédiatement si un état de phase 1 est déjà à h
+ok 27 - la transition est traitée immédiatement si un état de phase 1 est déjà à h
+  ---
+  duration_ms: 0.538894
+  type: 'test'
+  ...
+# Subtest: le système bloqué produit un événement à t = 0
+ok 28 - le système bloqué produit un événement à t = 0
+  ---
+  duration_ms: 0.427118
+  type: 'test'
+  ...
+# Subtest: l'arrêt par frottement est localisé exactement
+ok 29 - l'arrêt par frottement est localisé exactement
+  ---
+  duration_ms: 0.264843
+  type: 'test'
+  ...
+# Subtest: la fin du banc est localisée exactement en mouvement uniforme
+ok 30 - la fin du banc est localisée exactement en mouvement uniforme
+  ---
+  duration_ms: 0.182881
+  type: 'test'
+  ...
+# Subtest: le résultat est invariant entre un grand pas et des pas fractionnés
+ok 31 - le résultat est invariant entre un grand pas et des pas fractionnés
+  ---
+  duration_ms: 5.700512
+  type: 'test'
+  ...
+# Subtest: les événements sont horodatés dans l'ordre et sont immuables
+ok 32 - les événements sont horodatés dans l'ordre et sont immuables
+  ---
+  duration_ms: 0.212578
+  type: 'test'
+  ...
+# Subtest: advanceWithinCurrentPhase ne change jamais la phase
+ok 33 - advanceWithinCurrentPhase ne change jamais la phase
+  ---
+  duration_ms: 0.096808
+  type: 'test'
+  ...
+# Subtest: advanceSimulation ne modifie pas l'état fourni
+ok 34 - advanceSimulation ne modifie pas l'état fourni
+  ---
+  duration_ms: 0.156054
   type: 'test'
   ...
 # Subtest: advanceSimulation refuse un pas de temps négatif
-ok 27 - advanceSimulation refuse un pas de temps négatif
+ok 35 - advanceSimulation refuse un pas de temps négatif
   ---
-  duration_ms: 0.093368
+  duration_ms: 0.701363
   type: 'test'
   ...
-1..27
-# tests 27
+1..35
+# tests 35
 # suites 0
-# pass 27
+# pass 35
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 133.937688
+# duration_ms 152.662271

@@ -1,54 +1,51 @@
-# Étape 1 — Fonctions physiques et tests
+# Étape 2 — Gestion exacte des changements de phase
 
-Cette archive contient le moteur physique pur de la simulation du glissement d'un mobile `S1` sur un banc horizontal, relié à une masse suspendue `S2`.
+Cette archive prolonge l'étape 1 du moteur physique. Elle isole la détection et le traitement des événements physiques afin qu'un changement de phase soit calculé à son instant exact, même lorsqu'il se produit au milieu d'un grand pas de temps.
 
-## Hypothèses intégrées
+## Événements traités
 
-- `x0 = 0 m` ;
-- `v0 = 0 m·s⁻¹` ;
-- `m1` comprise entre `0,1 kg` et `2,0 kg` ;
-- `m2` comprise entre `0,01 kg` et `2,0 kg` ;
-- hauteur de chute comprise entre `0,20 m` et `1,00 m` ;
-- longueur du banc comprise entre `1,00 m` et `3,00 m` ;
-- coefficient de frottement compris entre `0` et `0,20` ;
-- gravité terrestre (`9,81 m·s⁻²`) ou lunaire (`1,62 m·s⁻²`) ;
-- fil et poulie idéaux ;
-- frottement de Coulomb appliqué à `S1` ;
-- arrêt immédiat de `S1` lorsqu'il atteint la fin du banc.
+- arrivée de `S2` sur le socle : passage exact de la phase 1 à la phase 2 ;
+- arrivée de `S1` à la fin du banc ;
+- arrêt de `S1` par frottement en phase 2 ;
+- système initialement bloqué lorsque la force motrice est insuffisante.
 
-## Modèle utilisé
+## Propriétés garanties
 
-### Phase 1 — `S2` descend
+- continuité de la position et de la vitesse au changement de phase ;
+- mise à jour immédiate de l'accélération de phase 2, y compris si la transition se produit exactement à la fin du pas ;
+- traitement du temps restant après une transition ;
+- gestion de plusieurs événements dans un seul grand pas ;
+- priorité donnée à la fin du banc en cas d'événements simultanés ;
+- absence de dépassement de la fin du banc et de vitesse négative ;
+- résultats indépendants du fractionnement temporel, à la précision numérique près ;
+- fonctions pures et objets de résultat immuables.
 
-La force motrice est `m2 × g` et le frottement sur `S1` vaut `µ × m1 × g`.
-
-```text
-a1 = max(0, (m2 g - µ m1 g) / (m1 + m2))
-```
-
-Lorsque la force motrice ne dépasse pas le frottement, le système est déclaré bloqué.
-
-### Phase 2 — `S2` repose sur le socle
+## Structure
 
 ```text
-a2 = -µg
-```
-
-Sans frottement, `a2 = 0` et la vitesse de `S1` reste constante. Avec frottement, le moteur calcule l'instant exact où la vitesse devient nulle.
-
-## Contenu
-
-```text
-physics-step1/
+physics-step2/
 ├── package.json
 ├── README.md
 ├── test-report.txt
 ├── src/
 │   ├── constants.js
-│   └── physics.js
+│   ├── physics.js
+│   ├── transitions.js
+│   └── index.js
 └── test/
-    └── physics.test.js
+    ├── physics.test.js
+    └── transitions.test.js
 ```
+
+## Interface principale
+
+- `getNextPhysicalEvent(state, parameters)` : détermine le prochain événement et son temps relatif ;
+- `advanceWithinCurrentPhase(state, parameters, duration)` : intègre un intervalle sans changer de phase ;
+- `advanceToPhysicalEvent(state, parameters, event)` : avance exactement jusqu'à un événement et l'applique ;
+- `advanceSimulationWithEvents(state, parameters, dt)` : traite tous les événements rencontrés et retourne `{ state, events }` ;
+- `advanceSimulation(state, parameters, dt)` : interface compatible avec l'étape 1, retournant uniquement l'état.
+
+Chaque événement enregistré contient son type, son temps absolu, sa position, sa vitesse, la phase de départ, la phase d'arrivée et l'état final éventuel.
 
 ## Exécution des tests
 
@@ -58,23 +55,4 @@ Pré-requis : Node.js 18 ou plus récent.
 npm test
 ```
 
-Le projet ne possède aucune dépendance externe. Les tests utilisent le module natif `node:test`.
-
-## Fonctions exposées
-
-- `getGravity(gravityMode)` ;
-- `validateParameters(parameters)` ;
-- `computePhase1Acceleration(parameters)` ;
-- `computePhase2Acceleration(parameters, velocity)` ;
-- `computePhase1EndVelocity(parameters)` ;
-- `timeToReachPosition(...)` ;
-- `timeToStop(velocity, acceleration)` ;
-- `integrateConstantAcceleration(...)` ;
-- `createInitialState(parameters)` ;
-- `advanceSimulation(state, parameters, dt)`.
-
-`advanceSimulation` est une fonction pure. Elle traite exactement, même au milieu d'un pas de temps :
-
-- la transition entre les deux phases ;
-- l'arrêt par frottement ;
-- l'arrivée à l'extrémité du banc.
+Le projet ne possède aucune dépendance externe.
