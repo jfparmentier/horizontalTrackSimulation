@@ -1,29 +1,27 @@
-# Étape 2 — Gestion exacte des changements de phase
+# Étape 3 — Boucle temporelle à pas physique fixe
 
-Cette archive prolonge l'étape 1 du moteur physique. Elle isole la détection et le traitement des événements physiques afin qu'un changement de phase soit calculé à son instant exact, même lorsqu'il se produit au milieu d'un grand pas de temps.
+Cette archive prolonge les étapes 1 et 2. Elle ajoute une boucle temporelle indépendante de la fréquence d'affichage, conçue pour être raccordée ultérieurement au rendu SVG de la simulation.
 
-## Événements traités
+## Principes retenus
 
-- arrivée de `S2` sur le socle : passage exact de la phase 1 à la phase 2 ;
-- arrivée de `S1` à la fin du banc ;
-- arrêt de `S1` par frottement en phase 2 ;
-- système initialement bloqué lorsque la force motrice est insuffisante.
-
-## Propriétés garanties
-
-- continuité de la position et de la vitesse au changement de phase ;
-- mise à jour immédiate de l'accélération de phase 2, y compris si la transition se produit exactement à la fin du pas ;
-- traitement du temps restant après une transition ;
-- gestion de plusieurs événements dans un seul grand pas ;
-- priorité donnée à la fin du banc en cas d'événements simultanés ;
-- absence de dépassement de la fin du banc et de vitesse négative ;
-- résultats indépendants du fractionnement temporel, à la précision numérique près ;
-- fonctions pures et objets de résultat immuables.
+- calcul physique avec un pas fixe de `0,002 s` par défaut ;
+- affichage piloté par `requestAnimationFrame` ;
+- accumulation du temps mural entre deux images ;
+- conservation du reliquat inférieur à un pas physique ;
+- vitesse de lecture réglable de `0,1×` à `8×` ;
+- limitation des longues interruptions d'affichage à `0,25 s` par image ;
+- garde contre la « spirale de la mort » avec un nombre maximal de sous-pas ;
+- arrêt automatique de la boucle lorsque le mobile atteint la fin du banc, s'arrête par frottement ou reste bloqué ;
+- commandes `start`, `pause`, `step`, `reset`, `replaceState` et `destroy` ;
+- pas à pas de `0,05 s` par défaut, avec consommation exacte d'un éventuel dernier sous-pas ;
+- remontée groupée des événements physiques produits durant une image ;
+- callbacks de rendu contenant l'état courant, l'état précédent et des métadonnées temporelles ;
+- aucune dépendance externe.
 
 ## Structure
 
 ```text
-physics-step2/
+physics-step3/
 ├── package.json
 ├── README.md
 ├── test-report.txt
@@ -31,21 +29,47 @@ physics-step2/
 │   ├── constants.js
 │   ├── physics.js
 │   ├── transitions.js
+│   ├── time-loop.js
 │   └── index.js
 └── test/
     ├── physics.test.js
-    └── transitions.test.js
+    ├── transitions.test.js
+    └── time-loop.test.js
 ```
 
 ## Interface principale
 
-- `getNextPhysicalEvent(state, parameters)` : détermine le prochain événement et son temps relatif ;
-- `advanceWithinCurrentPhase(state, parameters, duration)` : intègre un intervalle sans changer de phase ;
-- `advanceToPhysicalEvent(state, parameters, event)` : avance exactement jusqu'à un événement et l'applique ;
-- `advanceSimulationWithEvents(state, parameters, dt)` : traite tous les événements rencontrés et retourne `{ state, events }` ;
-- `advanceSimulation(state, parameters, dt)` : interface compatible avec l'étape 1, retournant uniquement l'état.
+```javascript
+const loop = createTimeLoop({
+  parameters,
+  onRender(state, previousState, meta) {
+    // Le futur SVG sera actualisé ici.
+  },
+  onEvents(events, state) {
+    // Les futurs capteurs et journaux seront actualisés ici.
+  }
+});
 
-Chaque événement enregistré contient son type, son temps absolu, sa position, sa vitesse, la phase de départ, la phase d'arrivée et l'état final éventuel.
+loop.start();
+loop.pause();
+loop.step();       // 0,05 s par défaut
+loop.reset();
+```
+
+Dans un navigateur, `requestAnimationFrame` et `cancelAnimationFrame` sont utilisés automatiquement. Dans les tests, ces deux fonctions sont injectées au moyen d'un ordonnanceur simulé.
+
+## Métadonnées de rendu
+
+Le troisième argument de `onRender` contient notamment :
+
+- `running` ;
+- `interpolationAlpha` ;
+- `accumulator` ;
+- `playbackSpeed` ;
+- `totalPhysicsSteps` ;
+- `droppedSimulationTime` ;
+- le nombre de sous-pas exécutés durant l'image ;
+- les durées murale et physique de l'image.
 
 ## Exécution des tests
 
@@ -54,5 +78,3 @@ Pré-requis : Node.js 18 ou plus récent.
 ```bash
 npm test
 ```
-
-Le projet ne possède aucune dépendance externe.

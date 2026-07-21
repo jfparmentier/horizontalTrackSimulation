@@ -1,9 +1,9 @@
 {
-  "name": "simulation-banc-horizontal-phase-transitions",
-  "version": "0.2.0",
+  "name": "simulation-banc-horizontal-time-loop",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Moteur physique et gestion exacte des changements de phase pour la simulation du banc horizontal.",
+  "description": "Moteur physique, événements exacts et boucle temporelle à pas fixe pour la simulation du banc horizontal.",
   "scripts": {
     "test": "node --test"
   },
