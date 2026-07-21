@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG avec paramètres reliés à un état central unique.",
+  "description": "Simulation SVG avec commandes de lecture complètes et accessibles.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

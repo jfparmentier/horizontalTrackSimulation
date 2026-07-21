@@ -13,6 +13,7 @@ class FakeElement {
     this.value = "";
     this.checked = false;
     this.attributes = new Map();
+    this.dataset = {};
     this.listeners = new Map();
     this._innerHTML = "";
   }
@@ -73,7 +74,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "start-button", "pause-button", "step-button", "reset-button",
-  "time-value", "position-value", "velocity-value", "phase-value",
+  "time-value", "position-value", "velocity-value", "phase-value", "control-status",
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",
@@ -87,9 +88,18 @@ for (const id of [
 }
 const host = new FakeHost();
 elements.set("#apparatus-host", host);
+const documentListeners = new Map();
 const document = {
   querySelector(selector) {
     return elements.get(selector) ?? null;
+  },
+  addEventListener(name, callback) {
+    const callbacks = documentListeners.get(name) ?? new Set();
+    callbacks.add(callback);
+    documentListeners.set(name, callbacks);
+  },
+  removeEventListener(name, callback) {
+    documentListeners.get(name)?.delete(callback);
   },
 };
 
@@ -134,6 +144,12 @@ if (elements.get("#time-value").textContent !== "0.00 s") {
 if (elements.get("#m1-number").value !== "0.5") {
   throw new Error("Les paramètres n'ont pas été synchronisés avec l'état central.");
 }
+if (elements.get("#control-status").textContent !== "Simulation prête.") {
+  throw new Error("L'état initial des commandes est incorrect.");
+}
+if (elements.get("#reset-button").disabled !== true) {
+  throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
+}
 
 elements.get("#m2-range").value = "0.4";
 elements.get("#m2-range").dispatch("input");
@@ -142,5 +158,12 @@ if (!host._innerHTML.includes("8 capteurs")) {
 }
 if (elements.get("#m2-number").value !== "0.4") {
   throw new Error("La paire de contrôles m2 n'est pas synchronisée.");
+}
+elements.get("#step-button").dispatch("click");
+if (elements.get("#time-value").textContent === "0.00 s") {
+  throw new Error("Le bouton pas à pas n'a pas fait progresser la simulation.");
+}
+if (elements.get("#start-button").textContent !== "Reprendre") {
+  throw new Error("Le libellé de reprise n'a pas été actualisé.");
 }
 console.log("Smoke test autonome réussi.");

@@ -398,6 +398,24 @@ h1 {
   background: #1e6d94;
 }
 
+
+.control-status {
+  flex: 1 1 100%;
+  min-height: 1.25rem;
+  margin: 0;
+  color: #557484;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.control-status[data-state="running"] {
+  color: #267347;
+}
+
+.control-status[data-state="terminal"] {
+  color: #8a4c22;
+}
+
 .animation-readout {
   display: flex;
   flex: 1 1 430px;

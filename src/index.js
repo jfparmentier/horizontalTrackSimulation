@@ -7,4 +7,5 @@ export * from "./apparatus-view.js";
 export * from "./apparatus-animation.js";
 export * from "./app-state.js";
 export * from "./parameter-controls.js";
+export * from "./simulation-controls.js";
 export * from "./animated-app.js";

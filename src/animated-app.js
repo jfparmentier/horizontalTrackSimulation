@@ -3,6 +3,7 @@ import { createApparatusAnimator } from "./apparatus-animation.js";
 import { mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
 import { bindParameterControls } from "./parameter-controls.js";
+import { bindSimulationControls } from "./simulation-controls.js";
 import { createTimeLoop } from "./time-loop.js";
 
 const READOUT_FORMAT = new Intl.NumberFormat("en-US", {
@@ -31,10 +32,6 @@ function phaseLabel(state) {
  */
 export function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
-  const startButton = getRequiredElement(root, "#start-button");
-  const pauseButton = getRequiredElement(root, "#pause-button");
-  const stepButton = getRequiredElement(root, "#step-button");
-  const resetButton = getRequiredElement(root, "#reset-button");
   const timeValue = getRequiredElement(root, "#time-value");
   const positionValue = getRequiredElement(root, "#position-value");
   const velocityValue = getRequiredElement(root, "#velocity-value");
@@ -46,6 +43,7 @@ export function createAnimatedApp(root = document, options = {}) {
     playbackSpeed: options.playbackSpeed,
   });
   let runtime = null;
+  let simulationControls = null;
   let destroyed = false;
 
   function updateReadout(state, meta) {
@@ -54,10 +52,6 @@ export function createAnimatedApp(root = document, options = {}) {
     velocityValue.textContent = `${READOUT_FORMAT.format(state.velocity)} m·s⁻¹`;
     phaseValue.textContent = phaseLabel(state);
 
-    const terminal = ["blocked", "finished"].includes(state.status);
-    startButton.disabled = meta.running || terminal;
-    pauseButton.disabled = !meta.running;
-    stepButton.disabled = meta.running || terminal;
   }
 
   function destroyRuntime() {
@@ -89,6 +83,7 @@ export function createAnimatedApp(root = document, options = {}) {
         animator.render(state, previousState, meta);
         appState.setSimulationState(state);
         updateReadout(state, meta);
+        simulationControls?.update(state, meta);
       },
     });
 
@@ -108,18 +103,14 @@ export function createAnimatedApp(root = document, options = {}) {
     }
   });
 
+  simulationControls = bindSimulationControls(root, {
+    appState,
+    getLoop: () => runtime?.loop,
+    manualStepDuration: options.manualStepDuration,
+    keyboardTarget: options.keyboardTarget,
+  });
   mountRuntime(appState.getSnapshot());
   const parameterControls = bindParameterControls(root, appState);
-
-  const onStart = () => runtime?.loop.start();
-  const onPause = () => runtime?.loop.pause();
-  const onStep = () => runtime?.loop.step();
-  const onReset = () => appState.resetExperiment();
-
-  startButton.addEventListener("click", onStart);
-  pauseButton.addEventListener("click", onPause);
-  stepButton.addEventListener("click", onStep);
-  resetButton.addEventListener("click", onReset);
 
   return Object.freeze({
     appState,
@@ -127,10 +118,7 @@ export function createAnimatedApp(root = document, options = {}) {
     destroy() {
       if (destroyed) return false;
       destroyed = true;
-      startButton.removeEventListener?.("click", onStart);
-      pauseButton.removeEventListener?.("click", onPause);
-      stepButton.removeEventListener?.("click", onStep);
-      resetButton.removeEventListener?.("click", onReset);
+      simulationControls?.destroy();
       parameterControls.destroy();
       unsubscribe();
       destroyRuntime();

@@ -95,6 +95,12 @@ const manifests = [
     exports: ["bindParameterControls"],
   },
   {
+    key: "simulationControls",
+    file: "src/simulation-controls.js",
+    dependencies: [],
+    exports: ["DEFAULT_MANUAL_STEP_DURATION", "bindSimulationControls"],
+  },
+  {
     key: "app",
     file: "src/animated-app.js",
     dependencies: [
@@ -103,6 +109,7 @@ const manifests = [
       ["view", ["mountStaticApparatus"]],
       ["appState", ["createAppState"]],
       ["parameterControls", ["bindParameterControls"]],
+      ["simulationControls", ["bindSimulationControls"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
     exports: ["createAnimatedApp"],
@@ -196,8 +203,9 @@ ${css}
           <button id="pause-button" class="control-button" type="button">Pause</button>
           <button id="step-button" class="control-button" type="button">Pas à pas</button>
           <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
+          <p id="control-status" class="control-status" role="status" aria-live="polite">Simulation prête.</p>
 
-          <dl class="animation-readout" aria-live="polite">
+          <dl class="animation-readout">
             <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
             <div class="readout-item"><dt>Position</dt><dd id="position-value">0.00 m</dd></div>
             <div class="readout-item"><dt>Vitesse</dt><dd id="velocity-value">0.00 m·s⁻¹</dd></div>
