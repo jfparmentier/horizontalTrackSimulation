@@ -1,380 +1,488 @@
 
-> simulation-banc-horizontal-time-loop@0.3.0 test
+> simulation-banc-horizontal-static-svg@0.4.0 test
 > node --test
 
 TAP version 13
-# Subtest: getGravity retourne les valeurs terrestre et lunaire
-ok 1 - getGravity retourne les valeurs terrestre et lunaire
+# Subtest: huit capteurs sont répartis selon x_i = iL/9
+ok 1 - huit capteurs sont répartis selon x_i = iL/9
   ---
-  duration_ms: 1.295865
+  duration_ms: 0.90337
+  type: 'test'
+  ...
+# Subtest: les capteurs excluent les deux extrémités du banc
+ok 2 - les capteurs excluent les deux extrémités du banc
+  ---
+  duration_ms: 0.268971
+  type: 'test'
+  ...
+# Subtest: la conversion affine respecte les bornes et le milieu
+ok 3 - la conversion affine respecte les bornes et le milieu
+  ---
+  duration_ms: 0.378782
+  type: 'test'
+  ...
+# Subtest: un domaine nul est refusé
+ok 4 - un domaine nul est refusé
+  ---
+  duration_ms: 0.457777
+  type: 'test'
+  ...
+# Subtest: le layout utilise le viewBox prévu et huit capteurs par défaut
+ok 5 - le layout utilise le viewBox prévu et huit capteurs par défaut
+  ---
+  duration_ms: 1.174282
+  type: 'test'
+  ...
+# Subtest: les coordonnées des capteurs croissent strictement
+ok 6 - les coordonnées des capteurs croissent strictement
+  ---
+  duration_ms: 0.46322
+  type: 'test'
+  ...
+# Subtest: un nombre personnalisé de capteurs est accepté
+ok 7 - un nombre personnalisé de capteurs est accepté
+  ---
+  duration_ms: 0.290547
+  type: 'test'
+  ...
+# Subtest: un nombre de capteurs hors plage est refusé
+ok 8 - un nombre de capteurs hors plage est refusé
+  ---
+  duration_ms: 0.220238
+  type: 'test'
+  ...
+# Subtest: les objets structurants du layout sont gelés
+ok 9 - les objets structurants du layout sont gelés
+  ---
+  duration_ms: 0.407789
+  type: 'test'
+  ...
+# Subtest: le SVG possède un viewBox, un titre et une description accessibles
+ok 10 - le SVG possède un viewBox, un titre et une description accessibles
+  ---
+  duration_ms: 3.130496
+  type: 'test'
+  ...
+# Subtest: le montage comprend exactement huit capteurs par défaut
+ok 11 - le montage comprend exactement huit capteurs par défaut
+  ---
+  duration_ms: 0.589735
+  type: 'test'
+  ...
+# Subtest: les éléments destinés à l'animation disposent d'identifiants stables
+ok 12 - les éléments destinés à l'animation disposent d'identifiants stables
+  ---
+  duration_ms: 0.535886
+  type: 'test'
+  ...
+# Subtest: le SVG affiche les paramètres physiques initiaux
+ok 13 - le SVG affiche les paramètres physiques initiaux
+  ---
+  duration_ms: 1.681773
+  type: 'test'
+  ...
+# Subtest: le choix lunaire est correctement affiché
+ok 14 - le choix lunaire est correctement affiché
+  ---
+  duration_ms: 0.417723
+  type: 'test'
+  ...
+# Subtest: un nombre personnalisé de capteurs modifie le SVG
+ok 15 - un nombre personnalisé de capteurs modifie le SVG
+  ---
+  duration_ms: 0.269391
+  type: 'test'
+  ...
+# Subtest: aucun vecteur de force, vitesse ou accélération n'est dessiné
+ok 16 - aucun vecteur de force, vitesse ou accélération n'est dessiné
+  ---
+  duration_ms: 0.362049
+  type: 'test'
+  ...
+# Subtest: mountStaticApparatus injecte le SVG dans le conteneur
+ok 17 - mountStaticApparatus injecte le SVG dans le conteneur
+  ---
+  duration_ms: 0.308107
+  type: 'test'
+  ...
+# Subtest: mountStaticApparatus refuse un conteneur invalide
+ok 18 - mountStaticApparatus refuse un conteneur invalide
+  ---
+  duration_ms: 0.608835
+  type: 'test'
+  ...
+# Subtest: getGravity retourne les valeurs terrestre et lunaire
+ok 19 - getGravity retourne les valeurs terrestre et lunaire
+  ---
+  duration_ms: 1.118462
   type: 'test'
   ...
 # Subtest: getGravity refuse un milieu inconnu
-ok 2 - getGravity refuse un milieu inconnu
+ok 20 - getGravity refuse un milieu inconnu
   ---
-  duration_ms: 0.394449
+  duration_ms: 0.488388
   type: 'test'
   ...
 # Subtest: validateParameters accepte les paramètres par défaut et retourne une copie figée
-ok 3 - validateParameters accepte les paramètres par défaut et retourne une copie figée
+ok 21 - validateParameters accepte les paramètres par défaut et retourne une copie figée
   ---
-  duration_ms: 0.803675
+  duration_ms: 0.869329
   type: 'test'
   ...
 # Subtest: validateParameters accepte les bornes définies
-ok 4 - validateParameters accepte les bornes définies
+ok 22 - validateParameters accepte les bornes définies
   ---
-  duration_ms: 0.271156
+  duration_ms: 1.492146
   type: 'test'
   ...
 # Subtest: validateParameters refuse les valeurs hors plage
-ok 5 - validateParameters refuse les valeurs hors plage
+ok 23 - validateParameters refuse les valeurs hors plage
   ---
-  duration_ms: 0.274514
+  duration_ms: 0.437145
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration applique la relation sans frottement
-ok 6 - computePhase1Acceleration applique la relation sans frottement
+ok 24 - computePhase1Acceleration applique la relation sans frottement
   ---
-  duration_ms: 0.203394
+  duration_ms: 0.184227
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration tient compte du frottement
-ok 7 - computePhase1Acceleration tient compte du frottement
+ok 25 - computePhase1Acceleration tient compte du frottement
   ---
-  duration_ms: 0.185159
+  duration_ms: 0.218261
   type: 'test'
   ...
 # Subtest: computePhase1Acceleration renvoie zéro si la force motrice est insuffisante
-ok 8 - computePhase1Acceleration renvoie zéro si la force motrice est insuffisante
+ok 26 - computePhase1Acceleration renvoie zéro si la force motrice est insuffisante
   ---
-  duration_ms: 0.195997
+  duration_ms: 0.112989
   type: 'test'
   ...
 # Subtest: l'accélération lunaire est proportionnelle à g
-ok 9 - l'accélération lunaire est proportionnelle à g
+ok 27 - l'accélération lunaire est proportionnelle à g
   ---
-  duration_ms: 0.427598
+  duration_ms: 36.42565
   type: 'test'
   ...
 # Subtest: computePhase2Acceleration renvoie zéro sans frottement
-ok 10 - computePhase2Acceleration renvoie zéro sans frottement
+ok 28 - computePhase2Acceleration renvoie zéro sans frottement
   ---
-  duration_ms: 0.490372
+  duration_ms: 0.528252
   type: 'test'
   ...
 # Subtest: computePhase2Acceleration renvoie -µg avec frottement
-ok 11 - computePhase2Acceleration renvoie -µg avec frottement
+ok 29 - computePhase2Acceleration renvoie -µg avec frottement
   ---
-  duration_ms: 0.188282
+  duration_ms: 0.245614
   type: 'test'
   ...
 # Subtest: computePhase1EndVelocity respecte v² = 2ah
-ok 12 - computePhase1EndVelocity respecte v² = 2ah
+ok 30 - computePhase1EndVelocity respecte v² = 2ah
   ---
-  duration_ms: 0.140854
+  duration_ms: 0.156389
   type: 'test'
   ...
 # Subtest: timeToReachPosition résout les mouvements accéléré et uniforme
-ok 13 - timeToReachPosition résout les mouvements accéléré et uniforme
+ok 31 - timeToReachPosition résout les mouvements accéléré et uniforme
   ---
-  duration_ms: 0.254646
+  duration_ms: 0.267515
   type: 'test'
   ...
 # Subtest: timeToReachPosition renvoie Infinity pour une cible inaccessible
-ok 14 - timeToReachPosition renvoie Infinity pour une cible inaccessible
+ok 32 - timeToReachPosition renvoie Infinity pour une cible inaccessible
   ---
-  duration_ms: 0.075244
+  duration_ms: 0.111499
   type: 'test'
   ...
 # Subtest: timeToStop calcule exactement le temps d'arrêt
-ok 15 - timeToStop calcule exactement le temps d'arrêt
+ok 33 - timeToStop calcule exactement le temps d'arrêt
   ---
-  duration_ms: 0.097945
+  duration_ms: 0.10451
   type: 'test'
   ...
 # Subtest: integrateConstantAcceleration calcule position et vitesse exactement
-ok 16 - integrateConstantAcceleration calcule position et vitesse exactement
+ok 34 - integrateConstantAcceleration calcule position et vitesse exactement
   ---
-  duration_ms: 0.142121
+  duration_ms: 0.158874
   type: 'test'
   ...
 # Subtest: createInitialState impose x0 = 0 et v0 = 0
-ok 17 - createInitialState impose x0 = 0 et v0 = 0
+ok 35 - createInitialState impose x0 = 0 et v0 = 0
   ---
-  duration_ms: 0.117046
+  duration_ms: 0.12048
   type: 'test'
   ...
 # Subtest: validateSimulationState refuse un état situé hors du banc
-ok 18 - validateSimulationState refuse un état situé hors du banc
+ok 36 - validateSimulationState refuse un état situé hors du banc
   ---
-  duration_ms: 0.185899
+  duration_ms: 0.18724
   type: 'test'
   ...
 # Subtest: la construction exige un ordonnanceur d'animation sous Node.js
-ok 19 - la construction exige un ordonnanceur d'animation sous Node.js
+ok 37 - la construction exige un ordonnanceur d'animation sous Node.js
   ---
-  duration_ms: 1.55394
+  duration_ms: 3.038237
   type: 'test'
   ...
 # Subtest: la boucle produit un rendu initial sans avancer la physique
-ok 20 - la boucle produit un rendu initial sans avancer la physique
+ok 38 - la boucle produit un rendu initial sans avancer la physique
   ---
-  duration_ms: 0.457836
+  duration_ms: 0.438885
   type: 'test'
   ...
 # Subtest: start est idempotent et ne programme qu'une seule image
-ok 21 - start est idempotent et ne programme qu'une seule image
+ok 39 - start est idempotent et ne programme qu'une seule image
   ---
-  duration_ms: 0.284106
+  duration_ms: 0.268147
   type: 'test'
   ...
 # Subtest: la première image sert uniquement d'ancrage temporel
-ok 22 - la première image sert uniquement d'ancrage temporel
+ok 40 - la première image sert uniquement d'ancrage temporel
   ---
-  duration_ms: 1.560105
+  duration_ms: 0.28363
   type: 'test'
   ...
 # Subtest: la durée murale est convertie en sous-pas physiques fixes
-ok 23 - la durée murale est convertie en sous-pas physiques fixes
+ok 41 - la durée murale est convertie en sous-pas physiques fixes
   ---
-  duration_ms: 1.572097
+  duration_ms: 37.694852
   type: 'test'
   ...
 # Subtest: le reliquat inférieur au pas est conservé d'une image à l'autre
-ok 24 - le reliquat inférieur au pas est conservé d'une image à l'autre
+ok 42 - le reliquat inférieur au pas est conservé d'une image à l'autre
   ---
-  duration_ms: 0.703839
+  duration_ms: 0.942813
   type: 'test'
   ...
 # Subtest: le résultat est indépendant de la fréquence de rendu
-ok 25 - le résultat est indépendant de la fréquence de rendu
+ok 43 - le résultat est indépendant de la fréquence de rendu
   ---
-  duration_ms: 19.840224
+  duration_ms: 19.981318
   type: 'test'
   ...
 # Subtest: pause annule l'image programmée et fige l'état
-ok 26 - pause annule l'image programmée et fige l'état
+ok 44 - pause annule l'image programmée et fige l'état
   ---
-  duration_ms: 0.391386
+  duration_ms: 0.409764
   type: 'test'
   ...
 # Subtest: reprendre après une pause n'intègre pas le temps écoulé pendant la pause
-ok 27 - reprendre après une pause n'intègre pas le temps écoulé pendant la pause
+ok 45 - reprendre après une pause n'intègre pas le temps écoulé pendant la pause
   ---
-  duration_ms: 0.701786
+  duration_ms: 0.685759
   type: 'test'
   ...
 # Subtest: la vitesse de lecture multiplie le temps physique
-ok 28 - la vitesse de lecture multiplie le temps physique
+ok 46 - la vitesse de lecture multiplie le temps physique
   ---
-  duration_ms: 5.288875
+  duration_ms: 1.045073
   type: 'test'
   ...
 # Subtest: la vitesse de lecture peut être modifiée pendant l'exécution
-ok 29 - la vitesse de lecture peut être modifiée pendant l'exécution
+ok 47 - la vitesse de lecture peut être modifiée pendant l'exécution
   ---
-  duration_ms: 0.539185
+  duration_ms: 0.577108
   type: 'test'
   ...
 # Subtest: les vitesses de lecture hors limites sont refusées
-ok 30 - les vitesses de lecture hors limites sont refusées
+ok 48 - les vitesses de lecture hors limites sont refusées
   ---
-  duration_ms: 0.253421
+  duration_ms: 0.236305
   type: 'test'
   ...
 # Subtest: un long gel d'onglet est limité par maxWallDelta
-ok 31 - un long gel d'onglet est limité par maxWallDelta
+ok 49 - un long gel d'onglet est limité par maxWallDelta
   ---
-  duration_ms: 0.546551
+  duration_ms: 0.983555
   type: 'test'
   ...
 # Subtest: la garde maxSubStepsPerFrame élimine proprement l'arriéré excessif
-ok 32 - la garde maxSubStepsPerFrame élimine proprement l'arriéré excessif
+ok 50 - la garde maxSubStepsPerFrame élimine proprement l'arriéré excessif
   ---
-  duration_ms: 0.219681
+  duration_ms: 0.615129
   type: 'test'
   ...
 # Subtest: le pas à pas consomme exactement la durée demandée
-ok 33 - le pas à pas consomme exactement la durée demandée
+ok 51 - le pas à pas consomme exactement la durée demandée
   ---
-  duration_ms: 0.439179
+  duration_ms: 0.545628
   type: 'test'
   ...
 # Subtest: le pas à pas accepte une durée non multiple du pas physique
-ok 34 - le pas à pas accepte une durée non multiple du pas physique
+ok 52 - le pas à pas accepte une durée non multiple du pas physique
   ---
-  duration_ms: 0.191236
+  duration_ms: 0.217528
   type: 'test'
   ...
 # Subtest: le pas à pas met automatiquement en pause une boucle active
-ok 35 - le pas à pas met automatiquement en pause une boucle active
+ok 53 - le pas à pas met automatiquement en pause une boucle active
   ---
-  duration_ms: 0.163457
+  duration_ms: 0.194337
   type: 'test'
   ...
 # Subtest: les événements de changement de phase sont regroupés et transmis
-ok 36 - les événements de changement de phase sont regroupés et transmis
+ok 54 - les événements de changement de phase sont regroupés et transmis
   ---
-  duration_ms: 2.105035
+  duration_ms: 1.644763
   type: 'test'
   ...
 # Subtest: un état terminal arrête la programmation de nouvelles images
-ok 37 - un état terminal arrête la programmation de nouvelles images
+ok 55 - un état terminal arrête la programmation de nouvelles images
   ---
-  duration_ms: 3.737445
+  duration_ms: 3.975076
   type: 'test'
   ...
 # Subtest: start ne redémarre pas un état terminal
-ok 38 - start ne redémarre pas un état terminal
+ok 56 - start ne redémarre pas un état terminal
   ---
-  duration_ms: 0.906106
+  duration_ms: 0.823317
   type: 'test'
   ...
 # Subtest: reset restaure x0, v0, le compteur et les paramètres
-ok 39 - reset restaure x0, v0, le compteur et les paramètres
+ok 57 - reset restaure x0, v0, le compteur et les paramètres
   ---
-  duration_ms: 1.169052
+  duration_ms: 1.212432
   type: 'test'
   ...
 # Subtest: replaceState permet de reprendre depuis un état physique valide
-ok 40 - replaceState permet de reprendre depuis un état physique valide
+ok 58 - replaceState permet de reprendre depuis un état physique valide
   ---
-  duration_ms: 0.191451
+  duration_ms: 0.223892
   type: 'test'
   ...
 # Subtest: les états et métadonnées fournis au rendu sont immuables
-ok 41 - les états et métadonnées fournis au rendu sont immuables
+ok 59 - les états et métadonnées fournis au rendu sont immuables
   ---
-  duration_ms: 0.184323
+  duration_ms: 0.240309
   type: 'test'
   ...
 # Subtest: un horodatage décroissant ne fait pas reculer le temps
-ok 42 - un horodatage décroissant ne fait pas reculer le temps
+ok 60 - un horodatage décroissant ne fait pas reculer le temps
   ---
-  duration_ms: 0.277798
+  duration_ms: 0.229731
   type: 'test'
   ...
 # Subtest: destroy annule définitivement la boucle
-ok 43 - destroy annule définitivement la boucle
+ok 61 - destroy annule définitivement la boucle
   ---
-  duration_ms: 0.438388
+  duration_ms: 0.15284
   type: 'test'
   ...
 # Subtest: les options temporelles invalides sont refusées
-ok 44 - les options temporelles invalides sont refusées
+ok 62 - les options temporelles invalides sont refusées
   ---
-  duration_ms: 0.214543
+  duration_ms: 0.18314
   type: 'test'
   ...
 # Subtest: getNextPhysicalEvent détermine exactement la transition vers la phase 2
-ok 45 - getNextPhysicalEvent détermine exactement la transition vers la phase 2
+ok 63 - getNextPhysicalEvent détermine exactement la transition vers la phase 2
   ---
-  duration_ms: 2.171722
+  duration_ms: 1.894832
   type: 'test'
   ...
 # Subtest: advanceToPhysicalEvent conserve la vitesse lors du changement de phase
-ok 46 - advanceToPhysicalEvent conserve la vitesse lors du changement de phase
+ok 64 - advanceToPhysicalEvent conserve la vitesse lors du changement de phase
   ---
-  duration_ms: 0.725657
+  duration_ms: 0.779381
   type: 'test'
   ...
 # Subtest: un changement de phase placé exactement en fin de pas met déjà l'accélération de phase 2
-ok 47 - un changement de phase placé exactement en fin de pas met déjà l'accélération de phase 2
+ok 65 - un changement de phase placé exactement en fin de pas met déjà l'accélération de phase 2
   ---
-  duration_ms: 0.557081
+  duration_ms: 0.508616
   type: 'test'
   ...
 # Subtest: advanceSimulation traite le temps restant après la transition
-ok 48 - advanceSimulation traite le temps restant après la transition
+ok 66 - advanceSimulation traite le temps restant après la transition
   ---
-  duration_ms: 1.53464
+  duration_ms: 0.388717
   type: 'test'
   ...
 # Subtest: un grand pas peut produire une transition puis un arrêt par frottement
-ok 49 - un grand pas peut produire une transition puis un arrêt par frottement
+ok 67 - un grand pas peut produire une transition puis un arrêt par frottement
   ---
-  duration_ms: 1.01478
+  duration_ms: 0.883325
   type: 'test'
   ...
 # Subtest: un grand pas peut produire une transition puis la fin du banc
-ok 50 - un grand pas peut produire une transition puis la fin du banc
+ok 68 - un grand pas peut produire une transition puis la fin du banc
   ---
-  duration_ms: 0.291729
+  duration_ms: 0.27327
   type: 'test'
   ...
 # Subtest: la fin du banc est prioritaire si elle coïncide avec la fin de chute
-ok 51 - la fin du banc est prioritaire si elle coïncide avec la fin de chute
+ok 69 - la fin du banc est prioritaire si elle coïncide avec la fin de chute
   ---
-  duration_ms: 0.378443
+  duration_ms: 0.360813
   type: 'test'
   ...
 # Subtest: la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottement
-ok 52 - la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottement
+ok 70 - la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottement
   ---
-  duration_ms: 0.275434
+  duration_ms: 0.282433
   type: 'test'
   ...
 # Subtest: la transition est traitée immédiatement si un état de phase 1 est déjà à h
-ok 53 - la transition est traitée immédiatement si un état de phase 1 est déjà à h
+ok 71 - la transition est traitée immédiatement si un état de phase 1 est déjà à h
   ---
-  duration_ms: 0.449739
+  duration_ms: 0.500912
   type: 'test'
   ...
 # Subtest: le système bloqué produit un événement à t = 0
-ok 54 - le système bloqué produit un événement à t = 0
+ok 72 - le système bloqué produit un événement à t = 0
   ---
-  duration_ms: 0.541408
+  duration_ms: 0.463956
   type: 'test'
   ...
 # Subtest: l'arrêt par frottement est localisé exactement
-ok 55 - l'arrêt par frottement est localisé exactement
+ok 73 - l'arrêt par frottement est localisé exactement
   ---
-  duration_ms: 0.303728
+  duration_ms: 0.61164
   type: 'test'
   ...
 # Subtest: la fin du banc est localisée exactement en mouvement uniforme
-ok 56 - la fin du banc est localisée exactement en mouvement uniforme
+ok 74 - la fin du banc est localisée exactement en mouvement uniforme
   ---
-  duration_ms: 0.213429
+  duration_ms: 0.198981
   type: 'test'
   ...
 # Subtest: le résultat est invariant entre un grand pas et des pas fractionnés
-ok 57 - le résultat est invariant entre un grand pas et des pas fractionnés
+ok 75 - le résultat est invariant entre un grand pas et des pas fractionnés
   ---
-  duration_ms: 4.188443
+  duration_ms: 4.991809
   type: 'test'
   ...
 # Subtest: les événements sont horodatés dans l'ordre et sont immuables
-ok 58 - les événements sont horodatés dans l'ordre et sont immuables
+ok 76 - les événements sont horodatés dans l'ordre et sont immuables
   ---
-  duration_ms: 0.302718
+  duration_ms: 0.256394
   type: 'test'
   ...
 # Subtest: advanceWithinCurrentPhase ne change jamais la phase
-ok 59 - advanceWithinCurrentPhase ne change jamais la phase
+ok 77 - advanceWithinCurrentPhase ne change jamais la phase
   ---
-  duration_ms: 0.146625
+  duration_ms: 0.520885
   type: 'test'
   ...
 # Subtest: advanceSimulation ne modifie pas l'état fourni
-ok 60 - advanceSimulation ne modifie pas l'état fourni
+ok 78 - advanceSimulation ne modifie pas l'état fourni
   ---
-  duration_ms: 0.211908
+  duration_ms: 0.27062
   type: 'test'
   ...
 # Subtest: advanceSimulation refuse un pas de temps négatif
-ok 61 - advanceSimulation refuse un pas de temps négatif
+ok 79 - advanceSimulation refuse un pas de temps négatif
   ---
-  duration_ms: 0.576013
+  duration_ms: 0.448758
   type: 'test'
   ...
-1..61
-# tests 61
+1..79
+# tests 79
 # suites 0
-# pass 61
+# pass 79
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 158.705577
+# duration_ms 246.532422

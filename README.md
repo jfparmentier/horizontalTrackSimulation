@@ -1,80 +1,71 @@
-# Étape 3 — Boucle temporelle à pas physique fixe
+# Étape 4 — Montage expérimental statique en SVG
 
-Cette archive prolonge les étapes 1 et 2. Elle ajoute une boucle temporelle indépendante de la fréquence d'affichage, conçue pour être raccordée ultérieurement au rendu SVG de la simulation.
+Cette archive prolonge les trois premières étapes du projet. Elle ajoute le dessin statique et accessible du montage expérimental, entièrement en SVG et sans dépendance externe.
 
-## Principes retenus
+## Contenu du montage
 
-- calcul physique avec un pas fixe de `0,002 s` par défaut ;
-- affichage piloté par `requestAnimationFrame` ;
-- accumulation du temps mural entre deux images ;
-- conservation du reliquat inférieur à un pas physique ;
-- vitesse de lecture réglable de `0,1×` à `8×` ;
-- limitation des longues interruptions d'affichage à `0,25 s` par image ;
-- garde contre la « spirale de la mort » avec un nombre maximal de sous-pas ;
-- arrêt automatique de la boucle lorsque le mobile atteint la fin du banc, s'arrête par frottement ou reste bloqué ;
-- commandes `start`, `pause`, `step`, `reset`, `replaceState` et `destroy` ;
-- pas à pas de `0,05 s` par défaut, avec consommation exacte d'un éventuel dernier sous-pas ;
-- remontée groupée des événements physiques produits durant une image ;
-- callbacks de rendu contenant l'état courant, l'état précédent et des métadonnées temporelles ;
-- aucune dépendance externe.
+- banc horizontal avec origine `x = 0` ;
+- règle graduée adaptée à la longueur physique du banc ;
+- mobile `S1` à sa position initiale ;
+- poulie et support ;
+- fil tendu ;
+- masse suspendue `S2` ;
+- socle et indication de la hauteur de chute ;
+- huit capteurs régulièrement espacés par défaut ;
+- indication de la phase initiale et du milieu gravitationnel ;
+- aucune représentation des vecteurs force, vitesse ou accélération.
+
+Le SVG possède des groupes, identifiants et attributs `data-role` stables. Ils prépareront l'étape suivante, consacrée à l'animation du mobile, de la masse suspendue et du fil.
 
 ## Structure
 
 ```text
-physics-step3/
+physics-step4/
+├── index.html
 ├── package.json
 ├── README.md
 ├── test-report.txt
+├── preview.png
 ├── src/
+│   ├── apparatus.css
+│   ├── apparatus-geometry.js
+│   ├── apparatus-view.js
 │   ├── constants.js
+│   ├── index.js
 │   ├── physics.js
-│   ├── transitions.js
+│   ├── static-app.js
 │   ├── time-loop.js
-│   └── index.js
+│   └── transitions.js
 └── test/
+    ├── apparatus-geometry.test.js
+    ├── apparatus-view.test.js
     ├── physics.test.js
-    ├── transitions.test.js
-    └── time-loop.test.js
+    ├── time-loop.test.js
+    └── transitions.test.js
 ```
 
-## Interface principale
+## Visualisation
 
-```javascript
-const loop = createTimeLoop({
-  parameters,
-  onRender(state, previousState, meta) {
-    // Le futur SVG sera actualisé ici.
-  },
-  onEvents(events, state) {
-    // Les futurs capteurs et journaux seront actualisés ici.
-  }
-});
+Depuis le dossier décompressé :
 
-loop.start();
-loop.pause();
-loop.step();       // 0,05 s par défaut
-loop.reset();
+```bash
+npm run serve
 ```
 
-Dans un navigateur, `requestAnimationFrame` et `cancelAnimationFrame` sont utilisés automatiquement. Dans les tests, ces deux fonctions sont injectées au moyen d'un ordonnanceur simulé.
+Puis ouvrir `http://localhost:8000`.
 
-## Métadonnées de rendu
+Le fichier `index.html` peut aussi être ouvert directement dans un navigateur moderne. Aucun téléchargement de ressource externe n'est effectué.
 
-Le troisième argument de `onRender` contient notamment :
-
-- `running` ;
-- `interpolationAlpha` ;
-- `accumulator` ;
-- `playbackSpeed` ;
-- `totalPhysicsSteps` ;
-- `droppedSimulationTime` ;
-- le nombre de sous-pas exécutés durant l'image ;
-- les durées murale et physique de l'image.
-
-## Exécution des tests
+## Tests
 
 Pré-requis : Node.js 18 ou plus récent.
 
 ```bash
 npm test
 ```
+
+Les tests couvrent le moteur physique des étapes précédentes, la géométrie SVG, la répartition des capteurs, l'accessibilité du SVG et la présence des futurs points d'ancrage de l'animation.
+
+## Ouverture locale
+
+Le fichier `index.html` est entièrement autonome pour cet aperçu statique : le CSS et le SVG sont intégrés directement dans le document. Il peut donc être ouvert par double-clic avec une adresse `file://`, sans serveur local. Les modules du dossier `src/` restent disponibles pour les étapes suivantes du développement.

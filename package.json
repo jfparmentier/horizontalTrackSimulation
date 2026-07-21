@@ -1,11 +1,12 @@
 {
-  "name": "simulation-banc-horizontal-time-loop",
-  "version": "0.3.0",
+  "name": "simulation-banc-horizontal-static-svg",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
-  "description": "Moteur physique, événements exacts et boucle temporelle à pas fixe pour la simulation du banc horizontal.",
+  "description": "Moteur physique, boucle temporelle et montage expérimental statique entièrement dessiné en SVG.",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "serve": "python3 -m http.server 8000"
   },
   "engines": {
     "node": ">=18"
