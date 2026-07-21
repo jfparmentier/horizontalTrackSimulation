@@ -135,15 +135,6 @@ ${css}
 </head>
 <body>
   <main class="page-shell">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow">Simulation de mécanique</p>
-        <h1>Glissement d’un mobile sur un banc horizontal</h1>
-        <p class="page-subtitle">Animation de S1, S2 et du fil, pilotée par le moteur physique à pas fixe.</p>
-      </div>
-      <span class="stage-label">Étape 5 · animation SVG</span>
-    </header>
-
     <section class="apparatus-card" aria-label="Montage expérimental animé">
       <div id="apparatus-host" class="apparatus-host"></div>
       <div class="animation-controls" aria-label="Commandes de démonstration">
