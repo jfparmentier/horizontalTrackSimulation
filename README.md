@@ -1,71 +1,39 @@
-# Étape 4 — Montage expérimental statique en SVG
+# Étape 5 — Animation SVG de S1, S2 et du fil
 
-Cette archive prolonge les trois premières étapes du projet. Elle ajoute le dessin statique et accessible du montage expérimental, entièrement en SVG et sans dépendance externe.
+Cette version relie le moteur physique des étapes précédentes au montage SVG.
 
-## Contenu du montage
+## Fonctionnalités ajoutées
 
-- banc horizontal avec origine `x = 0` ;
-- règle graduée adaptée à la longueur physique du banc ;
-- mobile `S1` à sa position initiale ;
-- poulie et support ;
-- fil tendu ;
-- masse suspendue `S2` ;
-- socle et indication de la hauteur de chute ;
-- huit capteurs régulièrement espacés par défaut ;
-- indication de la phase initiale et du milieu gravitationnel ;
-- aucune représentation des vecteurs force, vitesse ou accélération.
+- déplacement horizontal de S1 selon la position physique calculée ;
+- descente de S2 pendant la phase 1 ;
+- immobilisation de S2 lorsque son bord inférieur atteint le haut du support ;
+- fil horizontal et tendu pendant la phase 1 ;
+- fil détendu et incurvé pendant la phase 2 ;
+- interpolation entre deux pas physiques pour un rendu fluide ;
+- arrêt visuel exact de S1 au bord du banc ;
+- commandes minimales de démonstration : démarrer, pause, pas à pas et réinitialiser ;
+- fichier `index.html` entièrement autonome, ouvrable directement par double-clic.
 
-Le SVG possède des groupes, identifiants et attributs `data-role` stables. Ils prépareront l'étape suivante, consacrée à l'animation du mobile, de la masse suspendue et du fil.
+## Fichiers principaux
 
-## Structure
+- `src/apparatus-animation.js` : calcul pur de la géométrie animée et rendu DOM/SVG ;
+- `src/animated-app.js` : raccordement du montage, de l’animateur et de la boucle temporelle ;
+- `src/apparatus-view.js` : construction du SVG statique ;
+- `src/time-loop.js` : boucle à pas physique fixe ;
+- `index.html` : démonstration autonome sans ressource externe ;
+- `scripts/build-standalone.mjs` : reconstruction du fichier HTML autonome ;
+- `scripts/smoke-standalone.mjs` : contrôle d’exécution du JavaScript autonome.
 
-```text
-physics-step4/
-├── index.html
-├── package.json
-├── README.md
-├── test-report.txt
-├── preview.png
-├── src/
-│   ├── apparatus.css
-│   ├── apparatus-geometry.js
-│   ├── apparatus-view.js
-│   ├── constants.js
-│   ├── index.js
-│   ├── physics.js
-│   ├── static-app.js
-│   ├── time-loop.js
-│   └── transitions.js
-└── test/
-    ├── apparatus-geometry.test.js
-    ├── apparatus-view.test.js
-    ├── physics.test.js
-    ├── time-loop.test.js
-    └── transitions.test.js
-```
+## Utilisation
 
-## Visualisation
-
-Depuis le dossier décompressé :
-
-```bash
-npm run serve
-```
-
-Puis ouvrir `http://localhost:8000`.
-
-Le fichier `index.html` peut aussi être ouvert directement dans un navigateur moderne. Aucun téléchargement de ressource externe n'est effectué.
+Ouvrir directement `index.html` dans un navigateur récent.
 
 ## Tests
 
-Pré-requis : Node.js 18 ou plus récent.
-
 ```bash
 npm test
+npm run build
+npm run smoke
 ```
 
-Les tests couvrent le moteur physique des étapes précédentes, la géométrie SVG, la répartition des capteurs, l'accessibilité du SVG et la présence des futurs points d'ancrage de l'animation.
-
-## Ouverture locale
-
-Le fichier `index.html` est entièrement autonome pour cet aperçu statique : le CSS et le SVG sont intégrés directement dans le document. Il peut donc être ouvert par double-clic avec une adresse `file://`, sans serveur local. Les modules du dossier `src/` restent disponibles pour les étapes suivantes du développement.
+La suite comprend 95 tests automatisés portant sur le moteur physique, les changements de phase, la boucle temporelle, le SVG et l’intégration de l’animation.

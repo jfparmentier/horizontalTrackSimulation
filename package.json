@@ -1,11 +1,13 @@
 {
-  "name": "simulation-banc-horizontal-static-svg",
-  "version": "0.4.0",
+  "name": "simulation-banc-horizontal-animated-svg",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
-  "description": "Moteur physique, boucle temporelle et montage expérimental statique entièrement dessiné en SVG.",
+  "description": "Moteur physique, boucle temporelle et animation SVG de S1, S2 et du fil.",
   "scripts": {
     "test": "node --test",
+    "build": "node scripts/build-standalone.mjs",
+    "smoke": "node scripts/smoke-standalone.mjs",
     "serve": "python3 -m http.server 8000"
   },
   "engines": {
