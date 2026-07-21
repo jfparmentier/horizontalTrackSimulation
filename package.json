@@ -1,0 +1,13 @@
+{
+  "name": "simulation-banc-horizontal-physics",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Fonctions physiques pures et tests pour la simulation du mobile sur banc horizontal.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
