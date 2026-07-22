@@ -14,7 +14,11 @@ const GRAVITY = Object.freeze({
 const FIXED_TRACK_LENGTH = 2.0;
 const FIXED_M1 = 1.0;
 const FIXED_DROP_HEIGHT = 0.6;
-const FIXED_SENSOR_COUNT = 9;
+const FIXED_SENSOR_POSITIONS = Object.freeze([
+  0.12, 0.24, 0.36, 0.48, 0.6,
+  0.8, 1.0, 1.2, 1.4, 1.6, 1.8,
+]);
+const FIXED_SENSOR_COUNT = FIXED_SENSOR_POSITIONS.length;
 const FIXED_MOBILE_LENGTH = 0.2;
 
 const PARAMETER_LIMITS = Object.freeze({
@@ -36,7 +40,7 @@ const DEFAULT_PARAMETERS = Object.freeze({
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_MOBILE_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS, FIXED_MOBILE_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
@@ -1125,7 +1129,7 @@ return Object.freeze({ TIME_LOOP_DEFAULTS, PLAYBACK_SPEED_LIMITS, createTimeLoop
 })();
 
 modules.geometry = (() => {
-const { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
@@ -1164,8 +1168,13 @@ function assertIntegerInRange(name, value, limits) {
 }
 
 /**
- * Répartit régulièrement les capteurs sur le banc, sans en placer aux extrémités.
- * Pour neuf capteurs : x_i = iL/10, i = 1…9.
+ * Crée les capteurs aux positions expérimentales retenues. Pour la configuration
+ * fixe de onze capteurs : cinq capteurs uniformément espacés entre 0 m et
+ * 0,6 m, placés à 0,12 m, 0,24 m, 0,36 m, 0,48 m et 0,6 m, puis 0,8 m à
+ * 1,8 m par pas de 0,2 m.
+ *
+ * Une répartition uniforme reste disponible pour les configurations de test
+ * utilisant un autre nombre de capteurs.
  */
 function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.default) {
   const length = Number(trackLength);
@@ -1175,13 +1184,25 @@ function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.default) 
   }
 
   const sensorCount = assertIntegerInRange("count", count, SENSOR_COUNT_LIMITS);
+  const positions = sensorCount === FIXED_SENSOR_COUNT
+    ? FIXED_SENSOR_POSITIONS
+    : Array.from(
+      { length: sensorCount },
+      (_, index) => ((index + 1) * length) / (sensorCount + 1),
+    );
+
+  if (positions.some((position) => position <= 0 || position >= length)) {
+    throw new PhysicsParameterError(
+      "Toutes les positions de capteurs doivent appartenir strictement au banc.",
+    );
+  }
 
   return Object.freeze(
-    Array.from({ length: sensorCount }, (_, index) =>
+    positions.map((position, index) =>
       Object.freeze({
         id: index + 1,
-        position: ((index + 1) * length) / (sensorCount + 1),
-        ratio: (index + 1) / (sensorCount + 1),
+        position,
+        ratio: position / length,
       }),
     ),
   );
@@ -1434,7 +1455,7 @@ function buildStaticApparatusSvg(options = {}) {
   const description = [
     "Montage initial avec le mobile S1 sur un banc horizontal,",
     "la masse S2 suspendue par un fil passant sur une poulie,",
-    `${layout.sensorCount} capteurs régulièrement répartis et un support de réception sous S2.`,
+    `${layout.sensorCount} capteurs placés aux positions expérimentales et un support de réception sous S2.`,
   ].join(" ");
 
   return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet">
