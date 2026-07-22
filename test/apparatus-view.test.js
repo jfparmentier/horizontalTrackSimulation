@@ -9,7 +9,7 @@ import {
 const DEFAULTS = Object.freeze({
   m1: 0.5,
   m2: 0.1,
-  dropHeight: 0.5,
+  dropHeight: 0.6,
   trackLength: 2,
   friction: 0,
   gravityMode: "earth",
@@ -56,7 +56,7 @@ test("les éléments destinés à l'animation disposent d'identifiants stables",
 test("le SVG affiche seulement les indications souhaitées", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
-  assert.match(svg, />0.5 m</);
+  assert.match(svg, />0.6 m</);
   assert.match(svg, />1 kg</);
   assert.match(svg, />0.1 kg</);
   assert.doesNotMatch(svg, />S1</);
@@ -72,6 +72,13 @@ test("le SVG affiche seulement les indications souhaitées", () => {
   assert.doesNotMatch(svg, /x = 0/);
   assert.doesNotMatch(svg, /h =/);
   assert.doesNotMatch(svg, /scene-horizon/);
+});
+
+test("le trait de règle correspondant à 0,6 m est marqué en bleu par une classe dédiée", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.equal((svg.match(/ruler-tick--drop-height/g) ?? []).length, 1);
+  assert.match(svg, /class="ruler-tick ruler-tick--drop-height"[^>]+x1="349\.4"/);
 });
 
 test("la poulie, son support et la corde respectent la nouvelle géométrie", () => {

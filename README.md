@@ -56,7 +56,7 @@ La colonne `Position (m)` utilise désormais la position physique de S1 au momen
 ## Paramètres désormais fixes
 
 - masse de S1 : 1 kg ;
-- hauteur de chute : 0,5 m ;
+- hauteur de chute : 0,6 m ;
 - longueur du banc : 2 m ;
 - nombre de capteurs : 9 ;
 - gravité terrestre.
@@ -66,7 +66,7 @@ Seuls la masse de S2 et le coefficient de frottement restent réglables dans le 
 
 ## Ajustement final du rendu
 
-- hauteur du `viewBox` SVG réduite de 820 à 620 unités afin de supprimer l’espace vertical devenu inutile avec la chute fixée à 0,5 m ;
+- hauteur du `viewBox` SVG réduite de 820 à 620 unités afin de supprimer l’espace vertical devenu inutile avec la chute fixée à 0,6 m ;
 - rapport d’aspect de l’affichage mis à jour en conséquence ;
 - vitesse de lecture limitée à l’intervalle 0,1× à 1×.
 
@@ -89,3 +89,9 @@ Le bord gauche de S1, les faisceaux SVG et les positions exportées utilisent d�
 - Le dernier capteur, placé à 1,8 m, est donc franchi exactement à la fin du banc.
 - Les cadrans « Durée de chute » et « Vitesse d’impact » sont toujours visibles, grisés et vides au départ.
 - Ils deviennent actifs et sont renseignés dès le passage en phase 2, lorsque S2 atteint son support.
+
+## Ajustements graphiques récents
+
+- banc relevé de 0,1 m sans déplacement du support d’arrêt ;
+- trait de règle à 0,6 m marqué en bleu ;
+- capteurs passant directement au vert lors du franchissement.

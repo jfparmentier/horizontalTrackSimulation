@@ -161,6 +161,11 @@ h1 {
   stroke-width: 3;
 }
 
+.ruler-tick--drop-height {
+  stroke: #1976d2;
+  stroke-width: 4;
+}
+
 .ruler-label,
 .ruler-unit,
 .origin-label,
@@ -633,17 +638,17 @@ h1 {
 }
 
 .sensor[data-sensor-state="active"] .sensor-head {
-  fill: #fff1b8;
-  stroke: #d88a00;
+  fill: #e5f8ed;
+  stroke: #35a95c;
   stroke-width: 4;
 }
 
 .sensor[data-sensor-state="active"] .sensor-lens {
-  fill: #ff9f1c;
+  fill: #35a95c;
 }
 
 .sensor[data-sensor-state="active"] .sensor-beam {
-  stroke: #ff9f1c;
+  stroke: #35a95c;
   stroke-width: 5;
   opacity: 1;
 }

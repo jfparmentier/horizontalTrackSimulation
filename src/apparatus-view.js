@@ -32,13 +32,14 @@ function buildRuler(layout) {
   const ticks = ruler.ticks
     .map((tick) => {
       const major = tick.index % 5 === 0;
-      const tickHeight = major ? 16 : 10;
+      const highlighted = tick.isDropHeight;
+      const tickHeight = major || highlighted ? 16 : 10;
       const label = tick.index % 2 === 0 || tick.index === 10
         ? `<text class="ruler-label" x="${tick.x}" y="${ruler.y + 39}" text-anchor="middle">${escapeXml(tick.label)}</text>`
         : "";
 
       return `
-        <line class="ruler-tick${major ? " ruler-tick--major" : ""}" x1="${tick.x}" y1="${ruler.y}" x2="${tick.x}" y2="${ruler.y + tickHeight}" />
+        <line class="ruler-tick${major ? " ruler-tick--major" : ""}${highlighted ? " ruler-tick--drop-height" : ""}" x1="${tick.x}" y1="${ruler.y}" x2="${tick.x}" y2="${ruler.y + tickHeight}" />
         ${label}`;
     })
     .join("");

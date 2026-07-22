@@ -11,7 +11,7 @@ import {
 const DEFAULTS = Object.freeze({
   m1: 1,
   m2: 0.1,
-  dropHeight: 0.5,
+  dropHeight: 0.6,
   trackLength: 2,
   friction: 0,
   gravityMode: "earth",
@@ -102,13 +102,34 @@ test("la position maximale place le bord droit de S1 exactement à 2 m", () => {
   assert.ok(Math.abs(finalLeftX + layout.mobile.width - layout.track.endX) < 1e-9);
 });
 
-test("le viewBox est ajusté à la hauteur de chute fixe de 0,5 m", () => {
+test("le viewBox reste adapté à la hauteur de chute fixe de 0,6 m", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
   assert.equal(layout.viewBox.height, 620);
   assert.ok(layout.track.y < 300);
   assert.ok(layout.socle.y + 58 < layout.viewBox.height);
   assert.ok(layout.viewBox.height - (layout.socle.y + 58) < 40);
+});
+
+
+test("le banc est relevé de 0,1 m sans déplacer le socle en pixels", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const pixelsPerMeter = layout.motionScale.pixelsPerMeter;
+  const formerTrackY = 252;
+  const formerSocleY = 260 + layout.hangingMass.height + 0.5 * pixelsPerMeter;
+
+  assert.ok(Math.abs(layout.track.y - (formerTrackY - 0.1 * pixelsPerMeter)) < 1e-9);
+  assert.ok(Math.abs(layout.socle.y - formerSocleY) < 1e-9);
+  assert.ok(Math.abs(layout.motionScale.verticalLift - 0.1 * pixelsPerMeter) < 1e-9);
+});
+
+
+test("le trait de règle à 0,6 m est identifié", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const highlighted = layout.ruler.ticks.filter((tick) => tick.isDropHeight);
+
+  assert.equal(highlighted.length, 1);
+  assert.equal(highlighted[0].position, 0.6);
 });
 
 test("S2 est initialement séparée de la poulie", () => {

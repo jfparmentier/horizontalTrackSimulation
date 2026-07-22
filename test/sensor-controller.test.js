@@ -128,7 +128,7 @@ test("le capteur se déclenche lorsque le bord gauche de S1 traverse le faisceau
   assert.deepEqual(activeSnapshot.activeIds, [1]);
   assert.equal(
     elements.get("#sensor-1").attributes.get("data-sensor-state"),
-    "active",
+    "triggered",
   );
   assert.equal(emitted.length, 1);
   assert.equal(emitted[0].beamX, firstSensor.x);

@@ -236,7 +236,9 @@ export function createSensorController(svg, layout, options = {}) {
       triggeredIds.add(crossing.id);
       activeIds.add(crossing.id);
       const sensor = sensorsById.get(crossing.id);
-      setSensorVisualState(elements.get(crossing.id), sensor, "active");
+      // Le capteur passe directement à l’état vert déclenché, sans état
+      // visuel orange intermédiaire.
+      setSensorVisualState(elements.get(crossing.id), sensor, "triggered");
     }
 
     lastPosition = displayedPosition;

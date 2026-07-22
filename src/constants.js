@@ -8,7 +8,7 @@ export const GRAVITY = Object.freeze({
 
 export const FIXED_TRACK_LENGTH = 2.0;
 export const FIXED_M1 = 1.0;
-export const FIXED_DROP_HEIGHT = 0.5;
+export const FIXED_DROP_HEIGHT = 0.6;
 export const FIXED_SENSOR_COUNT = 9;
 export const FIXED_MOBILE_LENGTH = 0.2;
 

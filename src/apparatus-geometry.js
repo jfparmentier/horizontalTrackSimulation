@@ -116,14 +116,22 @@ export function computeApparatusLayout(options = {}) {
   // mobile utilisent donc exactement la même échelle sur toute la longueur L.
   const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
+  // Le banc est relevé graphiquement de 0,1 m. L’échelle verticale restant
+  // identique à l’échelle horizontale, le décalage vaut exactement 0,1 fois
+  // le nombre de pixels par mètre.
+  const verticalLift = 0.1 * pixelsPerMeter;
+  const trackTopY = DRAWING.trackTopY - verticalLift;
+  const rulerTopY = DRAWING.rulerTopY - verticalLift;
+  const mobileBottomY = DRAWING.mobileBottomY - verticalLift;
+  const hangingMassTopY = DRAWING.hangingMassTopY - verticalLift;
   const mobileSize = Number((FIXED_MOBILE_LENGTH * pixelsPerMeter).toFixed(6));
   const mobile = Object.freeze({
     x: positionToX(0),
-    y: DRAWING.mobileBottomY - mobileSize,
+    y: mobileBottomY - mobileSize,
     width: mobileSize,
     height: mobileSize,
     attachX: positionToX(0) + mobileSize,
-    attachY: DRAWING.mobileBottomY - mobileSize / 2,
+    attachY: mobileBottomY - mobileSize / 2,
   });
   const ropeY = mobile.attachY;
   const pulley = Object.freeze({
@@ -133,7 +141,7 @@ export function computeApparatusLayout(options = {}) {
   });
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - mobileSize / 2,
-    y: DRAWING.hangingMassTopY,
+    y: hangingMassTopY,
     width: mobileSize,
     height: mobileSize,
   });
@@ -147,8 +155,8 @@ export function computeApparatusLayout(options = {}) {
     Object.freeze({
       ...sensor,
       x: positionToX(sensor.position),
-      gateTopY: DRAWING.trackTopY - 118,
-      gateBottomY: DRAWING.trackTopY + 2,
+      gateTopY: trackTopY - 118,
+      gateBottomY: trackTopY + 2,
     }),
   );
   const rulerTicks = Object.freeze(
@@ -156,8 +164,12 @@ export function computeApparatusLayout(options = {}) {
       Object.freeze({
         index,
         ratio: index / 10,
+        position: (index / 10) * parameters.trackLength,
         x: DRAWING.trackStartX + (index / 10) * trackWidth,
         label: ((index / 10) * parameters.trackLength).toFixed(1),
+        isDropHeight: Math.abs(
+          (index / 10) * parameters.trackLength - parameters.dropHeight,
+        ) < 1e-9,
       }),
     ),
   );
@@ -168,14 +180,14 @@ export function computeApparatusLayout(options = {}) {
     sensorCount,
     track: Object.freeze({
       x: DRAWING.trackStartX,
-      y: DRAWING.trackTopY,
+      y: trackTopY,
       width: trackWidth,
       height: DRAWING.trackHeight,
       endX: DRAWING.trackEndX,
     }),
     ruler: Object.freeze({
       x: DRAWING.trackStartX,
-      y: DRAWING.rulerTopY,
+      y: rulerTopY,
       width: trackWidth,
       height: DRAWING.rulerHeight,
       ticks: rulerTicks,
@@ -189,6 +201,7 @@ export function computeApparatusLayout(options = {}) {
       pixelsPerMeter,
       horizontalTravel,
       maximumMobilePosition: parameters.trackLength - FIXED_MOBILE_LENGTH,
+      verticalLift,
     }),
     string: Object.freeze({
       startX: mobile.attachX,

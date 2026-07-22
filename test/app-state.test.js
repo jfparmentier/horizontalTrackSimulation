@@ -197,7 +197,7 @@ test("la masse de S1 et la hauteur de chute restent fixes", () => {
   });
 
   assert.equal(store.getSnapshot().parameters.m1, 1);
-  assert.equal(store.getSnapshot().parameters.dropHeight, 0.5);
+  assert.equal(store.getSnapshot().parameters.dropHeight, 0.6);
   assert.throws(() => store.updateParameters({ m1: 0.8 }), /fixée à 1 kg/i);
-  assert.throws(() => store.updateParameters({ dropHeight: 0.8 }), /fixée à 0.5 m/i);
+  assert.throws(() => store.updateParameters({ dropHeight: 0.8 }), /fixée à 0.6 m/i);
 });

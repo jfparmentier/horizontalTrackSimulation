@@ -13,7 +13,7 @@ const GRAVITY = Object.freeze({
 
 const FIXED_TRACK_LENGTH = 2.0;
 const FIXED_M1 = 1.0;
-const FIXED_DROP_HEIGHT = 0.5;
+const FIXED_DROP_HEIGHT = 0.6;
 const FIXED_SENSOR_COUNT = 9;
 const FIXED_MOBILE_LENGTH = 0.2;
 
@@ -1242,14 +1242,22 @@ function computeApparatusLayout(options = {}) {
   // mobile utilisent donc exactement la même échelle sur toute la longueur L.
   const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
+  // Le banc est relevé graphiquement de 0,1 m. L’échelle verticale restant
+  // identique à l’échelle horizontale, le décalage vaut exactement 0,1 fois
+  // le nombre de pixels par mètre.
+  const verticalLift = 0.1 * pixelsPerMeter;
+  const trackTopY = DRAWING.trackTopY - verticalLift;
+  const rulerTopY = DRAWING.rulerTopY - verticalLift;
+  const mobileBottomY = DRAWING.mobileBottomY - verticalLift;
+  const hangingMassTopY = DRAWING.hangingMassTopY - verticalLift;
   const mobileSize = Number((FIXED_MOBILE_LENGTH * pixelsPerMeter).toFixed(6));
   const mobile = Object.freeze({
     x: positionToX(0),
-    y: DRAWING.mobileBottomY - mobileSize,
+    y: mobileBottomY - mobileSize,
     width: mobileSize,
     height: mobileSize,
     attachX: positionToX(0) + mobileSize,
-    attachY: DRAWING.mobileBottomY - mobileSize / 2,
+    attachY: mobileBottomY - mobileSize / 2,
   });
   const ropeY = mobile.attachY;
   const pulley = Object.freeze({
@@ -1259,7 +1267,7 @@ function computeApparatusLayout(options = {}) {
   });
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - mobileSize / 2,
-    y: DRAWING.hangingMassTopY,
+    y: hangingMassTopY,
     width: mobileSize,
     height: mobileSize,
   });
@@ -1273,8 +1281,8 @@ function computeApparatusLayout(options = {}) {
     Object.freeze({
       ...sensor,
       x: positionToX(sensor.position),
-      gateTopY: DRAWING.trackTopY - 118,
-      gateBottomY: DRAWING.trackTopY + 2,
+      gateTopY: trackTopY - 118,
+      gateBottomY: trackTopY + 2,
     }),
   );
   const rulerTicks = Object.freeze(
@@ -1282,8 +1290,12 @@ function computeApparatusLayout(options = {}) {
       Object.freeze({
         index,
         ratio: index / 10,
+        position: (index / 10) * parameters.trackLength,
         x: DRAWING.trackStartX + (index / 10) * trackWidth,
         label: ((index / 10) * parameters.trackLength).toFixed(1),
+        isDropHeight: Math.abs(
+          (index / 10) * parameters.trackLength - parameters.dropHeight,
+        ) < 1e-9,
       }),
     ),
   );
@@ -1294,14 +1306,14 @@ function computeApparatusLayout(options = {}) {
     sensorCount,
     track: Object.freeze({
       x: DRAWING.trackStartX,
-      y: DRAWING.trackTopY,
+      y: trackTopY,
       width: trackWidth,
       height: DRAWING.trackHeight,
       endX: DRAWING.trackEndX,
     }),
     ruler: Object.freeze({
       x: DRAWING.trackStartX,
-      y: DRAWING.rulerTopY,
+      y: rulerTopY,
       width: trackWidth,
       height: DRAWING.rulerHeight,
       ticks: rulerTicks,
@@ -1315,6 +1327,7 @@ function computeApparatusLayout(options = {}) {
       pixelsPerMeter,
       horizontalTravel,
       maximumMobilePosition: parameters.trackLength - FIXED_MOBILE_LENGTH,
+      verticalLift,
     }),
     string: Object.freeze({
       startX: mobile.attachX,
@@ -1371,13 +1384,14 @@ function buildRuler(layout) {
   const ticks = ruler.ticks
     .map((tick) => {
       const major = tick.index % 5 === 0;
-      const tickHeight = major ? 16 : 10;
+      const highlighted = tick.isDropHeight;
+      const tickHeight = major || highlighted ? 16 : 10;
       const label = tick.index % 2 === 0 || tick.index === 10
         ? `<text class="ruler-label" x="${tick.x}" y="${ruler.y + 39}" text-anchor="middle">${escapeXml(tick.label)}</text>`
         : "";
 
       return `
-        <line class="ruler-tick${major ? " ruler-tick--major" : ""}" x1="${tick.x}" y1="${ruler.y}" x2="${tick.x}" y2="${ruler.y + tickHeight}" />
+        <line class="ruler-tick${major ? " ruler-tick--major" : ""}${highlighted ? " ruler-tick--drop-height" : ""}" x1="${tick.x}" y1="${ruler.y}" x2="${tick.x}" y2="${ruler.y + tickHeight}" />
         ${label}`;
     })
     .join("");
@@ -2633,7 +2647,9 @@ function createSensorController(svg, layout, options = {}) {
       triggeredIds.add(crossing.id);
       activeIds.add(crossing.id);
       const sensor = sensorsById.get(crossing.id);
-      setSensorVisualState(elements.get(crossing.id), sensor, "active");
+      // Le capteur passe directement à l’état vert déclenché, sans état
+      // visuel orange intermédiaire.
+      setSensorVisualState(elements.get(crossing.id), sensor, "triggered");
     }
 
     lastPosition = displayedPosition;
