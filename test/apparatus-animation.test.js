@@ -68,20 +68,18 @@ test("S2 atteint exactement le haut du support pour une chute h", () => {
   closeTo(frame.hangingMassY + layout.hangingMass.height, layout.socle.y);
 });
 
-test("S1 et S2 parcourent des fractions égales durant la phase 1", () => {
+test("S1 et S2 parcourent exactement la même distance graphique durant la phase 1", () => {
   const layout = computeApparatusLayout(PARAMETERS);
   const frame = computeAnimatedApparatusFrame(
     layout,
     state({ position: 0.25, hangingDisplacement: 0.25 }),
   );
 
-  const horizontalFraction = (frame.mobileX - layout.mobile.x)
-    / (layout.track.width - layout.mobile.width);
-  const verticalFraction = (frame.hangingMassY - layout.hangingMass.y)
-    / (layout.socle.y - layout.hangingMass.y - layout.hangingMass.height);
+  const horizontalPixels = frame.mobileX - layout.mobile.x;
+  const verticalPixels = frame.hangingMassY - layout.hangingMass.y;
 
-  closeTo(horizontalFraction, 0.25 / PARAMETERS.trackLength);
-  closeTo(verticalFraction, 0.25 / PARAMETERS.dropHeight);
+  closeTo(horizontalPixels, verticalPixels);
+  closeTo(horizontalPixels, 0.25 * layout.motionScale.pixelsPerMeter);
 });
 
 test("l'interpolation produit une position intermédiaire", () => {

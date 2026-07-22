@@ -8,6 +8,7 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
   const state = store.getSnapshot();
 
   assert.equal(state.parameters.m1, 0.5);
+  assert.equal(state.parameters.trackLength, 2);
   assert.equal(state.parameters.gravityMode, "earth");
   assert.equal(state.experimental.sensorCount, 8);
   assert.equal(state.playbackSpeed, 1);
@@ -179,4 +180,13 @@ test("l'état central refuse une gravité autre que la gravité terrestre", () =
     () => createAppState({ parameters: { gravityMode: "moon" } }),
     /gravité|gravity|earth/i,
   );
+});
+
+
+test("la longueur du banc reste fixée à 2 m dans l'état central", () => {
+  const store = createAppState({ parameters: { trackLength: 3 } });
+
+  assert.equal(store.getSnapshot().parameters.trackLength, 2);
+  assert.throws(() => store.updateParameters({ trackLength: 1 }), /fixée à 2 m/i);
+  assert.equal(store.getSnapshot().parameters.trackLength, 2);
 });

@@ -11,6 +11,8 @@ const GRAVITY = Object.freeze({
   earth: 9.81,
 });
 
+const FIXED_TRACK_LENGTH = 2.0;
+
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
   m2: Object.freeze({ min: 0.01, max: 2.0, unit: "kg" }),
@@ -23,14 +25,14 @@ const DEFAULT_PARAMETERS = Object.freeze({
   m1: 0.5,
   m2: 0.1,
   dropHeight: 0.5,
-  trackLength: 2.0,
+  trackLength: FIXED_TRACK_LENGTH,
   friction: 0.0,
   gravityMode: "earth",
 });
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
@@ -1092,7 +1094,7 @@ const { DEFAULT_PARAMETERS } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 500,
+  height: 820,
 });
 
 const SENSOR_COUNT_LIMITS = Object.freeze({
@@ -1116,8 +1118,7 @@ const DRAWING = Object.freeze({
   pulleyRadius: 20,
   hangingMassWidth: 76,
   hangingMassHeight: 76,
-  hangingMassTopY: 240,
-  socleTopY: 408,
+  hangingMassTopY: 270,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -1221,6 +1222,8 @@ function computeApparatusLayout(options = {}) {
     attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
   const ropeY = mobile.attachY;
+  const horizontalTravel = trackWidth - DRAWING.mobileWidth;
+  const pixelsPerMeter = horizontalTravel / parameters.trackLength;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
     y: DRAWING.hangingMassTopY,
@@ -1229,7 +1232,7 @@ function computeApparatusLayout(options = {}) {
   });
   const socle = Object.freeze({
     x: hangingMass.x - 34,
-    y: DRAWING.socleTopY,
+    y: hangingMass.y + hangingMass.height + parameters.dropHeight * pixelsPerMeter,
     width: hangingMass.width + 68,
     height: 28,
   });
@@ -1275,6 +1278,10 @@ function computeApparatusLayout(options = {}) {
     hangingMass,
     socle,
     sensors: Object.freeze(sensors),
+    motionScale: Object.freeze({
+      pixelsPerMeter,
+      horizontalTravel,
+    }),
     string: Object.freeze({
       startX: mobile.attachX,
       startY: ropeY,
@@ -1532,17 +1539,17 @@ function computeAnimatedApparatusFrame(
     layout.parameters.dropHeight,
   );
 
-  // Le bord avant de S1 atteint exactement l'extrémité du banc lorsque x = L.
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  const mobileX = layout.mobile.x
-    + (position / layout.parameters.trackLength) * mobileTravel;
+  // Les deux solides utilisent la même échelle graphique : un déplacement
+  // physique identique produit le même déplacement en pixels à l'écran.
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  const mobileX = layout.mobile.x + position * pixelsPerMeter;
   const mobileY = layout.mobile.y;
 
-  // Le bas de S2 atteint exactement le haut du support lorsque sa chute vaut h.
-  const hangingTravel = layout.socle.y
-    - (layout.hangingMass.y + layout.hangingMass.height);
+  // En phase 1, S2 descend exactement du même nombre de pixels que S1 avance.
+  // Le support a été placé à h × pixelsPerMeter sous la position initiale.
   const hangingMassY = layout.hangingMass.y
-    + (hangingDisplacement / layout.parameters.dropHeight) * hangingTravel;
+    + hangingDisplacement * pixelsPerMeter;
 
   const ropeStartX = mobileX + layout.mobile.width;
   const ropeY = layout.string.startY;
@@ -1653,7 +1660,7 @@ return Object.freeze({ computeAnimatedApparatusFrame, createApparatusAnimator })
 })();
 
 modules.appState = (() => {
-const { DEFAULT_PARAMETERS } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_TRACK_LENGTH } = modules.constants;
 const { SENSOR_COUNT_LIMITS } = modules.geometry;
 const { PLAYBACK_SPEED_LIMITS } = modules.timeLoop;
 const { PhysicsParameterError, createInitialState, validateParameters, validateSimulationState } = modules.physics;
@@ -1789,6 +1796,7 @@ function createAppState(initial = {}) {
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
+    trackLength: FIXED_TRACK_LENGTH,
   });
   const sensorCount = validateSensorCount(
     initial.experimental?.sensorCount
@@ -1858,10 +1866,19 @@ function createAppState(initial = {}) {
     if (partial === null || typeof partial !== "object") {
       throw new TypeError("Les paramètres partiels doivent être un objet.");
     }
+    if (
+      Object.hasOwn(partial, "trackLength")
+      && Number(partial.trackLength) !== FIXED_TRACK_LENGTH
+    ) {
+      throw new PhysicsParameterError(
+        `La longueur du banc est fixée à ${FIXED_TRACK_LENGTH} m.`,
+      );
+    }
 
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
+      trackLength: FIXED_TRACK_LENGTH,
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
       return snapshot;
@@ -2013,7 +2030,6 @@ const PHYSICAL_CONTROLS = Object.freeze([
   Object.freeze({ key: "m1", range: "#m1-range", number: "#m1-number" }),
   Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
   Object.freeze({ key: "dropHeight", range: "#drop-height-range", number: "#drop-height-number" }),
-  Object.freeze({ key: "trackLength", range: "#track-length-range", number: "#track-length-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 
@@ -2458,19 +2474,20 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     0,
     layout.parameters.trackLength,
   );
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  return layout.mobile.x
-    + (normalizedPosition / layout.parameters.trackLength) * mobileTravel;
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  return layout.mobile.x + normalizedPosition * pixelsPerMeter;
 }
 
 /** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
 function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
-    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
+    throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }
   return clamp(
-    ((leftEdgeX - layout.mobile.x) / mobileTravel) * layout.parameters.trackLength,
+    (leftEdgeX - layout.mobile.x) / pixelsPerMeter,
     0,
     layout.parameters.trackLength,
   );

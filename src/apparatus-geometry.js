@@ -3,7 +3,7 @@ import { PhysicsParameterError, validateParameters } from "./physics.js";
 
 export const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 500,
+  height: 820,
 });
 
 export const SENSOR_COUNT_LIMITS = Object.freeze({
@@ -27,8 +27,7 @@ const DRAWING = Object.freeze({
   pulleyRadius: 20,
   hangingMassWidth: 76,
   hangingMassHeight: 76,
-  hangingMassTopY: 240,
-  socleTopY: 408,
+  hangingMassTopY: 270,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -132,6 +131,8 @@ export function computeApparatusLayout(options = {}) {
     attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
   const ropeY = mobile.attachY;
+  const horizontalTravel = trackWidth - DRAWING.mobileWidth;
+  const pixelsPerMeter = horizontalTravel / parameters.trackLength;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
     y: DRAWING.hangingMassTopY,
@@ -140,7 +141,7 @@ export function computeApparatusLayout(options = {}) {
   });
   const socle = Object.freeze({
     x: hangingMass.x - 34,
-    y: DRAWING.socleTopY,
+    y: hangingMass.y + hangingMass.height + parameters.dropHeight * pixelsPerMeter,
     width: hangingMass.width + 68,
     height: 28,
   });
@@ -186,6 +187,10 @@ export function computeApparatusLayout(options = {}) {
     hangingMass,
     socle,
     sensors: Object.freeze(sensors),
+    motionScale: Object.freeze({
+      pixelsPerMeter,
+      horizontalTravel,
+    }),
     string: Object.freeze({
       startX: mobile.attachX,
       startY: ropeY,

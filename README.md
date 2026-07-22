@@ -44,3 +44,10 @@ La colonne `Position (m)` utilise désormais la position physique de S1 au momen
 - Le montage SVG est remonté et les deux masses sont des carrés arrondis de même taille.
 - Le fil est attaché au centre du côté droit de S1.
 - Les messages textuels d’état sous les commandes ont été supprimés.
+
+
+## Ajustements géométriques
+
+- La longueur du banc est fixée à 2 m et n’est plus réglable dans l’interface.
+- S2 est placée sous la poulie avec un espace visible.
+- Les déplacements de S1 et S2 utilisent une échelle commune en pixels par mètre ; leurs vitesses affichées sont donc identiques pendant la phase 1.

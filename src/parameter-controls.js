@@ -2,7 +2,6 @@ const PHYSICAL_CONTROLS = Object.freeze([
   Object.freeze({ key: "m1", range: "#m1-range", number: "#m1-number" }),
   Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
   Object.freeze({ key: "dropHeight", range: "#drop-height-range", number: "#drop-height-number" }),
-  Object.freeze({ key: "trackLength", range: "#track-length-range", number: "#track-length-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 

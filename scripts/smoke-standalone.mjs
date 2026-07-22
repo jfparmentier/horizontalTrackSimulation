@@ -82,7 +82,6 @@ for (const id of [
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",
-  "track-length-range", "track-length-number",
   "friction-range", "friction-number",
   "sensor-count-range", "sensor-count-number",
   "playback-speed-range", "playback-speed-number",

@@ -1,4 +1,4 @@
-import { DEFAULT_PARAMETERS } from "./constants.js";
+import { DEFAULT_PARAMETERS, FIXED_TRACK_LENGTH } from "./constants.js";
 import { SENSOR_COUNT_LIMITS } from "./apparatus-geometry.js";
 import { PLAYBACK_SPEED_LIMITS } from "./time-loop.js";
 import {
@@ -140,6 +140,7 @@ export function createAppState(initial = {}) {
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
+    trackLength: FIXED_TRACK_LENGTH,
   });
   const sensorCount = validateSensorCount(
     initial.experimental?.sensorCount
@@ -209,10 +210,19 @@ export function createAppState(initial = {}) {
     if (partial === null || typeof partial !== "object") {
       throw new TypeError("Les paramètres partiels doivent être un objet.");
     }
+    if (
+      Object.hasOwn(partial, "trackLength")
+      && Number(partial.trackLength) !== FIXED_TRACK_LENGTH
+    ) {
+      throw new PhysicsParameterError(
+        `La longueur du banc est fixée à ${FIXED_TRACK_LENGTH} m.`,
+      );
+    }
 
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
+      trackLength: FIXED_TRACK_LENGTH,
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
       return snapshot;

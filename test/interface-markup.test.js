@@ -32,3 +32,10 @@ test("aucun message d'état n'est affiché sous les commandes", () => {
   assert.doesNotMatch(html, /id="control-status"/);
   assert.doesNotMatch(html, /Simulation prête\.|Simulation terminée|Simulation en cours\.|Simulation en pause\./);
 });
+
+
+test("la longueur du banc est fixée à 2 m et ne possède aucun contrôle", () => {
+  assert.doesNotMatch(html, /id="track-length-range"/);
+  assert.doesNotMatch(html, /id="track-length-number"/);
+  assert.doesNotMatch(html, />Longueur du banc</);
+});

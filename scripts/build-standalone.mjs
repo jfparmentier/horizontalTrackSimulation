@@ -9,7 +9,7 @@ const manifests = [
     key: "constants",
     file: "src/constants.js",
     dependencies: [],
-    exports: ["GRAVITY", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
+    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
   },
   {
     key: "physics",
@@ -78,7 +78,7 @@ const manifests = [
     key: "appState",
     file: "src/app-state.js",
     dependencies: [
-      ["constants", ["DEFAULT_PARAMETERS"]],
+      ["constants", ["DEFAULT_PARAMETERS", "FIXED_TRACK_LENGTH"]],
       ["geometry", ["SENSOR_COUNT_LIMITS"]],
       ["timeLoop", ["PLAYBACK_SPEED_LIMITS"]],
       ["physics", ["PhysicsParameterError", "createInitialState", "validateParameters", "validateSimulationState"]],
@@ -192,11 +192,6 @@ ${css}
             <label for="drop-height-range">Hauteur de chute</label>
             <input id="drop-height-range" type="range" min="0.2" max="1" step="0.01" value="0.5">
             <span class="number-with-unit"><input id="drop-height-number" type="number" min="0.2" max="1" step="0.01" value="0.5"><span>m</span></span>
-          </div>
-          <div class="parameter-control">
-            <label for="track-length-range">Longueur du banc</label>
-            <input id="track-length-range" type="range" min="1" max="3" step="0.01" value="2">
-            <span class="number-with-unit"><input id="track-length-number" type="number" min="1" max="3" step="0.01" value="2"><span>m</span></span>
           </div>
           <div class="parameter-control">
             <label for="friction-range">Coefficient de frottement</label>

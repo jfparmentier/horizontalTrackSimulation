@@ -93,12 +93,29 @@ test("S1 et S2 ont la même géométrie carrée et le fil est attaché au centre
   assert.equal(layout.pulley.centerY - layout.pulley.radius, layout.string.startY);
 });
 
-test("le montage est remonté dans le viewBox", () => {
+test("le viewBox contient la chute maximale à l'échelle commune", () => {
+  const layout = computeApparatusLayout({ ...DEFAULTS, dropHeight: 1 });
+
+  assert.equal(layout.viewBox.height, 820);
+  assert.ok(layout.track.y < 300);
+  assert.ok(layout.socle.y + 58 < layout.viewBox.height);
+});
+
+test("S2 est initialement séparée de la poulie", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
-  assert.equal(layout.viewBox.height, 500);
-  assert.ok(layout.track.y < 300);
-  assert.ok(layout.socle.y < 450);
+  assert.ok(layout.hangingMass.y > layout.pulley.centerY + layout.pulley.radius);
+});
+
+test("la même échelle en pixels par mètre est utilisée horizontalement et verticalement", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const horizontalScale = (layout.track.width - layout.mobile.width)
+    / layout.parameters.trackLength;
+  const verticalScale = (layout.socle.y - layout.hangingMass.y - layout.hangingMass.height)
+    / layout.parameters.dropHeight;
+
+  assert.equal(layout.motionScale.pixelsPerMeter, horizontalScale);
+  assert.equal(verticalScale, horizontalScale);
 });
 
 test("les coordonnées des capteurs croissent strictement", () => {

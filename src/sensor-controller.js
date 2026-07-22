@@ -90,19 +90,20 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     0,
     layout.parameters.trackLength,
   );
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  return layout.mobile.x
-    + (normalizedPosition / layout.parameters.trackLength) * mobileTravel;
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  return layout.mobile.x + normalizedPosition * pixelsPerMeter;
 }
 
 /** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
 function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
-    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
+    throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }
   return clamp(
-    ((leftEdgeX - layout.mobile.x) / mobileTravel) * layout.parameters.trackLength,
+    (leftEdgeX - layout.mobile.x) / pixelsPerMeter,
     0,
     layout.parameters.trackLength,
   );

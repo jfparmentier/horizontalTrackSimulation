@@ -53,17 +53,17 @@ export function computeAnimatedApparatusFrame(
     layout.parameters.dropHeight,
   );
 
-  // Le bord avant de S1 atteint exactement l'extrémité du banc lorsque x = L.
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  const mobileX = layout.mobile.x
-    + (position / layout.parameters.trackLength) * mobileTravel;
+  // Les deux solides utilisent la même échelle graphique : un déplacement
+  // physique identique produit le même déplacement en pixels à l'écran.
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+  const mobileX = layout.mobile.x + position * pixelsPerMeter;
   const mobileY = layout.mobile.y;
 
-  // Le bas de S2 atteint exactement le haut du support lorsque sa chute vaut h.
-  const hangingTravel = layout.socle.y
-    - (layout.hangingMass.y + layout.hangingMass.height);
+  // En phase 1, S2 descend exactement du même nombre de pixels que S1 avance.
+  // Le support a été placé à h × pixelsPerMeter sous la position initiale.
   const hangingMassY = layout.hangingMass.y
-    + (hangingDisplacement / layout.parameters.dropHeight) * hangingTravel;
+    + hangingDisplacement * pixelsPerMeter;
 
   const ropeStartX = mobileX + layout.mobile.width;
   const ropeY = layout.string.startY;
