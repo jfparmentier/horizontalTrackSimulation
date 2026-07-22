@@ -2,7 +2,7 @@
 
 Simulation pédagogique autonome reproduisant le mouvement d’un mobile `S1` entraîné par une masse suspendue `S2`, puis poursuivant son déplacement après l’arrivée de `S2` sur son support.
 
-Le projet vise à permettre l’étude expérimentale de l’évolution de la vitesse en fonction de la position, à l’aide de neuf capteurs virtuels et d’un export des mesures au format CSV.
+Le projet vise à permettre l’étude expérimentale de l’évolution de la vitesse en fonction de la position, à l’aide de onze capteurs virtuels et d’un export des mesures au format CSV.
 
 ## Aperçu
 
@@ -16,10 +16,11 @@ Le fichier `index.html` est entièrement autonome : il peut être ouvert directe
 ## Fonctionnalités principales
 
 - animation SVG synchronisée de `S1`, `S2`, de la poulie et du fil ;
+- sélection de la masse suspendue par glisser-déposer directement dans le SVG ;
 - moteur physique à pas temporel fixe ;
 - traitement exact du changement de phase ;
 - détection des capteurs lorsque le bord gauche de `S1` traverse leur faisceau ;
-- neuf capteurs placés aux positions `0.2 m`, `0.4 m`, …, `1.8 m` ;
+- onze capteurs placés aux positions `0.12 m`, `0.24 m`, `0.36 m`, `0.48 m`, `0.60 m`, puis `0.80 m`, `1.00 m`, `1.20 m`, `1.40 m`, `1.60 m` et `1.80 m` ;
 - passage direct des capteurs au vert lors du franchissement ;
 - commandes **Démarrer**, **Pause**, **Pas à pas** et **Réinitialiser** ;
 - vitesse de lecture réglable de `0.1×` à `1.0×` ;
@@ -34,9 +35,10 @@ Le fichier `index.html` est entièrement autonome : il peut être ouvert directe
 
 1. Télécharger ou extraire les fichiers du projet.
 2. Ouvrir `index.html` dans un navigateur récent.
-3. Régler la masse suspendue et le coefficient de frottement.
-4. Cliquer sur **Démarrer**.
-5. À la fin de l’expérience, utiliser l’icône de téléchargement pour exporter les mesures.
+3. Faire glisser l’une des masses disponibles (`0.2 kg`, `0.5 kg`, `1 kg` ou `2 kg`) sur la masse suspendue.
+4. Régler le coefficient de frottement.
+5. Cliquer sur **Démarrer**.
+6. À la fin de l’expérience, utiliser l’icône de téléchargement pour exporter les mesures.
 
 Aucune installation de Node.js n’est nécessaire pour cette utilisation.
 
@@ -54,7 +56,7 @@ Ouvrir ensuite la page indiquée par le serveur, généralement `http://localhos
 
 | Paramètre | Plage | Pas | Valeur initiale |
 |---|---:|---:|---:|
-| Masse suspendue `m2` | `0.1 kg` à `2.0 kg` | `0.1 kg` | `0.1 kg` |
+| Masse suspendue `m2` | `0.2 kg`, `0.5 kg`, `1.0 kg` ou `2.0 kg` | sélection SVG | `0.2 kg` |
 | Coefficient de frottement `μ` | `0` à `0.2` | `0.005` | `0` |
 | Vitesse de lecture | `0.1×` à `1.0×` | `0.1×` | `1.0×` |
 
@@ -66,7 +68,7 @@ Ouvrir ensuite la page indiquée par le serveur, généralement `http://localhos
 | Longueur physique de `S1` | `0.2 m` |
 | Hauteur de chute | `0.6 m` |
 | Longueur du banc | `2.0 m` |
-| Nombre de capteurs | `9` |
+| Nombre de capteurs | `11` |
 | Gravité | `9.81 m·s⁻²` |
 | Position initiale | `x0 = 0` |
 | Vitesse initiale | `v0 = 0` |
@@ -116,7 +118,7 @@ Le fichier `mesures-capteurs.csv` contient exactement quatre colonnes :
 
 ```csv
 "Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"
-1,0.2,0.123456,0.654321
+1,0.12,0.123456,0.654321
 ```
 
 Les mesures sont :
@@ -158,7 +160,8 @@ Les raccourcis sont ignorés lorsqu’un champ de saisie ou un bouton possède l
 │   ├── constants.js              # Constantes physiques et paramètres fixes
 │   ├── measurement-export.js     # Génération et téléchargement du CSV
 │   ├── measurement-recorder.js   # Calcul des mesures aux capteurs
-│   ├── parameter-controls.js     # Liaison des paramètres à l’état central
+│   ├── mass-selector.js          # Glisser-déposer et sélection clavier des masses
+│   ├── parameter-controls.js     # Liaison des paramètres numériques à l’état central
 │   ├── physics.js                # Fonctions physiques élémentaires
 │   ├── sensor-controller.js      # Détection et affichage des capteurs
 │   ├── simulation-controls.js    # Commandes et raccourcis clavier
@@ -225,6 +228,7 @@ Toute modification du moteur physique, de la géométrie SVG ou de l’enregistr
 L’interface comprend notamment :
 
 - des libellés explicites pour les paramètres et les commandes ;
+- une sélection des masses utilisable au pointeur, à la souris, au tactile et au clavier (`Entrée` ou `Espace`) ;
 - des états `disabled` et `aria-disabled` cohérents ;
 - des raccourcis clavier déclarés avec `aria-keyshortcuts` ;
 - une description accessible du montage SVG ;

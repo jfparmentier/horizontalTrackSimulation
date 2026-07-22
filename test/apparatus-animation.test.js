@@ -9,7 +9,7 @@ import {
 
 const PARAMETERS = Object.freeze({
   m1: 0.5,
-  m2: 0.1,
+  m2: 0.2,
   dropHeight: 0.5,
   trackLength: 2,
   friction: 0,

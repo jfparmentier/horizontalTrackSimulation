@@ -10,7 +10,7 @@ import {
 
 const DEFAULTS = Object.freeze({
   m1: 1,
-  m2: 0.1,
+  m2: 0.2,
   dropHeight: 0.6,
   trackLength: 2,
   friction: 0,
@@ -46,12 +46,12 @@ test("un domaine nul est refusé", () => {
   assert.throws(() => createLinearScale(1, 1, 0, 100), /domaine/i);
 });
 
-test("le layout utilise le viewBox prévu et neuf capteurs par défaut", () => {
+test("le layout utilise le viewBox prévu et onze capteurs par défaut", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
   assert.deepEqual(layout.viewBox, APPARATUS_VIEWBOX);
-  assert.equal(layout.sensorCount, 9);
-  assert.equal(layout.sensors.length, 9);
+  assert.equal(layout.sensorCount, 11);
+  assert.equal(layout.sensors.length, 11);
   assert.equal(layout.mobile.x, layout.track.x);
   assert.equal(layout.string.endY, layout.hangingMass.y);
 });
@@ -80,6 +80,21 @@ test("la masse suspendue est carrée à coins arrondis", () => {
   assert.equal(layout.hangingMass.width, layout.hangingMass.height);
   assert.equal(layout.heightGuide.topY, layout.hangingMass.y + layout.hangingMass.height);
   assert.equal(layout.heightGuide.bottomY, layout.socle.y);
+});
+
+test("les masses disponibles sont alignées sur un support à la hauteur du socle de S2", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  assert.equal(layout.massRack.y, layout.socle.y);
+  assert.deepEqual(
+    layout.massRack.choices.map((choice) => choice.value),
+    [0.2, 0.5, 1, 2],
+  );
+  assert.equal(layout.massRack.choices.filter((choice) => choice.selected).length, 1);
+  assert.equal(layout.massRack.choices.find((choice) => choice.selected).value, 0.2);
+  assert.ok(layout.massRack.choices.every(
+    (choice) => choice.y + choice.height === layout.massRack.y,
+  ));
 });
 
 test("S1 et S2 ont la même géométrie carrée et le fil est attaché au centre de S1", () => {
@@ -148,6 +163,23 @@ test("la même échelle en pixels par mètre est utilisée horizontalement et ve
   assert.ok(Math.abs(verticalScale - horizontalScale) < 1e-9);
 });
 
+
+test("les cinq premiers capteurs sont uniformément espacés jusqu’à 0,6 m", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const positions = layout.sensors.map((sensor) => sensor.position);
+
+  assert.deepEqual(
+    positions,
+    [0.12, 0.24, 0.36, 0.48, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8],
+  );
+  assert.deepEqual(
+    positions.slice(0, 5).map((position, index, values) =>
+      index === 0 ? position : Number((position - values[index - 1]).toFixed(12)),
+    ),
+    [0.12, 0.12, 0.12, 0.12, 0.12],
+  );
+});
+
 test("les coordonnées des capteurs croissent strictement", () => {
   const layout = computeApparatusLayout(DEFAULTS);
   const coordinates = layout.sensors.map((sensor) => sensor.x);
@@ -158,9 +190,9 @@ test("les coordonnées des capteurs croissent strictement", () => {
 });
 
 test("un nombre personnalisé de capteurs est accepté", () => {
-  const layout = computeApparatusLayout({ ...DEFAULTS, sensorCount: 12 });
+  const layout = computeApparatusLayout({ ...DEFAULTS, sensorCount: 10 });
 
-  assert.equal(layout.sensors.length, 12);
+  assert.equal(layout.sensors.length, 10);
 });
 
 test("un nombre de capteurs hors plage est refusé", () => {

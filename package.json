@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.9.9",
+  "version": "0.9.11",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG animée avec S1 fixée à 1 kg, chute fixée à 0,6 m, banc de 2 m et neuf capteurs.",
+  "description": "Simulation SVG animée avec sélection de la masse suspendue par glisser-déposer.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

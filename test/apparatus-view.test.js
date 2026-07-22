@@ -8,7 +8,7 @@ import {
 
 const DEFAULTS = Object.freeze({
   m1: 0.5,
-  m2: 0.1,
+  m2: 0.2,
   dropHeight: 0.6,
   trackLength: 2,
   friction: 0,
@@ -58,7 +58,7 @@ test("le SVG affiche seulement les indications souhaitées", () => {
 
   assert.match(svg, />0.6 m</);
   assert.match(svg, />1 kg</);
-  assert.match(svg, />0.1 kg</);
+  assert.match(svg, />0.2 kg</);
   assert.doesNotMatch(svg, />S1</);
   assert.doesNotMatch(svg, />S2</);
   assert.doesNotMatch(svg, /gravity-badge|>Gravité<|>Terre</);
@@ -100,6 +100,26 @@ test("la masse suspendue est rendue comme un carré arrondi", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, /<rect id="hanging-mass-body"[^>]+width="83\.8" height="83\.8" rx="14"/);
+});
+
+test("les quatre valeurs de masses sont représentées entre S2 et le support de rangement", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.match(svg, /id="layer-mass-rack"/);
+  assert.equal(occurrenceCount(svg, 'data-role="mass-choice"'), 3);
+  for (const value of ["0.5 kg", "1 kg", "2 kg"]) {
+    assert.match(svg, new RegExp(`>${value.replace('.', '\.') }<`));
+  }
+  assert.match(svg, /<text[^>]*>0.2 kg<\/text>/);
+  assert.match(svg, /id="mass-drop-target"/);
+});
+
+test("la masse actuellement suspendue quitte son emplacement du support", () => {
+  const svg = buildStaticApparatusSvg({ ...DEFAULTS, m2: 0.5 });
+
+  assert.doesNotMatch(svg, /data-role="mass-choice" data-mass-value="0.5"/);
+  assert.match(svg, /data-role="mass-choice" data-mass-value="0.2"/);
+  assert.match(svg, /<text class="object-label mass-value-label"[^>]*>0.5 kg<\/text>/);
 });
 
 

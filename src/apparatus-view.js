@@ -72,6 +72,29 @@ function buildStringPath(layout) {
     L ${rope.endX} ${rope.endY}`;
 }
 
+function buildMassRack(layout) {
+  const slots = layout.massRack.choices
+    .map((choice) => `
+      <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />`)
+    .join("");
+
+  const masses = layout.massRack.choices
+    .filter((choice) => !choice.selected)
+    .map((choice) => `
+      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
+        <rect class="mass-choice-body" x="0" y="0" width="${choice.width}" height="${choice.height}" rx="14" />
+        <text class="object-label mass-value-label" x="${choice.width / 2}" y="${choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>
+      </g>`)
+    .join("");
+
+  return `
+    <g id="layer-mass-rack" data-role="mass-rack" aria-label="Masses disponibles">
+      <rect class="mass-rack-support" x="${layout.massRack.x}" y="${layout.massRack.y}" width="${layout.massRack.width}" height="${layout.massRack.height}" rx="8" />
+      <g class="mass-rack-slots" aria-hidden="true">${slots}</g>
+      ${masses}
+    </g>`;
+}
+
 /**
  * Produit le SVG complet sous forme de chaîne. Les identifiants et attributs
  * data-role sont stables afin de préparer l'étape d'animation.
@@ -82,7 +105,7 @@ export function buildStaticApparatusSvg(options = {}) {
   const description = [
     "Montage initial avec le mobile S1 sur un banc horizontal,",
     "la masse S2 suspendue par un fil passant sur une poulie,",
-    `${layout.sensorCount} capteurs régulièrement répartis et un support de réception sous S2.`,
+    `${layout.sensorCount} capteurs placés aux positions expérimentales et un support de réception sous S2.`,
   ].join(" ");
 
   return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet">
@@ -146,6 +169,7 @@ export function buildStaticApparatusSvg(options = {}) {
     </g>
 
     <g id="layer-hanging-mass" data-role="hanging-mass" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
+      <rect id="mass-drop-target" class="mass-drop-target" x="-9" y="-9" width="${layout.hangingMass.width + 18}" height="${layout.hangingMass.height + 18}" rx="20" aria-hidden="true" />
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
       <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>
     </g>
@@ -153,6 +177,8 @@ export function buildStaticApparatusSvg(options = {}) {
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
+
+    ${buildMassRack(layout)}
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />

@@ -30,6 +30,9 @@ class FakeElement {
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
   }
+  getAttribute(name) {
+    return this.attributes.get(name) ?? null;
+  }
   addEventListener(name, callback) {
     const callbacks = this.listeners.get(name) ?? new Set();
     callbacks.add(callback);
@@ -38,8 +41,9 @@ class FakeElement {
   removeEventListener(name, callback) {
     this.listeners.get(name)?.delete(callback);
   }
-  dispatch(name) {
-    for (const callback of this.listeners.get(name) ?? []) callback({ target: this });
+  dispatch(name, event = {}) {
+    const normalized = { target: this, preventDefault() {}, ...event };
+    for (const callback of this.listeners.get(name) ?? []) callback(normalized);
   }
   querySelector() {
     return null;
@@ -65,9 +69,20 @@ class FakeSvg extends FakeElement {
         new FakeElement(`sensor-${index + 1}`),
       ]),
     ]);
+    this.massChoices = [0.5, 1, 2].map((value) => {
+      const element = new FakeElement(`mass-choice-${value}`);
+      element.dataset.massValue = String(value);
+      element.dataset.originX = "0";
+      element.dataset.originY = "0";
+      element.setAttribute("transform", "translate(0 0)");
+      return element;
+    });
   }
   querySelector(selector) {
     return this.nodes.get(selector) ?? null;
+  }
+  querySelectorAll(selector) {
+    return selector === '[data-role="mass-choice"]' ? this.massChoices : [];
   }
 }
 
@@ -91,7 +106,6 @@ for (const id of [
   "time-value", "s2-stop-time-item", "s2-stop-time-value",
   "s2-contact-velocity-item", "s2-contact-velocity-value",
   "parameter-error",
-  "m2-range", "m2-number",
   "friction-range", "friction-number",
   "playback-speed-range", "playback-speed-number",
 ]) {
@@ -167,8 +181,8 @@ if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
 if (elements.get("#time-value").textContent !== "0.00 s") {
   throw new Error("L'affichage initial du temps est incorrect.");
 }
-if (elements.get("#m2-number").value !== "0.1") {
-  throw new Error("Les paramètres n'ont pas été synchronisés avec l'état central.");
+if (!host._innerHTML.includes(">0.2 kg</text>")) {
+  throw new Error("La masse suspendue initiale de 0.2 kg n'est pas affichée.");
 }
 if (elements.get("#download-data-button").disabled !== true) {
   throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
@@ -185,13 +199,12 @@ if (elements.get("#reset-button").disabled !== true) {
   throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
 }
 
-elements.get("#m2-range").value = "0.4";
-elements.get("#m2-range").dispatch("input");
-if (!host._innerHTML.includes("9 capteurs")) {
-  throw new Error("Le montage n'a pas été reconstruit après modification.");
+host.svg.massChoices[0].dispatch("keydown", { key: "Enter" });
+if (!host._innerHTML.includes("11 capteurs")) {
+  throw new Error("Le montage n'a pas été reconstruit après remplacement de la masse.");
 }
-if (elements.get("#m2-number").value !== "0.4") {
-  throw new Error("La paire de contrôles m2 n'est pas synchronisée.");
+if (!host._innerHTML.includes(">0.5 kg</text>")) {
+  throw new Error("La sélection accessible de la masse de 0.5 kg a échoué.");
 }
 elements.get("#step-button").dispatch("click");
 if (elements.get("#time-value").textContent === "0.00 s") {

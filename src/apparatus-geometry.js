@@ -1,4 +1,4 @@
-import { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT } from "./constants.js";
+import { AVAILABLE_HANGING_MASSES, DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS } from "./constants.js";
 import { PhysicsParameterError, validateParameters } from "./physics.js";
 
 export const APPARATUS_VIEWBOX = Object.freeze({
@@ -38,8 +38,13 @@ function assertIntegerInRange(name, value, limits) {
 }
 
 /**
- * Répartit régulièrement les capteurs sur le banc, sans en placer aux extrémités.
- * Pour neuf capteurs : x_i = iL/10, i = 1…9.
+ * Crée les capteurs aux positions expérimentales retenues. Pour la configuration
+ * fixe de onze capteurs : cinq capteurs uniformément espacés entre 0 m et
+ * 0,6 m, placés à 0,12 m, 0,24 m, 0,36 m, 0,48 m et 0,6 m, puis 0,8 m à
+ * 1,8 m par pas de 0,2 m.
+ *
+ * Une répartition uniforme reste disponible pour les configurations de test
+ * utilisant un autre nombre de capteurs.
  */
 export function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.default) {
   const length = Number(trackLength);
@@ -49,13 +54,25 @@ export function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.de
   }
 
   const sensorCount = assertIntegerInRange("count", count, SENSOR_COUNT_LIMITS);
+  const positions = sensorCount === FIXED_SENSOR_COUNT
+    ? FIXED_SENSOR_POSITIONS
+    : Array.from(
+      { length: sensorCount },
+      (_, index) => ((index + 1) * length) / (sensorCount + 1),
+    );
+
+  if (positions.some((position) => position <= 0 || position >= length)) {
+    throw new PhysicsParameterError(
+      "Toutes les positions de capteurs doivent appartenir strictement au banc.",
+    );
+  }
 
   return Object.freeze(
-    Array.from({ length: sensorCount }, (_, index) =>
+    positions.map((position, index) =>
       Object.freeze({
         id: index + 1,
-        position: ((index + 1) * length) / (sensorCount + 1),
-        ratio: (index + 1) / (sensorCount + 1),
+        position,
+        ratio: position / length,
       }),
     ),
   );
@@ -151,6 +168,28 @@ export function computeApparatusLayout(options = {}) {
     width: hangingMass.width + 68,
     height: 28,
   });
+  const massRackGap = 18;
+  const massRackStartX = 58;
+  const massRackMassY = socle.y - mobileSize;
+  const massChoices = Object.freeze(
+    AVAILABLE_HANGING_MASSES.map((value, index) => Object.freeze({
+      value,
+      x: massRackStartX + index * (mobileSize + massRackGap),
+      y: massRackMassY,
+      width: mobileSize,
+      height: mobileSize,
+      selected: Math.abs(value - parameters.m2) < 1e-9,
+    })),
+  );
+  const rackWidth = AVAILABLE_HANGING_MASSES.length * mobileSize
+    + (AVAILABLE_HANGING_MASSES.length - 1) * massRackGap;
+  const massRack = Object.freeze({
+    x: massRackStartX - 16,
+    y: socle.y,
+    width: rackWidth + 32,
+    height: socle.height,
+    choices: massChoices,
+  });
   const sensors = createDefaultSensors(parameters.trackLength, sensorCount).map((sensor) =>
     Object.freeze({
       ...sensor,
@@ -196,6 +235,7 @@ export function computeApparatusLayout(options = {}) {
     pulley,
     hangingMass,
     socle,
+    massRack,
     sensors: Object.freeze(sensors),
     motionScale: Object.freeze({
       pixelsPerMeter,

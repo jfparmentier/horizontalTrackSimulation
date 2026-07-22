@@ -1,5 +1,4 @@
 const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 
@@ -27,7 +26,7 @@ function setInvalid(pair, invalid) {
   pair.number.setAttribute("aria-invalid", value);
 }
 
-/** Relie tous les champs de paramètres à l'état central. */
+/** Relie les champs de paramètres numériques à l'état central. */
 export function bindParameterControls(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
@@ -82,11 +81,7 @@ export function bindParameterControls(root, appState) {
   function commitPhysical(key, rawValue, pair) {
     try {
       clearError();
-      const numericValue = Number(rawValue);
-      const normalizedValue = key === "m2"
-        ? Math.round(numericValue * 10) / 10
-        : numericValue;
-      appState.updateParameters({ [key]: normalizedValue });
+      appState.updateParameters({ [key]: Number(rawValue) });
       sync();
     } catch (error) {
       sync();

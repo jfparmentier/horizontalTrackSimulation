@@ -47,7 +47,7 @@ test("la longueur du banc est fixée à 2 m et ne possède aucun contrôle", () 
 });
 
 
-test("la masse de S1, la hauteur et les neuf capteurs sont fixes sans contrôles", () => {
+test("la masse de S1, la hauteur et les onze capteurs sont fixes sans contrôles", () => {
   for (const id of [
     "m1-range", "m1-number",
     "drop-height-range", "drop-height-number",
@@ -75,11 +75,16 @@ test("la vitesse de lecture est limitée à 1×", () => {
 });
 
 
-test("le contrôle de la masse suspendue utilise un pas de 0.1 kg sans mention de S2", () => {
-  assert.match(html, /<label for="m2-range">Masse suspendue<\/label>/);
-  assert.doesNotMatch(html, /Masse suspendue S2/);
-  assert.match(html, /id="m2-range"[^>]+min="0.1"[^>]+step="0.1"/);
-  assert.match(html, /id="m2-number"[^>]+min="0.1"[^>]+step="0.1"/);
+test("la masse suspendue ne possède plus de contrôle dans le menu de gauche", () => {
+  assert.doesNotMatch(html, /id="m2-range"/);
+  assert.doesNotMatch(html, /id="m2-number"/);
+  assert.doesNotMatch(html, /<label[^>]*>Masse suspendue<\/label>/);
+});
+
+test("le bundle autonome contient les masses SVG sélectionnables", () => {
+  assert.match(html, /data-role="mass-choice"/);
+  assert.match(html, /id="layer-mass-rack"/);
+  assert.match(html, /id="mass-drop-target"/);
 });
 
 test("les résultats de la phase 1 sont toujours visibles mais initialement grisés et vides", () => {

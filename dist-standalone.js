@@ -20,6 +20,7 @@ const FIXED_SENSOR_POSITIONS = Object.freeze([
 ]);
 const FIXED_SENSOR_COUNT = FIXED_SENSOR_POSITIONS.length;
 const FIXED_MOBILE_LENGTH = 0.2;
+const AVAILABLE_HANGING_MASSES = Object.freeze([0.2, 0.5, 1.0, 2.0]);
 
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
@@ -31,7 +32,7 @@ const PARAMETER_LIMITS = Object.freeze({
 
 const DEFAULT_PARAMETERS = Object.freeze({
   m1: FIXED_M1,
-  m2: 0.1,
+  m2: 0.2,
   dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
   friction: 0.0,
@@ -40,7 +41,7 @@ const DEFAULT_PARAMETERS = Object.freeze({
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS, FIXED_MOBILE_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS, FIXED_MOBILE_LENGTH, AVAILABLE_HANGING_MASSES, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
@@ -1129,7 +1130,7 @@ return Object.freeze({ TIME_LOOP_DEFAULTS, PLAYBACK_SPEED_LIMITS, createTimeLoop
 })();
 
 modules.geometry = (() => {
-const { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS } = modules.constants;
+const { AVAILABLE_HANGING_MASSES, DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
@@ -1298,6 +1299,28 @@ function computeApparatusLayout(options = {}) {
     width: hangingMass.width + 68,
     height: 28,
   });
+  const massRackGap = 18;
+  const massRackStartX = 58;
+  const massRackMassY = socle.y - mobileSize;
+  const massChoices = Object.freeze(
+    AVAILABLE_HANGING_MASSES.map((value, index) => Object.freeze({
+      value,
+      x: massRackStartX + index * (mobileSize + massRackGap),
+      y: massRackMassY,
+      width: mobileSize,
+      height: mobileSize,
+      selected: Math.abs(value - parameters.m2) < 1e-9,
+    })),
+  );
+  const rackWidth = AVAILABLE_HANGING_MASSES.length * mobileSize
+    + (AVAILABLE_HANGING_MASSES.length - 1) * massRackGap;
+  const massRack = Object.freeze({
+    x: massRackStartX - 16,
+    y: socle.y,
+    width: rackWidth + 32,
+    height: socle.height,
+    choices: massChoices,
+  });
   const sensors = createDefaultSensors(parameters.trackLength, sensorCount).map((sensor) =>
     Object.freeze({
       ...sensor,
@@ -1343,6 +1366,7 @@ function computeApparatusLayout(options = {}) {
     pulley,
     hangingMass,
     socle,
+    massRack,
     sensors: Object.freeze(sensors),
     motionScale: Object.freeze({
       pixelsPerMeter,
@@ -1445,6 +1469,29 @@ function buildStringPath(layout) {
     L ${rope.endX} ${rope.endY}`;
 }
 
+function buildMassRack(layout) {
+  const slots = layout.massRack.choices
+    .map((choice) => `
+      <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />`)
+    .join("");
+
+  const masses = layout.massRack.choices
+    .filter((choice) => !choice.selected)
+    .map((choice) => `
+      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
+        <rect class="mass-choice-body" x="0" y="0" width="${choice.width}" height="${choice.height}" rx="14" />
+        <text class="object-label mass-value-label" x="${choice.width / 2}" y="${choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>
+      </g>`)
+    .join("");
+
+  return `
+    <g id="layer-mass-rack" data-role="mass-rack" aria-label="Masses disponibles">
+      <rect class="mass-rack-support" x="${layout.massRack.x}" y="${layout.massRack.y}" width="${layout.massRack.width}" height="${layout.massRack.height}" rx="8" />
+      <g class="mass-rack-slots" aria-hidden="true">${slots}</g>
+      ${masses}
+    </g>`;
+}
+
 /**
  * Produit le SVG complet sous forme de chaîne. Les identifiants et attributs
  * data-role sont stables afin de préparer l'étape d'animation.
@@ -1519,6 +1566,7 @@ function buildStaticApparatusSvg(options = {}) {
     </g>
 
     <g id="layer-hanging-mass" data-role="hanging-mass" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
+      <rect id="mass-drop-target" class="mass-drop-target" x="-9" y="-9" width="${layout.hangingMass.width + 18}" height="${layout.hangingMass.height + 18}" rx="20" aria-hidden="true" />
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
       <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>
     </g>
@@ -1526,6 +1574,8 @@ function buildStaticApparatusSvg(options = {}) {
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
+
+    ${buildMassRack(layout)}
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />
@@ -2099,7 +2149,6 @@ return Object.freeze({ DEFAULT_EXPERIMENTAL_SETTINGS, DEFAULT_DISPLAY_SETTINGS, 
 modules.parameterControls = (() => {
 
 const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 
@@ -2127,7 +2176,7 @@ function setInvalid(pair, invalid) {
   pair.number.setAttribute("aria-invalid", value);
 }
 
-/** Relie tous les champs de paramètres à l'état central. */
+/** Relie les champs de paramètres numériques à l'état central. */
 function bindParameterControls(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
@@ -2182,11 +2231,7 @@ function bindParameterControls(root, appState) {
   function commitPhysical(key, rawValue, pair) {
     try {
       clearError();
-      const numericValue = Number(rawValue);
-      const normalizedValue = key === "m2"
-        ? Math.round(numericValue * 10) / 10
-        : numericValue;
-      appState.updateParameters({ [key]: normalizedValue });
+      appState.updateParameters({ [key]: Number(rawValue) });
       sync();
     } catch (error) {
       sync();
@@ -2242,6 +2287,212 @@ function bindParameterControls(root, appState) {
 }
 
 return Object.freeze({ bindParameterControls });
+})();
+
+modules.massSelector = (() => {
+
+const MASS_EPSILON = 1e-9;
+
+function asFiniteNumber(value, name) {
+  const normalized = Number(value);
+  if (!Number.isFinite(normalized)) {
+    throw new TypeError(`${name} doit être un nombre fini.`);
+  }
+  return normalized;
+}
+
+function sameMass(left, right) {
+  return Math.abs(Number(left) - Number(right)) <= MASS_EPSILON;
+}
+
+function isPointInsideRect(point, rect) {
+  if (!point || typeof point !== "object") {
+    throw new TypeError("Un point est requis.");
+  }
+  if (!rect || typeof rect !== "object") {
+    throw new TypeError("Un rectangle est requis.");
+  }
+
+  const x = asFiniteNumber(point.x, "point.x");
+  const y = asFiniteNumber(point.y, "point.y");
+  const left = asFiniteNumber(rect.left, "rect.left");
+  const right = asFiniteNumber(rect.right, "rect.right");
+  const top = asFiniteNumber(rect.top, "rect.top");
+  const bottom = asFiniteNumber(rect.bottom, "rect.bottom");
+
+  return x >= left && x <= right && y >= top && y <= bottom;
+}
+
+function getSvgScale(svg) {
+  const clientRect = svg.getBoundingClientRect?.();
+  const viewBox = svg.viewBox?.baseVal;
+
+  if (
+    clientRect
+    && clientRect.width > 0
+    && clientRect.height > 0
+    && viewBox
+    && viewBox.width > 0
+    && viewBox.height > 0
+  ) {
+    return Object.freeze({
+      x: viewBox.width / clientRect.width,
+      y: viewBox.height / clientRect.height,
+    });
+  }
+
+  return Object.freeze({ x: 1, y: 1 });
+}
+
+function getMassValue(element) {
+  return asFiniteNumber(
+    element.dataset?.massValue ?? element.getAttribute?.("data-mass-value"),
+    "data-mass-value",
+  );
+}
+
+/**
+ * Relie les masses dessinées dans le SVG au paramètre m2. Une masse est
+ * déplacée au pointeur vers S2 ; au clavier, Entrée ou Espace effectue le même
+ * remplacement. Le changement de paramètre reconstruit ensuite le montage,
+ * ce qui remet automatiquement l'ancienne masse sur le support de rangement.
+ */
+function createMassSelector(svg, options = {}) {
+  if (!svg || typeof svg.querySelector !== "function") {
+    throw new TypeError("Un élément SVG interrogeable est requis.");
+  }
+  if (typeof options.onSelect !== "function") {
+    throw new TypeError("onSelect doit être une fonction.");
+  }
+
+  const target = svg.querySelector("#layer-hanging-mass");
+  if (!target) {
+    throw new Error("La masse suspendue est introuvable.");
+  }
+
+  const choices = Array.from(
+    svg.querySelectorAll?.('[data-role="mass-choice"]') ?? [],
+  );
+  const listeners = [];
+  let active = null;
+  let destroyed = false;
+
+  function listen(element, name, callback) {
+    element.addEventListener?.(name, callback);
+    listeners.push(() => element.removeEventListener?.(name, callback));
+  }
+
+  function setDropState(overTarget) {
+    svg.setAttribute?.("data-mass-dragging", active ? "true" : "false");
+    target.classList?.toggle("mass-drop-target--active", Boolean(active && overTarget));
+  }
+
+  function restoreActive() {
+    if (!active) return;
+    active.element.setAttribute?.("transform", active.originTransform);
+    active.element.classList?.remove("mass-choice--dragging");
+    active.element.releasePointerCapture?.(active.pointerId);
+    active = null;
+    setDropState(false);
+  }
+
+  function isOverTarget(event) {
+    if (!target.getBoundingClientRect) return false;
+    return isPointInsideRect(
+      { x: Number(event.clientX), y: Number(event.clientY) },
+      target.getBoundingClientRect(),
+    );
+  }
+
+  function beginDrag(element, event) {
+    if (destroyed || active) return;
+    if (event.button !== undefined && event.button !== 0) return;
+
+    const value = getMassValue(element);
+    if (sameMass(value, options.selectedMass)) return;
+
+    active = {
+      element,
+      value,
+      pointerId: event.pointerId,
+      startClientX: Number(event.clientX) || 0,
+      startClientY: Number(event.clientY) || 0,
+      originX: asFiniteNumber(element.dataset?.originX ?? 0, "data-origin-x"),
+      originY: asFiniteNumber(element.dataset?.originY ?? 0, "data-origin-y"),
+      originTransform: element.getAttribute?.("transform")
+        ?? `translate(${element.dataset?.originX ?? 0} ${element.dataset?.originY ?? 0})`,
+    };
+
+    element.classList?.add("mass-choice--dragging");
+    element.setPointerCapture?.(event.pointerId);
+    setDropState(isOverTarget(event));
+    event.preventDefault?.();
+  }
+
+  function moveDrag(event) {
+    if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
+    const scale = getSvgScale(svg);
+    const dx = ((Number(event.clientX) || 0) - active.startClientX) * scale.x;
+    const dy = ((Number(event.clientY) || 0) - active.startClientY) * scale.y;
+
+    active.element.setAttribute?.(
+      "transform",
+      `translate(${active.originX + dx} ${active.originY + dy})`,
+    );
+    setDropState(isOverTarget(event));
+    event.preventDefault?.();
+  }
+
+  function endDrag(event) {
+    if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
+    const selectedValue = active.value;
+    const accepted = isOverTarget(event);
+    restoreActive();
+
+    if (accepted && !sameMass(selectedValue, options.selectedMass)) {
+      options.onSelect(selectedValue);
+    }
+    event.preventDefault?.();
+  }
+
+  function cancelDrag(event) {
+    if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
+    restoreActive();
+    event.preventDefault?.();
+  }
+
+  function selectByKeyboard(element, event) {
+    if (!event || !["Enter", " "].includes(event.key)) return;
+    const value = getMassValue(element);
+    if (!sameMass(value, options.selectedMass)) {
+      options.onSelect(value);
+    }
+    event.preventDefault?.();
+  }
+
+  for (const choice of choices) {
+    listen(choice, "pointerdown", (event) => beginDrag(choice, event));
+    listen(choice, "keydown", (event) => selectByKeyboard(choice, event));
+  }
+  listen(svg, "pointermove", moveDrag);
+  listen(svg, "pointerup", endDrag);
+  listen(svg, "pointercancel", cancelDrag);
+
+  setDropState(false);
+
+  return Object.freeze({
+    getChoiceCount: () => choices.length,
+    destroy() {
+      if (destroyed) return false;
+      destroyed = true;
+      restoreActive();
+      listeners.splice(0).forEach((remove) => remove());
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ isPointInsideRect, createMassSelector });
 })();
 
 modules.simulationControls = (() => {
@@ -3121,6 +3372,7 @@ const { createApparatusAnimator } = modules.animation;
 const { mountStaticApparatus } = modules.view;
 const { createAppState } = modules.appState;
 const { bindParameterControls } = modules.parameterControls;
+const { createMassSelector } = modules.massSelector;
 const { bindSimulationControls } = modules.simulationControls;
 const { createSensorController } = modules.sensorController;
 const { createMeasurementRecorder } = modules.measurementRecorder;
@@ -3188,6 +3440,7 @@ function createAnimatedApp(root = document, options = {}) {
 
   function destroyRuntime() {
     if (runtime) {
+      runtime.massSelector?.destroy();
       runtime.sensorController?.destroy();
       runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
@@ -3208,6 +3461,12 @@ function createAnimatedApp(root = document, options = {}) {
       sensorCount,
     });
     const animator = createApparatusAnimator(svg, layout);
+    const massSelector = createMassSelector(svg, {
+      selectedMass: snapshot.parameters.m2,
+      onSelect(value) {
+        appState.updateParameters({ m2: value });
+      },
+    });
     const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
     const sensorController = createSensorController(svg, layout, {
       onCrossings(crossings) {
@@ -3242,6 +3501,7 @@ function createAnimatedApp(root = document, options = {}) {
       layout,
       svg,
       animator,
+      massSelector,
       sensorController,
       measurementRecorder,
     });

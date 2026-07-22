@@ -31,7 +31,6 @@ class FakeElement {
 function createRoot() {
   const ids = [
     "parameter-error",
-    "m2-range", "m2-number",
     "friction-range", "friction-number",
     "playback-speed-range", "playback-speed-number",
   ];
@@ -46,49 +45,34 @@ function createRoot() {
   };
 }
 
-test("les contrôles sont initialisés depuis l'état central", () => {
+test("les contrôles numériques sont initialisés depuis l'état central", () => {
   const store = createAppState({
-    parameters: { m2: 0.8 },
+    parameters: { m2: 0.5, friction: 0.08 },
     playbackSpeed: 0.8,
   });
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  assert.equal(elements.get("#m2-range").value, "0.8");
-  assert.equal(elements.get("#m2-number").value, "0.8");
+  assert.equal(elements.get("#friction-range").value, "0.08");
+  assert.equal(elements.get("#friction-number").value, "0.08");
   assert.equal(elements.get("#playback-speed-number").value, "0.8");
-  assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
+  assert.equal(store.getSnapshot().parameters.m2, 0.5);
 });
 
-test("un curseur physique met à jour l'état central", () => {
+test("le curseur de frottement met à jour l'état central", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  const range = elements.get("#m2-range");
-  range.value = "0.4";
+  const range = elements.get("#friction-range");
+  range.value = "0.04";
   range.dispatch("input");
 
-  assert.equal(store.getSnapshot().parameters.m2, 0.4);
-  assert.equal(elements.get("#m2-number").value, "0.4");
+  assert.equal(store.getSnapshot().parameters.friction, 0.04);
+  assert.equal(elements.get("#friction-number").value, "0.04");
 });
 
-
-test("la masse suspendue est arrondie au pas de 0.1 kg", () => {
-  const store = createAppState();
-  const { root, elements } = createRoot();
-  bindParameterControls(root, store);
-
-  const input = elements.get("#m2-number");
-  input.value = "0.26";
-  input.dispatch("change");
-
-  assert.equal(store.getSnapshot().parameters.m2, 0.3);
-  assert.equal(elements.get("#m2-range").value, "0.3");
-  assert.equal(input.value, "0.3");
-});
-
-test("la vitesse de lecture est reliée et la gravité reste terrestre", () => {
+test("la vitesse de lecture reste reliée à l'état central", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
@@ -97,21 +81,20 @@ test("la vitesse de lecture est reliée et la gravité reste terrestre", () => {
   speed.value = "0.6";
   speed.dispatch("change");
 
-  assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
   assert.equal(store.getSnapshot().playbackSpeed, 0.6);
 });
 
-test("une saisie invalide est annulée et signalée", () => {
+test("une saisie de frottement invalide est annulée et signalée", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  const input = elements.get("#m2-number");
-  input.value = "4";
+  const input = elements.get("#friction-number");
+  input.value = "0.8";
   input.dispatch("change");
 
-  assert.equal(store.getSnapshot().parameters.m2, 0.1);
-  assert.equal(input.value, "0.1");
-  assert.match(elements.get("#parameter-error").textContent, /m2/i);
+  assert.equal(store.getSnapshot().parameters.friction, 0);
+  assert.equal(input.value, "0");
+  assert.match(elements.get("#parameter-error").textContent, /friction/i);
   assert.equal(input.attributes.get("aria-invalid"), "true");
 });

@@ -9,7 +9,7 @@ const manifests = [
     key: "constants",
     file: "src/constants.js",
     dependencies: [],
-    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "FIXED_MOBILE_LENGTH", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
+    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "FIXED_SENSOR_POSITIONS", "FIXED_MOBILE_LENGTH", "AVAILABLE_HANGING_MASSES", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
   },
   {
     key: "physics",
@@ -54,7 +54,7 @@ const manifests = [
     key: "geometry",
     file: "src/apparatus-geometry.js",
     dependencies: [
-      ["constants", ["DEFAULT_PARAMETERS", "FIXED_MOBILE_LENGTH", "FIXED_SENSOR_COUNT"]],
+      ["constants", ["AVAILABLE_HANGING_MASSES", "DEFAULT_PARAMETERS", "FIXED_MOBILE_LENGTH", "FIXED_SENSOR_COUNT", "FIXED_SENSOR_POSITIONS"]],
       ["physics", ["PhysicsParameterError", "validateParameters"]],
     ],
     exports: [
@@ -93,6 +93,12 @@ const manifests = [
     file: "src/parameter-controls.js",
     dependencies: [],
     exports: ["bindParameterControls"],
+  },
+  {
+    key: "massSelector",
+    file: "src/mass-selector.js",
+    dependencies: [],
+    exports: ["isPointInsideRect", "createMassSelector"],
   },
   {
     key: "simulationControls",
@@ -136,6 +142,7 @@ const manifests = [
       ["view", ["mountStaticApparatus"]],
       ["appState", ["createAppState"]],
       ["parameterControls", ["bindParameterControls"]],
+      ["massSelector", ["createMassSelector"]],
       ["simulationControls", ["bindSimulationControls"]],
       ["sensorController", ["createSensorController"]],
       ["measurementRecorder", ["createMeasurementRecorder"]],
@@ -178,11 +185,6 @@ ${css}
       <aside class="parameter-panel" aria-labelledby="parameters-title">
         <h2 id="parameters-title">Paramètres</h2>
         <div class="parameter-list">
-          <div class="parameter-control">
-            <label for="m2-range">Masse suspendue</label>
-            <input id="m2-range" type="range" min="0.1" max="2" step="0.1" value="0.1">
-            <span class="number-with-unit"><input id="m2-number" type="number" min="0.1" max="2" step="0.1" value="0.1"><span>kg</span></span>
-          </div>
           <div class="parameter-control">
             <label for="friction-range">Coefficient de frottement</label>
             <input id="friction-range" type="range" min="0" max="0.2" step="0.005" value="0">

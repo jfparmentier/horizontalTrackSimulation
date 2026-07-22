@@ -3,6 +3,7 @@ import { createApparatusAnimator } from "./apparatus-animation.js";
 import { mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
 import { bindParameterControls } from "./parameter-controls.js";
+import { createMassSelector } from "./mass-selector.js";
 import { bindSimulationControls } from "./simulation-controls.js";
 import { createSensorController } from "./sensor-controller.js";
 import { createMeasurementRecorder } from "./measurement-recorder.js";
@@ -71,6 +72,7 @@ export function createAnimatedApp(root = document, options = {}) {
 
   function destroyRuntime() {
     if (runtime) {
+      runtime.massSelector?.destroy();
       runtime.sensorController?.destroy();
       runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
@@ -91,6 +93,12 @@ export function createAnimatedApp(root = document, options = {}) {
       sensorCount,
     });
     const animator = createApparatusAnimator(svg, layout);
+    const massSelector = createMassSelector(svg, {
+      selectedMass: snapshot.parameters.m2,
+      onSelect(value) {
+        appState.updateParameters({ m2: value });
+      },
+    });
     const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
     const sensorController = createSensorController(svg, layout, {
       onCrossings(crossings) {
@@ -125,6 +133,7 @@ export function createAnimatedApp(root = document, options = {}) {
       layout,
       svg,
       animator,
+      massSelector,
       sensorController,
       measurementRecorder,
     });

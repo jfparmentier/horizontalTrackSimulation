@@ -666,3 +666,64 @@ h1 {
   stroke: #35a95c;
   opacity: 0.75;
 }
+
+.mass-rack-support {
+  fill: #899ca7;
+  stroke: #526b79;
+  stroke-width: 3;
+}
+
+.mass-rack-slot {
+  fill: rgba(229, 239, 244, 0.5);
+  stroke: #9bb0bc;
+  stroke-width: 2;
+  stroke-dasharray: 7 6;
+}
+
+.mass-rack-slot--empty {
+  fill: rgba(255, 255, 255, 0.22);
+  stroke: #c2d0d7;
+}
+
+.mass-choice {
+  cursor: grab;
+  touch-action: none;
+  outline: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mass-choice:focus-visible .mass-choice-body {
+  stroke: #165f88;
+  stroke-width: 6;
+}
+
+.mass-choice--dragging {
+  cursor: grabbing;
+  filter: url(#soft-shadow);
+}
+
+.mass-choice-body {
+  fill: url(#mass-gradient);
+  stroke: #b95a16;
+  stroke-width: 4;
+}
+
+.mass-drop-target {
+  fill: rgba(35, 131, 180, 0.08);
+  stroke: #2383b4;
+  stroke-width: 4;
+  stroke-dasharray: 9 7;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#apparatus-svg[data-mass-dragging="true"] .mass-drop-target {
+  opacity: 0.55;
+}
+
+#layer-hanging-mass.mass-drop-target--active .mass-drop-target {
+  fill: rgba(48, 177, 99, 0.18);
+  stroke: #30a95f;
+  opacity: 1;
+}
