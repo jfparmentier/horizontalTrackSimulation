@@ -80,10 +80,8 @@ for (const id of [
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
   "time-value",
   "parameter-error",
-  "m1-range", "m1-number", "m2-range", "m2-number",
-  "drop-height-range", "drop-height-number",
+  "m2-range", "m2-number",
   "friction-range", "friction-number",
-  "sensor-count-range", "sensor-count-number",
   "playback-speed-range", "playback-speed-number",
 ]) {
   elements.set(`#${id}`, new FakeElement(id));
@@ -158,7 +156,7 @@ if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
 if (elements.get("#time-value").textContent !== "0.00 s") {
   throw new Error("L'affichage initial du temps est incorrect.");
 }
-if (elements.get("#m1-number").value !== "0.5") {
+if (elements.get("#m2-number").value !== "0.1") {
   throw new Error("Les paramètres n'ont pas été synchronisés avec l'état central.");
 }
 if (elements.get("#download-data-button").disabled !== true) {
@@ -170,7 +168,7 @@ if (elements.get("#reset-button").disabled !== true) {
 
 elements.get("#m2-range").value = "0.4";
 elements.get("#m2-range").dispatch("input");
-if (!host._innerHTML.includes("8 capteurs")) {
+if (!host._innerHTML.includes("9 capteurs")) {
   throw new Error("Le montage n'a pas été reconstruit après modification.");
 }
 if (elements.get("#m2-number").value !== "0.4") {

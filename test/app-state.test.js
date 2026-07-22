@@ -7,10 +7,10 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
   const store = createAppState();
   const state = store.getSnapshot();
 
-  assert.equal(state.parameters.m1, 0.5);
+  assert.equal(state.parameters.m1, 1);
   assert.equal(state.parameters.trackLength, 2);
   assert.equal(state.parameters.gravityMode, "earth");
-  assert.equal(state.experimental.sensorCount, 8);
+  assert.equal(state.experimental.sensorCount, 9);
   assert.equal(state.playbackSpeed, 1);
   assert.equal(state.simulation.position, 0);
   assert.equal(state.display.showMeasurements, false);
@@ -50,13 +50,12 @@ test("modifier un paramètre physique réinitialise l'expérience", () => {
   assert.equal(updated.revision, 1);
 });
 
-test("modifier le nombre de capteurs réinitialise l'expérience", () => {
-  const store = createAppState();
-  const updated = store.updateExperimental({ sensorCount: 12 });
+test("le nombre de capteurs reste fixé à neuf", () => {
+  const store = createAppState({ sensorCount: 12 });
 
-  assert.equal(updated.experimental.sensorCount, 12);
-  assert.equal(updated.simulation.status, "ready");
-  assert.equal(updated.revision, 1);
+  assert.equal(store.getSnapshot().experimental.sensorCount, 9);
+  assert.throws(() => store.updateExperimental({ sensorCount: 12 }), /fixé à 9/i);
+  assert.equal(store.getSnapshot().experimental.sensorCount, 9);
 });
 
 test("modifier la vitesse de lecture ne réinitialise pas la simulation", () => {
@@ -70,9 +69,9 @@ test("modifier la vitesse de lecture ne réinitialise pas la simulation", () => 
     status: "paused",
   });
 
-  const updated = store.setPlaybackSpeed(2);
+  const updated = store.setPlaybackSpeed(0.5);
 
-  assert.equal(updated.playbackSpeed, 2);
+  assert.equal(updated.playbackSpeed, 0.5);
   assert.equal(updated.simulation.time, 0.5);
   assert.equal(updated.revision, 0);
 });
@@ -81,7 +80,7 @@ test("les valeurs invalides sont refusées sans altérer l'état", () => {
   const store = createAppState();
   const before = store.getSnapshot();
 
-  assert.throws(() => store.updateParameters({ m1: 3 }), /m1/i);
+  assert.throws(() => store.updateParameters({ m1: 3 }), /masse de S1/i);
   assert.throws(() => store.updateExperimental({ sensorCount: 3.5 }), /capteurs/i);
   assert.throws(() => store.setPlaybackSpeed(20), /vitesse de lecture/i);
   assert.equal(store.getSnapshot(), before);
@@ -93,10 +92,10 @@ test("les abonnés reçoivent le motif de chaque modification", () => {
   const unsubscribe = store.subscribe((_state, meta) => reasons.push(meta.reason));
 
   store.updateParameters({ friction: 0.05 });
-  store.setPlaybackSpeed(1.5);
+  store.setPlaybackSpeed(0.7);
   store.resetExperiment();
   unsubscribe();
-  store.updateParameters({ m1: 0.6 });
+  store.updateParameters({ m2: 0.6 });
 
   assert.deepEqual(reasons, [
     "parameters-change",
@@ -189,4 +188,16 @@ test("la longueur du banc reste fixée à 2 m dans l'état central", () => {
   assert.equal(store.getSnapshot().parameters.trackLength, 2);
   assert.throws(() => store.updateParameters({ trackLength: 1 }), /fixée à 2 m/i);
   assert.equal(store.getSnapshot().parameters.trackLength, 2);
+});
+
+
+test("la masse de S1 et la hauteur de chute restent fixes", () => {
+  const store = createAppState({
+    parameters: { m1: 0.4, dropHeight: 0.9 },
+  });
+
+  assert.equal(store.getSnapshot().parameters.m1, 1);
+  assert.equal(store.getSnapshot().parameters.dropHeight, 0.5);
+  assert.throws(() => store.updateParameters({ m1: 0.8 }), /fixée à 1 kg/i);
+  assert.throws(() => store.updateParameters({ dropHeight: 0.8 }), /fixée à 0.5 m/i);
 });

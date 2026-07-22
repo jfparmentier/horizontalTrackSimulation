@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.9.3",
+  "version": "0.9.5",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG animée avec banc fixé à 2 m et échelle graphique commune pour S1 et S2.",
+  "description": "Simulation SVG animée avec S1 fixée à 1 kg, chute fixée à 0,5 m, banc de 2 m et neuf capteurs.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

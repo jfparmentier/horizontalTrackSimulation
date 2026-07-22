@@ -1,15 +1,15 @@
-import { DEFAULT_PARAMETERS } from "./constants.js";
+import { DEFAULT_PARAMETERS, FIXED_SENSOR_COUNT } from "./constants.js";
 import { PhysicsParameterError, validateParameters } from "./physics.js";
 
 export const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 820,
+  height: 620,
 });
 
 export const SENSOR_COUNT_LIMITS = Object.freeze({
   min: 1,
   max: 16,
-  default: 8,
+  default: FIXED_SENSOR_COUNT,
 });
 
 const DRAWING = Object.freeze({
@@ -44,7 +44,7 @@ function assertIntegerInRange(name, value, limits) {
 
 /**
  * Répartit régulièrement les capteurs sur le banc, sans en placer aux extrémités.
- * Pour huit capteurs : x_i = iL/9, i = 1…8.
+ * Pour neuf capteurs : x_i = iL/10, i = 1…9.
  */
 export function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.default) {
   const length = Number(trackLength);

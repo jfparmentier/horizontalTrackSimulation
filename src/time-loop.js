@@ -16,7 +16,7 @@ export const TIME_LOOP_DEFAULTS = Object.freeze({
 
 export const PLAYBACK_SPEED_LIMITS = Object.freeze({
   min: 0.1,
-  max: 8,
+  max: 1,
 });
 
 function freezeState(state) {

@@ -9,7 +9,7 @@ import {
 } from "../src/apparatus-geometry.js";
 
 const DEFAULTS = Object.freeze({
-  m1: 0.5,
+  m1: 1,
   m2: 0.1,
   dropHeight: 0.5,
   trackLength: 2,
@@ -46,12 +46,12 @@ test("un domaine nul est refusé", () => {
   assert.throws(() => createLinearScale(1, 1, 0, 100), /domaine/i);
 });
 
-test("le layout utilise le viewBox prévu et huit capteurs par défaut", () => {
+test("le layout utilise le viewBox prévu et neuf capteurs par défaut", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
   assert.deepEqual(layout.viewBox, APPARATUS_VIEWBOX);
-  assert.equal(layout.sensorCount, 8);
-  assert.equal(layout.sensors.length, 8);
+  assert.equal(layout.sensorCount, 9);
+  assert.equal(layout.sensors.length, 9);
   assert.equal(layout.mobile.x, layout.track.x);
   assert.equal(layout.string.endY, layout.hangingMass.y);
 });
@@ -93,12 +93,13 @@ test("S1 et S2 ont la même géométrie carrée et le fil est attaché au centre
   assert.equal(layout.pulley.centerY - layout.pulley.radius, layout.string.startY);
 });
 
-test("le viewBox contient la chute maximale à l'échelle commune", () => {
-  const layout = computeApparatusLayout({ ...DEFAULTS, dropHeight: 1 });
+test("le viewBox est ajusté à la hauteur de chute fixe de 0,5 m", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
 
-  assert.equal(layout.viewBox.height, 820);
+  assert.equal(layout.viewBox.height, 620);
   assert.ok(layout.track.y < 300);
   assert.ok(layout.socle.y + 58 < layout.viewBox.height);
+  assert.ok(layout.viewBox.height - (layout.socle.y + 58) < 40);
 });
 
 test("S2 est initialement séparée de la poulie", () => {

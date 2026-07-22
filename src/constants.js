@@ -7,6 +7,9 @@ export const GRAVITY = Object.freeze({
 });
 
 export const FIXED_TRACK_LENGTH = 2.0;
+export const FIXED_M1 = 1.0;
+export const FIXED_DROP_HEIGHT = 0.5;
+export const FIXED_SENSOR_COUNT = 9;
 
 export const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
@@ -17,9 +20,9 @@ export const PARAMETER_LIMITS = Object.freeze({
 });
 
 export const DEFAULT_PARAMETERS = Object.freeze({
-  m1: 0.5,
+  m1: FIXED_M1,
   m2: 0.1,
-  dropHeight: 0.5,
+  dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
   friction: 0.0,
   gravityMode: "earth",

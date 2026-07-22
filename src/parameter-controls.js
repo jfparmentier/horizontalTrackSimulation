@@ -1,12 +1,9 @@
 const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "m1", range: "#m1-range", number: "#m1-number" }),
   Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
-  Object.freeze({ key: "dropHeight", range: "#drop-height-range", number: "#drop-height-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 
 const OTHER_CONTROLS = Object.freeze({
-  sensorCount: Object.freeze({ range: "#sensor-count-range", number: "#sensor-count-number" }),
   playbackSpeed: Object.freeze({ range: "#playback-speed-range", number: "#playback-speed-number" }),
 });
 
@@ -49,10 +46,6 @@ export function bindParameterControls(root, appState) {
       },
     ]),
   );
-  const sensorPair = {
-    range: getRequiredElement(root, OTHER_CONTROLS.sensorCount.range),
-    number: getRequiredElement(root, OTHER_CONTROLS.sensorCount.number),
-  };
   const playbackPair = {
     range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
     number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
@@ -66,7 +59,7 @@ export function bindParameterControls(root, appState) {
 
   function clearError() {
     errorElement.textContent = "";
-    for (const pair of [...physicalPairs.values(), sensorPair, playbackPair]) {
+    for (const pair of [...physicalPairs.values(), playbackPair]) {
       setInvalid(pair, false);
     }
   }
@@ -83,7 +76,6 @@ export function bindParameterControls(root, appState) {
       setPairValue(pair, snapshot.parameters[key]);
       setInvalid(pair, false);
     }
-    setPairValue(sensorPair, snapshot.experimental.sensorCount);
     setPairValue(playbackPair, snapshot.playbackSpeed);
   }
 
@@ -107,27 +99,6 @@ export function bindParameterControls(root, appState) {
       commitPhysical(key, pair.number.value, pair);
     });
   }
-
-  listen(sensorPair.range, "input", () => {
-    sensorPair.number.value = sensorPair.range.value;
-    try {
-      clearError();
-      appState.updateExperimental({ sensorCount: Number(sensorPair.range.value) });
-    } catch (error) {
-      sync();
-      showError(error, sensorPair);
-    }
-  });
-  listen(sensorPair.number, "change", () => {
-    sensorPair.range.value = sensorPair.number.value;
-    try {
-      clearError();
-      appState.updateExperimental({ sensorCount: Number(sensorPair.number.value) });
-    } catch (error) {
-      sync();
-      showError(error, sensorPair);
-    }
-  });
 
   listen(playbackPair.range, "input", () => {
     playbackPair.number.value = playbackPair.range.value;

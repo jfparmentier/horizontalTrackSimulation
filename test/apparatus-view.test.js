@@ -24,7 +24,7 @@ test("le SVG possède un viewBox, un titre et une description accessibles", () =
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, /^<svg[^>]+id="apparatus-svg"/);
-  assert.match(svg, /viewBox="0 0 1200 820"/);
+  assert.match(svg, /viewBox="0 0 1200 620"/);
   assert.match(svg, /role="img"/);
   assert.match(svg, /aria-labelledby="apparatus-title apparatus-description"/);
   assert.match(svg, /<title id="apparatus-title">/);

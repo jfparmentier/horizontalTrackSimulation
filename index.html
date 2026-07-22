@@ -82,14 +82,14 @@ h1 {
 
 .apparatus-host {
   width: 100%;
-  min-height: 320px;
+  min-height: 260px;
 }
 
 .apparatus-svg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1200 / 820;
+  aspect-ratio: 1200 / 620;
 }
 
 .scene-background {
@@ -361,6 +361,41 @@ h1 {
   gap: 10px;
 }
 
+
+.playback-control {
+  display: grid;
+  grid-template-columns: minmax(130px, 190px) 70px;
+  grid-template-areas:
+    "label label"
+    "slider value";
+  align-items: center;
+  gap: 3px 9px;
+  margin-left: auto;
+  padding-left: 12px;
+  border-left: 1px solid #d0e2eb;
+}
+
+.playback-control label {
+  grid-area: label;
+  color: #365d72;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.playback-control input[type="range"] {
+  grid-area: slider;
+  width: 100%;
+  accent-color: #247da9;
+}
+
+.playback-control .playback-value {
+  grid-area: value;
+}
+
+.playback-control .number-with-unit input[type="number"] {
+  height: 32px;
+}
+
 .control-button {
   min-height: 42px;
   padding: 9px 15px;
@@ -416,6 +451,18 @@ h1 {
 }
 
 
+
+
+@media (max-width: 820px) {
+  .playback-control {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-top: 8px;
+    padding-left: 0;
+    border-top: 1px solid #d0e2eb;
+    border-left: 0;
+  }
+}
 
 .readout-actions {
   display: flex;
@@ -614,38 +661,14 @@ h1 {
         <h2 id="parameters-title">Paramètres</h2>
         <div class="parameter-list">
           <div class="parameter-control">
-            <label for="m1-range">Masse du mobile S1</label>
-            <input id="m1-range" type="range" min="0.1" max="2" step="0.01" value="0.5">
-            <span class="number-with-unit"><input id="m1-number" type="number" min="0.1" max="2" step="0.01" value="0.5"><span>kg</span></span>
-          </div>
-          <div class="parameter-control">
             <label for="m2-range">Masse suspendue S2</label>
             <input id="m2-range" type="range" min="0.01" max="2" step="0.01" value="0.1">
             <span class="number-with-unit"><input id="m2-number" type="number" min="0.01" max="2" step="0.01" value="0.1"><span>kg</span></span>
           </div>
           <div class="parameter-control">
-            <label for="drop-height-range">Hauteur de chute</label>
-            <input id="drop-height-range" type="range" min="0.2" max="1" step="0.01" value="0.5">
-            <span class="number-with-unit"><input id="drop-height-number" type="number" min="0.2" max="1" step="0.01" value="0.5"><span>m</span></span>
-          </div>
-          <div class="parameter-control">
             <label for="friction-range">Coefficient de frottement</label>
             <input id="friction-range" type="range" min="0" max="0.2" step="0.005" value="0">
             <span class="number-with-unit"><input id="friction-number" type="number" min="0" max="0.2" step="0.005" value="0"><span>—</span></span>
-          </div>
-        </div>
-
-        <h3>Expérience</h3>
-        <div class="parameter-list">
-          <div class="parameter-control">
-            <label for="sensor-count-range">Nombre de capteurs</label>
-            <input id="sensor-count-range" type="range" min="1" max="16" step="1" value="8">
-            <span class="number-with-unit"><input id="sensor-count-number" type="number" min="1" max="16" step="1" value="8"><span>cap.</span></span>
-          </div>
-          <div class="parameter-control">
-            <label for="playback-speed-range">Vitesse de lecture</label>
-            <input id="playback-speed-range" type="range" min="0.1" max="8" step="0.1" value="1">
-            <span class="number-with-unit"><input id="playback-speed-number" type="number" min="0.1" max="8" step="0.1" value="1"><span>×</span></span>
           </div>
         </div>
         <p id="parameter-error" class="parameter-error" role="alert" aria-live="polite"></p>
@@ -659,6 +682,11 @@ h1 {
             <button id="pause-button" class="control-button" type="button">Pause</button>
             <button id="step-button" class="control-button" type="button">Pas à pas</button>
             <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
+            <div class="playback-control">
+              <label for="playback-speed-range">Vitesse de lecture</label>
+              <input id="playback-speed-range" type="range" min="0.1" max="1" step="0.1" value="1">
+              <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.1" max="1" step="0.1" value="1" aria-label="Valeur de la vitesse de lecture"><span>×</span></span>
+            </div>
           </div>
           <div class="readout-actions">
             <dl class="animation-readout">
@@ -689,6 +717,9 @@ const GRAVITY = Object.freeze({
 });
 
 const FIXED_TRACK_LENGTH = 2.0;
+const FIXED_M1 = 1.0;
+const FIXED_DROP_HEIGHT = 0.5;
+const FIXED_SENSOR_COUNT = 9;
 
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
@@ -699,9 +730,9 @@ const PARAMETER_LIMITS = Object.freeze({
 });
 
 const DEFAULT_PARAMETERS = Object.freeze({
-  m1: 0.5,
+  m1: FIXED_M1,
   m2: 0.1,
-  dropHeight: 0.5,
+  dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
   friction: 0.0,
   gravityMode: "earth",
@@ -709,7 +740,7 @@ const DEFAULT_PARAMETERS = Object.freeze({
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
@@ -1322,7 +1353,7 @@ const TIME_LOOP_DEFAULTS = Object.freeze({
 
 const PLAYBACK_SPEED_LIMITS = Object.freeze({
   min: 0.1,
-  max: 8,
+  max: 1,
 });
 
 function freezeState(state) {
@@ -1767,17 +1798,17 @@ return Object.freeze({ TIME_LOOP_DEFAULTS, PLAYBACK_SPEED_LIMITS, createTimeLoop
 })();
 
 modules.geometry = (() => {
-const { DEFAULT_PARAMETERS } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_SENSOR_COUNT } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 820,
+  height: 620,
 });
 
 const SENSOR_COUNT_LIMITS = Object.freeze({
   min: 1,
   max: 16,
-  default: 8,
+  default: FIXED_SENSOR_COUNT,
 });
 
 const DRAWING = Object.freeze({
@@ -1812,7 +1843,7 @@ function assertIntegerInRange(name, value, limits) {
 
 /**
  * Répartit régulièrement les capteurs sur le banc, sans en placer aux extrémités.
- * Pour huit capteurs : x_i = iL/9, i = 1…8.
+ * Pour neuf capteurs : x_i = iL/10, i = 1…9.
  */
 function createDefaultSensors(trackLength, count = SENSOR_COUNT_LIMITS.default) {
   const length = Number(trackLength);
@@ -2337,7 +2368,7 @@ return Object.freeze({ computeAnimatedApparatusFrame, createApparatusAnimator })
 })();
 
 modules.appState = (() => {
-const { DEFAULT_PARAMETERS, FIXED_TRACK_LENGTH } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_DROP_HEIGHT, FIXED_M1, FIXED_SENSOR_COUNT, FIXED_TRACK_LENGTH } = modules.constants;
 const { SENSOR_COUNT_LIMITS } = modules.geometry;
 const { PLAYBACK_SPEED_LIMITS } = modules.timeLoop;
 const { PhysicsParameterError, createInitialState, validateParameters, validateSimulationState } = modules.physics;
@@ -2473,13 +2504,11 @@ function createAppState(initial = {}) {
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
+    m1: FIXED_M1,
+    dropHeight: FIXED_DROP_HEIGHT,
     trackLength: FIXED_TRACK_LENGTH,
   });
-  const sensorCount = validateSensorCount(
-    initial.experimental?.sensorCount
-      ?? initial.sensorCount
-      ?? DEFAULT_EXPERIMENTAL_SETTINGS.sensorCount,
-  );
+  const sensorCount = FIXED_SENSOR_COUNT;
   const playbackSpeed = validatePlaybackSpeed(
     initial.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
   );
@@ -2543,18 +2572,30 @@ function createAppState(initial = {}) {
     if (partial === null || typeof partial !== "object") {
       throw new TypeError("Les paramètres partiels doivent être un objet.");
     }
-    if (
-      Object.hasOwn(partial, "trackLength")
-      && Number(partial.trackLength) !== FIXED_TRACK_LENGTH
-    ) {
-      throw new PhysicsParameterError(
-        `La longueur du banc est fixée à ${FIXED_TRACK_LENGTH} m.`,
-      );
+    const fixedParameters = Object.freeze({
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
+      trackLength: FIXED_TRACK_LENGTH,
+    });
+    for (const [key, fixedValue] of Object.entries(fixedParameters)) {
+      if (Object.hasOwn(partial, key) && Number(partial[key]) !== fixedValue) {
+        const labels = {
+          m1: "La masse de S1",
+          dropHeight: "La hauteur de chute",
+          trackLength: "La longueur du banc",
+        };
+        const units = { m1: "kg", dropHeight: "m", trackLength: "m" };
+        throw new PhysicsParameterError(
+          `${labels[key]} est fixée à ${fixedValue} ${units[key]}.`,
+        );
+      }
     }
 
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
       trackLength: FIXED_TRACK_LENGTH,
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
@@ -2577,22 +2618,16 @@ function createAppState(initial = {}) {
       throw new TypeError("Les réglages expérimentaux partiels doivent être un objet.");
     }
 
-    const nextSensorCount = Object.hasOwn(partial, "sensorCount")
-      ? validateSensorCount(partial.sensorCount)
-      : snapshot.experimental.sensorCount;
-
-    if (nextSensorCount === snapshot.experimental.sensorCount) {
-      return snapshot;
+    if (
+      Object.hasOwn(partial, "sensorCount")
+      && validateSensorCount(partial.sensorCount) !== FIXED_SENSOR_COUNT
+    ) {
+      throw new PhysicsParameterError(
+        `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
+      );
     }
 
-    return replace({
-      ...snapshot,
-      experimental: { ...snapshot.experimental, sensorCount: nextSensorCount },
-      simulation: createInitialState(snapshot.parameters),
-      measurements: [],
-      continuousData: [],
-      revision: snapshot.revision + 1,
-    }, "experimental-change", { changedKeys: Object.freeze(Object.keys(partial)) });
+    return snapshot;
   }
 
   function setPlaybackSpeed(value) {
@@ -2704,14 +2739,11 @@ return Object.freeze({ DEFAULT_EXPERIMENTAL_SETTINGS, DEFAULT_DISPLAY_SETTINGS, 
 modules.parameterControls = (() => {
 
 const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "m1", range: "#m1-range", number: "#m1-number" }),
   Object.freeze({ key: "m2", range: "#m2-range", number: "#m2-number" }),
-  Object.freeze({ key: "dropHeight", range: "#drop-height-range", number: "#drop-height-number" }),
   Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
 ]);
 
 const OTHER_CONTROLS = Object.freeze({
-  sensorCount: Object.freeze({ range: "#sensor-count-range", number: "#sensor-count-number" }),
   playbackSpeed: Object.freeze({ range: "#playback-speed-range", number: "#playback-speed-number" }),
 });
 
@@ -2754,10 +2786,6 @@ function bindParameterControls(root, appState) {
       },
     ]),
   );
-  const sensorPair = {
-    range: getRequiredElement(root, OTHER_CONTROLS.sensorCount.range),
-    number: getRequiredElement(root, OTHER_CONTROLS.sensorCount.number),
-  };
   const playbackPair = {
     range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
     number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
@@ -2771,7 +2799,7 @@ function bindParameterControls(root, appState) {
 
   function clearError() {
     errorElement.textContent = "";
-    for (const pair of [...physicalPairs.values(), sensorPair, playbackPair]) {
+    for (const pair of [...physicalPairs.values(), playbackPair]) {
       setInvalid(pair, false);
     }
   }
@@ -2788,7 +2816,6 @@ function bindParameterControls(root, appState) {
       setPairValue(pair, snapshot.parameters[key]);
       setInvalid(pair, false);
     }
-    setPairValue(sensorPair, snapshot.experimental.sensorCount);
     setPairValue(playbackPair, snapshot.playbackSpeed);
   }
 
@@ -2812,27 +2839,6 @@ function bindParameterControls(root, appState) {
       commitPhysical(key, pair.number.value, pair);
     });
   }
-
-  listen(sensorPair.range, "input", () => {
-    sensorPair.number.value = sensorPair.range.value;
-    try {
-      clearError();
-      appState.updateExperimental({ sensorCount: Number(sensorPair.range.value) });
-    } catch (error) {
-      sync();
-      showError(error, sensorPair);
-    }
-  });
-  listen(sensorPair.number, "change", () => {
-    sensorPair.range.value = sensorPair.number.value;
-    try {
-      clearError();
-      appState.updateExperimental({ sensorCount: Number(sensorPair.number.value) });
-    } catch (error) {
-      sync();
-      showError(error, sensorPair);
-    }
-  });
 
   listen(playbackPair.range, "input", () => {
     playbackPair.number.value = playbackPair.range.value;

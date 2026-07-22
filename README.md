@@ -7,7 +7,7 @@ Cette version enregistre automatiquement une mesure scientifique lors du franchi
 - enregistrement d’une mesure unique pour chaque capteur déclenché ;
 - calcul analytique de l’instant et de la vitesse au franchissement ;
 - stockage centralisé et immuable des données ;
-- affichage inférieur limité au temps et à la position ;
+- affichage inférieur limité au temps ;
 - temps affiché avec exactement deux décimales ;
 - bouton d’export représenté par une icône de téléchargement désactivé pendant l’expérience ;
 - activation automatique du bouton à la fin de la simulation ;
@@ -51,3 +51,21 @@ La colonne `Position (m)` utilise désormais la position physique de S1 au momen
 - La longueur du banc est fixée à 2 m et n’est plus réglable dans l’interface.
 - S2 est placée sous la poulie avec un espace visible.
 - Les déplacements de S1 et S2 utilisent une échelle commune en pixels par mètre ; leurs vitesses affichées sont donc identiques pendant la phase 1.
+
+
+## Paramètres désormais fixes
+
+- masse de S1 : 1 kg ;
+- hauteur de chute : 0,5 m ;
+- longueur du banc : 2 m ;
+- nombre de capteurs : 9 ;
+- gravité terrestre.
+
+Seuls la masse de S2 et le coefficient de frottement restent réglables dans le panneau de paramètres. Le curseur de vitesse de lecture est placé à droite des boutons de pilotage.
+
+
+## Ajustement final du rendu
+
+- hauteur du `viewBox` SVG réduite de 820 à 620 unités afin de supprimer l’espace vertical devenu inutile avec la chute fixée à 0,5 m ;
+- rapport d’aspect de l’affichage mis à jour en conséquence ;
+- vitesse de lecture limitée à l’intervalle 0,1× à 1×.

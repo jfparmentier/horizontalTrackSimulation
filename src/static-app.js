@@ -9,5 +9,5 @@ if (!host) {
 
 mountStaticApparatus(host, {
   ...DEFAULT_PARAMETERS,
-  sensorCount: 8,
+  sensorCount: 9,
 });

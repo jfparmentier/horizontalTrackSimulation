@@ -31,11 +31,8 @@ class FakeElement {
 function createRoot() {
   const ids = [
     "parameter-error",
-    "m1-range", "m1-number",
     "m2-range", "m2-number",
-    "drop-height-range", "drop-height-number",
     "friction-range", "friction-number",
-    "sensor-count-range", "sensor-count-number",
     "playback-speed-range", "playback-speed-number",
   ];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
@@ -51,17 +48,15 @@ function createRoot() {
 
 test("les contrôles sont initialisés depuis l'état central", () => {
   const store = createAppState({
-    parameters: { m1: 0.8 },
-    sensorCount: 10,
-    playbackSpeed: 1.5,
+    parameters: { m2: 0.8 },
+    playbackSpeed: 0.8,
   });
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  assert.equal(elements.get("#m1-range").value, "0.8");
-  assert.equal(elements.get("#m1-number").value, "0.8");
-  assert.equal(elements.get("#sensor-count-number").value, "10");
-  assert.equal(elements.get("#playback-speed-number").value, "1.5");
+  assert.equal(elements.get("#m2-range").value, "0.8");
+  assert.equal(elements.get("#m2-number").value, "0.8");
+  assert.equal(elements.get("#playback-speed-number").value, "0.8");
   assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
 });
 
@@ -84,11 +79,11 @@ test("la vitesse de lecture est reliée et la gravité reste terrestre", () => {
   bindParameterControls(root, store);
 
   const speed = elements.get("#playback-speed-number");
-  speed.value = "2.5";
+  speed.value = "0.6";
   speed.dispatch("change");
 
   assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
-  assert.equal(store.getSnapshot().playbackSpeed, 2.5);
+  assert.equal(store.getSnapshot().playbackSpeed, 0.6);
 });
 
 test("une saisie invalide est annulée et signalée", () => {
@@ -96,12 +91,12 @@ test("une saisie invalide est annulée et signalée", () => {
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  const input = elements.get("#m1-number");
+  const input = elements.get("#m2-number");
   input.value = "4";
   input.dispatch("change");
 
-  assert.equal(store.getSnapshot().parameters.m1, 0.5);
-  assert.equal(input.value, "0.5");
-  assert.match(elements.get("#parameter-error").textContent, /m1/i);
+  assert.equal(store.getSnapshot().parameters.m2, 0.1);
+  assert.equal(input.value, "0.1");
+  assert.match(elements.get("#parameter-error").textContent, /m2/i);
   assert.equal(input.attributes.get("aria-invalid"), "true");
 });

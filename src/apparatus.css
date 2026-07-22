@@ -74,14 +74,14 @@ h1 {
 
 .apparatus-host {
   width: 100%;
-  min-height: 320px;
+  min-height: 260px;
 }
 
 .apparatus-svg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1200 / 820;
+  aspect-ratio: 1200 / 620;
 }
 
 .scene-background {
@@ -353,6 +353,41 @@ h1 {
   gap: 10px;
 }
 
+
+.playback-control {
+  display: grid;
+  grid-template-columns: minmax(130px, 190px) 70px;
+  grid-template-areas:
+    "label label"
+    "slider value";
+  align-items: center;
+  gap: 3px 9px;
+  margin-left: auto;
+  padding-left: 12px;
+  border-left: 1px solid #d0e2eb;
+}
+
+.playback-control label {
+  grid-area: label;
+  color: #365d72;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.playback-control input[type="range"] {
+  grid-area: slider;
+  width: 100%;
+  accent-color: #247da9;
+}
+
+.playback-control .playback-value {
+  grid-area: value;
+}
+
+.playback-control .number-with-unit input[type="number"] {
+  height: 32px;
+}
+
 .control-button {
   min-height: 42px;
   padding: 9px 15px;
@@ -408,6 +443,18 @@ h1 {
 }
 
 
+
+
+@media (max-width: 820px) {
+  .playback-control {
+    flex-basis: 100%;
+    margin-left: 0;
+    padding-top: 8px;
+    padding-left: 0;
+    border-top: 1px solid #d0e2eb;
+    border-left: 0;
+  }
+}
 
 .readout-actions {
   display: flex;

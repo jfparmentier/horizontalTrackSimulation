@@ -86,7 +86,7 @@ test("le passage en phase 2 immobilise S2 et détend le fil", () => {
     onRender: (state, previousState, meta) => animator.render(state, previousState, meta),
   });
 
-  loop.step(1);
+  loop.step(1.2);
   const massAtTransition = elements.get("#layer-hanging-mass").attributes.get("transform");
   const xAfterTransition = loop.getState().position;
 

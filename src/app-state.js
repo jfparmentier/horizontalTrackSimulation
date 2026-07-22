@@ -1,4 +1,10 @@
-import { DEFAULT_PARAMETERS, FIXED_TRACK_LENGTH } from "./constants.js";
+import {
+  DEFAULT_PARAMETERS,
+  FIXED_DROP_HEIGHT,
+  FIXED_M1,
+  FIXED_SENSOR_COUNT,
+  FIXED_TRACK_LENGTH,
+} from "./constants.js";
 import { SENSOR_COUNT_LIMITS } from "./apparatus-geometry.js";
 import { PLAYBACK_SPEED_LIMITS } from "./time-loop.js";
 import {
@@ -140,13 +146,11 @@ export function createAppState(initial = {}) {
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
+    m1: FIXED_M1,
+    dropHeight: FIXED_DROP_HEIGHT,
     trackLength: FIXED_TRACK_LENGTH,
   });
-  const sensorCount = validateSensorCount(
-    initial.experimental?.sensorCount
-      ?? initial.sensorCount
-      ?? DEFAULT_EXPERIMENTAL_SETTINGS.sensorCount,
-  );
+  const sensorCount = FIXED_SENSOR_COUNT;
   const playbackSpeed = validatePlaybackSpeed(
     initial.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
   );
@@ -210,18 +214,30 @@ export function createAppState(initial = {}) {
     if (partial === null || typeof partial !== "object") {
       throw new TypeError("Les paramètres partiels doivent être un objet.");
     }
-    if (
-      Object.hasOwn(partial, "trackLength")
-      && Number(partial.trackLength) !== FIXED_TRACK_LENGTH
-    ) {
-      throw new PhysicsParameterError(
-        `La longueur du banc est fixée à ${FIXED_TRACK_LENGTH} m.`,
-      );
+    const fixedParameters = Object.freeze({
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
+      trackLength: FIXED_TRACK_LENGTH,
+    });
+    for (const [key, fixedValue] of Object.entries(fixedParameters)) {
+      if (Object.hasOwn(partial, key) && Number(partial[key]) !== fixedValue) {
+        const labels = {
+          m1: "La masse de S1",
+          dropHeight: "La hauteur de chute",
+          trackLength: "La longueur du banc",
+        };
+        const units = { m1: "kg", dropHeight: "m", trackLength: "m" };
+        throw new PhysicsParameterError(
+          `${labels[key]} est fixée à ${fixedValue} ${units[key]}.`,
+        );
+      }
     }
 
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
       trackLength: FIXED_TRACK_LENGTH,
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
@@ -244,22 +260,16 @@ export function createAppState(initial = {}) {
       throw new TypeError("Les réglages expérimentaux partiels doivent être un objet.");
     }
 
-    const nextSensorCount = Object.hasOwn(partial, "sensorCount")
-      ? validateSensorCount(partial.sensorCount)
-      : snapshot.experimental.sensorCount;
-
-    if (nextSensorCount === snapshot.experimental.sensorCount) {
-      return snapshot;
+    if (
+      Object.hasOwn(partial, "sensorCount")
+      && validateSensorCount(partial.sensorCount) !== FIXED_SENSOR_COUNT
+    ) {
+      throw new PhysicsParameterError(
+        `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
+      );
     }
 
-    return replace({
-      ...snapshot,
-      experimental: { ...snapshot.experimental, sensorCount: nextSensorCount },
-      simulation: createInitialState(snapshot.parameters),
-      measurements: [],
-      continuousData: [],
-      revision: snapshot.revision + 1,
-    }, "experimental-change", { changedKeys: Object.freeze(Object.keys(partial)) });
+    return snapshot;
   }
 
   function setPlaybackSpeed(value) {

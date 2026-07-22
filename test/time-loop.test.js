@@ -183,11 +183,11 @@ test("reprendre après une pause n'intègre pas le temps écoulé pendant la pau
 });
 
 test("la vitesse de lecture multiplie le temps physique", () => {
-  const { loop, scheduler } = createHarness({ playbackSpeed: 2 });
+  const { loop, scheduler } = createHarness({ playbackSpeed: 0.5 });
   loop.start();
   scheduler.frameAt(0);
   scheduler.frameAt(20);
-  closeTo(loop.getState().time, 0.04);
+  closeTo(loop.getState().time, 0.01);
 });
 
 test("la vitesse de lecture peut être modifiée pendant l'exécution", () => {
