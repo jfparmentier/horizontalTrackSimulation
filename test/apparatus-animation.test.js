@@ -48,14 +48,14 @@ test("la position initiale conserve les coordonnées statiques", () => {
   assert.equal(frame.slack, false);
 });
 
-test("le bord gauche de S1 atteint l’extrémité du banc lorsque x = L", () => {
+test("le bord droit de S1 atteint l’extrémité du banc à la position maximale", () => {
   const layout = computeApparatusLayout(PARAMETERS);
   const frame = computeAnimatedApparatusFrame(
     layout,
-    state({ position: PARAMETERS.trackLength, phase: 2, hangingDisplacement: 0.5 }),
+    state({ position: layout.motionScale.maximumMobilePosition, phase: 2, hangingDisplacement: 0.5 }),
   );
 
-  closeTo(frame.mobileX, layout.track.endX);
+  closeTo(frame.mobileX + layout.mobile.width, layout.track.endX);
 });
 
 test("S2 atteint exactement le haut du support pour une chute h", () => {
@@ -164,12 +164,13 @@ test("un état terminal est affiché exactement même avec une interpolation nul
 
   const layout = computeApparatusLayout(PARAMETERS);
   const animator = createApparatusAnimator(svg, layout);
-  const previous = state({ position: 1.9, hangingDisplacement: 0.5, phase: 2, status: "running" });
-  const current = state({ position: 2, hangingDisplacement: 0.5, phase: 2, status: "finished", endReason: "track-end" });
+  const maximum = layout.motionScale.maximumMobilePosition;
+  const previous = state({ position: maximum - 0.1, hangingDisplacement: 0.5, phase: 2, status: "running" });
+  const current = state({ position: maximum, hangingDisplacement: 0.5, phase: 2, status: "finished", endReason: "track-end" });
   const frame = animator.render(current, previous, { interpolationAlpha: 0, running: false });
 
-  closeTo(frame.position, 2);
-  closeTo(frame.mobileX, layout.track.endX);
+  closeTo(frame.position, maximum);
+  closeTo(frame.mobileX + layout.mobile.width, layout.track.endX);
 });
 
 test("l'animateur signale les éléments SVG manquants", () => {

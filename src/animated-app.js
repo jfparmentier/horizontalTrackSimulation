@@ -53,23 +53,20 @@ export function createAnimatedApp(root = document, options = {}) {
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
 
-    const terminal = ["blocked", "finished"].includes(state.status);
-    s2StopTimeItem.hidden = !terminal;
-    s2ContactVelocityItem.hidden = !terminal;
+    const phaseTwoStarted = Boolean(phaseChangeEvent);
+    for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
+      item.classList.toggle("readout-item--pending", !phaseTwoStarted);
+      item.setAttribute("aria-disabled", String(!phaseTwoStarted));
+    }
 
-    if (!terminal) {
-      s2StopTimeValue.textContent = "—";
-      s2ContactVelocityValue.textContent = "—";
+    if (!phaseTwoStarted) {
+      s2StopTimeValue.textContent = "";
+      s2ContactVelocityValue.textContent = "";
       return;
     }
 
-    if (phaseChangeEvent) {
-      s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
-      s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
-    } else {
-      s2StopTimeValue.textContent = "Non atteint";
-      s2ContactVelocityValue.textContent = "Non atteinte";
-    }
+    s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
+    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
   }
 
   function destroyRuntime() {

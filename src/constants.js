@@ -10,6 +10,7 @@ export const FIXED_TRACK_LENGTH = 2.0;
 export const FIXED_M1 = 1.0;
 export const FIXED_DROP_HEIGHT = 0.5;
 export const FIXED_SENSOR_COUNT = 9;
+export const FIXED_MOBILE_LENGTH = 0.2;
 
 export const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),

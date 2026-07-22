@@ -9,6 +9,7 @@ import {
   computePhase2Acceleration,
   createInitialState,
   getGravity,
+  getMaximumMobilePosition,
   integrateConstantAcceleration,
   timeToReachPosition,
   timeToStop,
@@ -176,6 +177,10 @@ test("integrateConstantAcceleration calcule position et vitesse exactement", () 
   assert.ok(Object.isFrozen(result));
 });
 
+test("la position maximale de S1 tient compte de sa longueur de 0,2 m", () => {
+  assert.equal(getMaximumMobilePosition(DEFAULT_PARAMETERS), 1.8);
+});
+
 test("createInitialState impose x0 = 0 et v0 = 0", () => {
   assert.deepEqual(createInitialState(DEFAULT_PARAMETERS), {
     time: 0,
@@ -193,7 +198,7 @@ test("validateSimulationState refuse un état situé hors du banc", () => {
   assert.throws(
     () =>
       validateSimulationState(
-        { ...createInitialState(), position: DEFAULT_PARAMETERS.trackLength + 0.1 },
+        { ...createInitialState(), position: getMaximumMobilePosition(DEFAULT_PARAMETERS) + 0.1 },
         DEFAULT_PARAMETERS,
       ),
     PhysicsParameterError,

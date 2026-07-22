@@ -81,3 +81,11 @@ Le bord gauche de S1, les faisceaux SVG et les positions exportées utilisent d�
 - S2 affiche sa masse réglable par pas de 0.1 kg.
 - Le support inférieur de S2 est réduit à un rectangle.
 - À la fin, l'interface affiche le temps de contact de S2 avec le support et la vitesse correspondante avant le bouton CSV.
+
+
+## Correction 0.9.8 — fin du banc et résultats de phase 1
+
+- S1 possède une longueur physique de 0,2 m. La simulation s'arrête lorsque son bord droit atteint l'extrémité du banc à 2 m, soit lorsque son bord gauche atteint 1,8 m.
+- Le dernier capteur, placé à 1,8 m, est donc franchi exactement à la fin du banc.
+- Les cadrans « Durée de chute » et « Vitesse d’impact » sont toujours visibles, grisés et vides au départ.
+- Ils deviennent actifs et sont renseignés dès le passage en phase 2, lorsque S2 atteint son support.

@@ -140,7 +140,7 @@ export function buildStaticApparatusSvg(options = {}) {
 
     <g id="layer-mobile" data-role="mobile" transform="translate(${layout.mobile.x} ${layout.mobile.y})">
       <rect id="mobile-body" class="mobile-body" data-role="mobile-body" x="0" y="0" width="${layout.mobile.width}" height="${layout.mobile.height}" rx="18" />
-      <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.attachY - layout.mobile.y}" r="5" />
+      <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.height / 2}" r="5" />
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 

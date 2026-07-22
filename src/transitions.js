@@ -3,6 +3,7 @@ import {
   PhysicsParameterError,
   computePhase1Acceleration,
   computePhase2Acceleration,
+  getMaximumMobilePosition,
   integrateConstantAcceleration,
   timeToReachPosition,
   timeToStop,
@@ -77,7 +78,9 @@ export function getNextPhysicalEvent(state, parameters) {
     return null;
   }
 
-  if (current.position >= p.trackLength - NUMERICAL_EPSILON) {
+  const maximumPosition = getMaximumMobilePosition(p);
+
+  if (current.position >= maximumPosition - NUMERICAL_EPSILON) {
     return freezeEvent({ type: PHYSICAL_EVENT.TRACK_END, time: 0 });
   }
 
@@ -92,7 +95,7 @@ export function getNextPhysicalEvent(state, parameters) {
       position: current.position,
       velocity: current.velocity,
       acceleration,
-      targetPosition: p.trackLength,
+      targetPosition: maximumPosition,
     });
 
     const timeToPhaseChange = timeToReachPosition({
@@ -117,7 +120,7 @@ export function getNextPhysicalEvent(state, parameters) {
     position: current.position,
     velocity: current.velocity,
     acceleration,
-    targetPosition: p.trackLength,
+    targetPosition: maximumPosition,
   });
   const stopTime = timeToStop(current.velocity, acceleration);
 
@@ -182,6 +185,7 @@ export function advanceToPhysicalEvent(state, parameters, event) {
 
   let reached = advanceWithinCurrentPhase(current, p, Math.max(0, event.time));
   const fromPhase = current.phase;
+  const maximumPosition = getMaximumMobilePosition(p);
 
   switch (event.type) {
     case PHYSICAL_EVENT.PHASE_CHANGE: {
@@ -201,9 +205,9 @@ export function advanceToPhysicalEvent(state, parameters, event) {
     case PHYSICAL_EVENT.TRACK_END:
       reached = freezeState({
         ...reached,
-        position: p.trackLength,
+        position: maximumPosition,
         hangingDisplacement:
-          fromPhase === 1 ? Math.min(p.dropHeight, p.trackLength) : p.dropHeight,
+          fromPhase === 1 ? Math.min(p.dropHeight, maximumPosition) : p.dropHeight,
         velocity: 0,
         acceleration: 0,
         status: "finished",

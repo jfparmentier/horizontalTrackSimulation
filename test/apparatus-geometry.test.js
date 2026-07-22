@@ -93,6 +93,15 @@ test("S1 et S2 ont la même géométrie carrée et le fil est attaché au centre
   assert.equal(layout.pulley.centerY - layout.pulley.radius, layout.string.startY);
 });
 
+test("la position maximale place le bord droit de S1 exactement à 2 m", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const finalLeftX = layout.mobile.x
+    + layout.motionScale.maximumMobilePosition * layout.motionScale.pixelsPerMeter;
+
+  assert.equal(layout.motionScale.maximumMobilePosition, 1.8);
+  assert.ok(Math.abs(finalLeftX + layout.mobile.width - layout.track.endX) < 1e-9);
+});
+
 test("le viewBox est ajusté à la hauteur de chute fixe de 0,5 m", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
@@ -115,7 +124,7 @@ test("la même échelle en pixels par mètre est utilisée horizontalement et ve
     / layout.parameters.dropHeight;
 
   assert.equal(layout.motionScale.pixelsPerMeter, horizontalScale);
-  assert.equal(verticalScale, horizontalScale);
+  assert.ok(Math.abs(verticalScale - horizontalScale) < 1e-9);
 });
 
 test("les coordonnées des capteurs croissent strictement", () => {

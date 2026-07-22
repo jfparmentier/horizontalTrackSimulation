@@ -15,6 +15,16 @@ class FakeElement {
     this.attributes = new Map();
     this.dataset = {};
     this.listeners = new Map();
+    this.classes = new Set();
+    this.classList = {
+      toggle: (name, force) => {
+        const enabled = force === undefined ? !this.classes.has(name) : Boolean(force);
+        if (enabled) this.classes.add(name);
+        else this.classes.delete(name);
+        return enabled;
+      },
+      contains: (name) => this.classes.has(name),
+    };
     this._innerHTML = "";
   }
   setAttribute(name, value) {
@@ -163,8 +173,13 @@ if (elements.get("#m2-number").value !== "0.1") {
 if (elements.get("#download-data-button").disabled !== true) {
   throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
 }
-if (elements.get("#s2-stop-time-item").hidden !== true || elements.get("#s2-contact-velocity-item").hidden !== true) {
-  throw new Error("Les résultats de contact de S2 doivent être masqués avant la fin.");
+if (
+  elements.get("#s2-stop-time-item").attributes.get("aria-disabled") !== "true"
+  || elements.get("#s2-contact-velocity-item").attributes.get("aria-disabled") !== "true"
+  || elements.get("#s2-stop-time-value").textContent !== ""
+  || elements.get("#s2-contact-velocity-value").textContent !== ""
+) {
+  throw new Error("Les résultats de la phase 1 doivent être visibles, grisés et vides avant la phase 2.");
 }
 if (elements.get("#reset-button").disabled !== true) {
   throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
@@ -196,6 +211,14 @@ const measurementCount = Number(host.attributes.get("data-measurement-count"));
 if (!Number.isInteger(measurementCount) || measurementCount <= 0) {
   throw new Error("Aucune mesure de capteur n'a été enregistrée dans l'état central.");
 }
+if (
+  elements.get("#s2-stop-time-item").attributes.get("aria-disabled") !== "false"
+  || elements.get("#s2-contact-velocity-item").attributes.get("aria-disabled") !== "false"
+  || !/ s$/.test(elements.get("#s2-stop-time-value").textContent)
+  || !/ m\/s$/.test(elements.get("#s2-contact-velocity-value").textContent)
+) {
+  throw new Error("La durée de chute et la vitesse d'impact doivent être renseignées dès le début de la phase 2.");
+}
 
 for (let index = 0; index < 100 && elements.get("#download-data-button").disabled; index += 1) {
   elements.get("#step-button").dispatch("click");
@@ -203,13 +226,16 @@ for (let index = 0; index < 100 && elements.get("#download-data-button").disable
 if (elements.get("#download-data-button").disabled) {
   throw new Error("La simulation autonome n'a pas atteint son état terminal.");
 }
-if (elements.get("#s2-stop-time-item").hidden || elements.get("#s2-contact-velocity-item").hidden) {
-  throw new Error("Les résultats de contact de S2 ne sont pas affichés à la fin.");
+if (
+  elements.get("#s2-stop-time-item").attributes.get("aria-disabled") !== "false"
+  || elements.get("#s2-contact-velocity-item").attributes.get("aria-disabled") !== "false"
+) {
+  throw new Error("Les résultats de la phase 1 ne sont pas activés au début de la phase 2.");
 }
 if (!/ s$/.test(elements.get("#s2-stop-time-value").textContent)) {
-  throw new Error("Le temps d'arrêt de S2 n'est pas affiché avec son unité.");
+  throw new Error("La durée de chute n'est pas affichée avec son unité.");
 }
 if (!/ m\/s$/.test(elements.get("#s2-contact-velocity-value").textContent)) {
-  throw new Error("La vitesse de contact de S2 n'est pas affichée avec son unité.");
+  throw new Error("La vitesse d'impact n'est pas affichée avec son unité.");
 }
 console.log("Smoke test autonome réussi.");

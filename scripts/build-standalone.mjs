@@ -9,16 +9,16 @@ const manifests = [
     key: "constants",
     file: "src/constants.js",
     dependencies: [],
-    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
+    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "FIXED_MOBILE_LENGTH", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
   },
   {
     key: "physics",
     file: "src/physics.js",
     dependencies: [
-      ["constants", ["DEFAULT_PARAMETERS", "GRAVITY", "NUMERICAL_EPSILON", "PARAMETER_LIMITS"]],
+      ["constants", ["DEFAULT_PARAMETERS", "FIXED_MOBILE_LENGTH", "GRAVITY", "NUMERICAL_EPSILON", "PARAMETER_LIMITS"]],
     ],
     exports: [
-      "PhysicsParameterError", "getGravity", "validateParameters",
+      "PhysicsParameterError", "getGravity", "validateParameters", "getMaximumMobilePosition",
       "computePhase1Acceleration", "computePhase2Acceleration",
       "computePhase1EndVelocity", "timeToReachPosition", "timeToStop",
       "integrateConstantAcceleration", "createInitialState", "validateSimulationState",
@@ -31,7 +31,7 @@ const manifests = [
       ["constants", ["NUMERICAL_EPSILON"]],
       ["physics", [
         "PhysicsParameterError", "computePhase1Acceleration", "computePhase2Acceleration",
-        "integrateConstantAcceleration", "timeToReachPosition", "timeToStop",
+        "getMaximumMobilePosition", "integrateConstantAcceleration", "timeToReachPosition", "timeToStop",
         "validateParameters", "validateSimulationState",
       ]],
     ],
@@ -54,7 +54,7 @@ const manifests = [
     key: "geometry",
     file: "src/apparatus-geometry.js",
     dependencies: [
-      ["constants", ["DEFAULT_PARAMETERS", "FIXED_SENSOR_COUNT"]],
+      ["constants", ["DEFAULT_PARAMETERS", "FIXED_MOBILE_LENGTH", "FIXED_SENSOR_COUNT"]],
       ["physics", ["PhysicsParameterError", "validateParameters"]],
     ],
     exports: [
@@ -209,8 +209,8 @@ ${css}
           <div class="readout-actions">
             <dl class="animation-readout">
               <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
-              <div id="s2-stop-time-item" class="readout-item readout-item--result" hidden><dt>Arrêt de S2</dt><dd id="s2-stop-time-value">—</dd></div>
-              <div id="s2-contact-velocity-item" class="readout-item readout-item--result" hidden><dt>Vitesse au socle</dt><dd id="s2-contact-velocity-value">—</dd></div>
+              <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
+              <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
             </dl>
             <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
               <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

@@ -92,7 +92,7 @@ test("les capteurs n'affichent ni cadre ni base", () => {
 test("la masse suspendue est rendue comme un carré arrondi", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
-  assert.match(svg, /<rect id="hanging-mass-body"[^>]+width="76" height="76" rx="14"/);
+  assert.match(svg, /<rect id="hanging-mass-body"[^>]+width="83\.8" height="83\.8" rx="14"/);
 });
 
 
@@ -107,8 +107,8 @@ test("le support d'arrêt de S2 ne contient que le rectangle supérieur", () => 
 test("S1 est rendu comme un carré arrondi de même taille que S2", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
-  assert.match(svg, /<rect id="mobile-body"[^>]+width="76" height="76" rx="18"/);
-  assert.match(svg, /<circle class="mobile-port" cx="76" cy="38" r="5"/);
+  assert.match(svg, /<rect id="mobile-body"[^>]+width="83\.8" height="83\.8" rx="18"/);
+  assert.match(svg, /<circle class="mobile-port" cx="83\.8" cy="41\.9" r="5"/);
 });
 
 test("aucun vecteur de force, vitesse ou accélération n'est dessiné", () => {

@@ -38,7 +38,7 @@ class FakeButton {
 function terminalSimulation(status = "finished") {
   return {
     time: 2,
-    position: 2,
+    position: 1.8,
     velocity: 0,
     acceleration: 0,
     hangingDisplacement: 0.5,

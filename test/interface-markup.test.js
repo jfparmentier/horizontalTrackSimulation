@@ -82,9 +82,11 @@ test("le contrôle de la masse suspendue utilise un pas de 0.1 kg sans mention d
   assert.match(html, /id="m2-number"[^>]+min="0.1"[^>]+step="0.1"/);
 });
 
-test("les résultats de contact de S2 sont masqués avant la fin", () => {
-  assert.match(html, /id="s2-stop-time-item"[^>]+hidden/);
-  assert.match(html, /id="s2-contact-velocity-item"[^>]+hidden/);
-  assert.match(html, /<dt>Arrêt de S2<\/dt>/);
-  assert.match(html, /<dt>Vitesse au socle<\/dt>/);
+test("les résultats de la phase 1 sont toujours visibles mais initialement grisés et vides", () => {
+  assert.match(html, /id="s2-stop-time-item"[^>]+readout-item--pending[^>]+aria-disabled="true"/);
+  assert.match(html, /id="s2-contact-velocity-item"[^>]+readout-item--pending[^>]+aria-disabled="true"/);
+  assert.doesNotMatch(html, /id="s2-stop-time-item"[^>]+hidden/);
+  assert.doesNotMatch(html, /id="s2-contact-velocity-item"[^>]+hidden/);
+  assert.match(html, /<dt>Durée de chute<\/dt><dd id="s2-stop-time-value"><\/dd>/);
+  assert.match(html, /<dt>Vitesse d’impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
 });

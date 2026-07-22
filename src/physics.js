@@ -1,5 +1,6 @@
 import {
   DEFAULT_PARAMETERS,
+  FIXED_MOBILE_LENGTH,
   GRAVITY,
   NUMERICAL_EPSILON,
   PARAMETER_LIMITS,
@@ -89,6 +90,24 @@ export function validateParameters(parameters = DEFAULT_PARAMETERS) {
 /**
  * Calcule l'accélération commune de S1 et S2 pendant la phase 1.
  */
+
+/**
+ * Position maximale du bord gauche de S1. Lorsque cette position est atteinte,
+ * son bord droit coïncide exactement avec l'extrémité du banc.
+ */
+export function getMaximumMobilePosition(parameters = DEFAULT_PARAMETERS) {
+  const p = validateParameters(parameters);
+  const maximum = p.trackLength - FIXED_MOBILE_LENGTH;
+
+  if (maximum <= NUMERICAL_EPSILON) {
+    throw new PhysicsParameterError(
+      "La longueur du banc doit être supérieure à la longueur de S1.",
+    );
+  }
+
+  return maximum;
+}
+
 export function computePhase1Acceleration(parameters) {
   const p = validateParameters(parameters);
   const g = getGravity(p.gravityMode);
@@ -265,7 +284,8 @@ export function validateSimulationState(state, parameters = DEFAULT_PARAMETERS) 
     throw new PhysicsParameterError("Le temps ne peut pas être négatif.");
   }
 
-  if (state.position < -NUMERICAL_EPSILON || state.position > p.trackLength + NUMERICAL_EPSILON) {
+  const maximumPosition = getMaximumMobilePosition(p);
+  if (state.position < -NUMERICAL_EPSILON || state.position > maximumPosition + NUMERICAL_EPSILON) {
     throw new PhysicsParameterError("La position doit rester comprise sur le banc.");
   }
 

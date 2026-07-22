@@ -41,7 +41,7 @@ export function computeAnimatedApparatusFrame(
   const position = clamp(
     interpolate(previousState.position, currentState.position, alpha),
     0,
-    layout.parameters.trackLength,
+    layout.motionScale?.maximumMobilePosition ?? layout.parameters.trackLength,
   );
   const hangingDisplacement = clamp(
     interpolate(

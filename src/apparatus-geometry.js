@@ -1,4 +1,4 @@
-import { DEFAULT_PARAMETERS, FIXED_SENSOR_COUNT } from "./constants.js";
+import { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT } from "./constants.js";
 import { PhysicsParameterError, validateParameters } from "./physics.js";
 
 export const APPARATUS_VIEWBOX = Object.freeze({
@@ -19,15 +19,10 @@ const DRAWING = Object.freeze({
   trackHeight: 46,
   rulerTopY: 312,
   rulerHeight: 48,
-  mobileWidth: 76,
-  mobileHeight: 76,
   mobileBottomY: 248,
   pulleyCenterX: 1016,
-  pulleyCenterY: 230,
   pulleyRadius: 20,
-  hangingMassWidth: 76,
-  hangingMassHeight: 76,
-  hangingMassTopY: 270,
+  hangingMassTopY: 260,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -117,29 +112,30 @@ export function computeApparatusLayout(options = {}) {
     DRAWING.trackStartX,
     DRAWING.trackEndX,
   );
-  const pulley = Object.freeze({
-    centerX: DRAWING.pulleyCenterX,
-    centerY: DRAWING.pulleyCenterY,
-    radius: DRAWING.pulleyRadius,
-  });
-  const mobile = Object.freeze({
-    x: positionToX(0),
-    y: DRAWING.mobileBottomY - DRAWING.mobileHeight,
-    width: DRAWING.mobileWidth,
-    height: DRAWING.mobileHeight,
-    attachX: positionToX(0) + DRAWING.mobileWidth,
-    attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
-  });
-  const ropeY = mobile.attachY;
   // La position physique x désigne le bord gauche de S1. Les capteurs et le
   // mobile utilisent donc exactement la même échelle sur toute la longueur L.
   const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
+  const mobileSize = Number((FIXED_MOBILE_LENGTH * pixelsPerMeter).toFixed(6));
+  const mobile = Object.freeze({
+    x: positionToX(0),
+    y: DRAWING.mobileBottomY - mobileSize,
+    width: mobileSize,
+    height: mobileSize,
+    attachX: positionToX(0) + mobileSize,
+    attachY: DRAWING.mobileBottomY - mobileSize / 2,
+  });
+  const ropeY = mobile.attachY;
+  const pulley = Object.freeze({
+    centerX: DRAWING.pulleyCenterX,
+    centerY: ropeY + DRAWING.pulleyRadius,
+    radius: DRAWING.pulleyRadius,
+  });
   const hangingMass = Object.freeze({
-    x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
+    x: pulley.centerX + pulley.radius - mobileSize / 2,
     y: DRAWING.hangingMassTopY,
-    width: DRAWING.hangingMassWidth,
-    height: DRAWING.hangingMassHeight,
+    width: mobileSize,
+    height: mobileSize,
   });
   const socle = Object.freeze({
     x: hangingMass.x - 34,
@@ -192,6 +188,7 @@ export function computeApparatusLayout(options = {}) {
     motionScale: Object.freeze({
       pixelsPerMeter,
       horizontalTravel,
+      maximumMobilePosition: parameters.trackLength - FIXED_MOBILE_LENGTH,
     }),
     string: Object.freeze({
       startX: mobile.attachX,

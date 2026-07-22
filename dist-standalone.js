@@ -15,6 +15,7 @@ const FIXED_TRACK_LENGTH = 2.0;
 const FIXED_M1 = 1.0;
 const FIXED_DROP_HEIGHT = 0.5;
 const FIXED_SENSOR_COUNT = 9;
+const FIXED_MOBILE_LENGTH = 0.2;
 
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
@@ -35,11 +36,11 @@ const DEFAULT_PARAMETERS = Object.freeze({
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_MOBILE_LENGTH, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
-const { DEFAULT_PARAMETERS, GRAVITY, NUMERICAL_EPSILON, PARAMETER_LIMITS } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, GRAVITY, NUMERICAL_EPSILON, PARAMETER_LIMITS } = modules.constants;
 /**
  * Erreur spécifique signalant une donnée physique invalide.
  */
@@ -124,6 +125,24 @@ function validateParameters(parameters = DEFAULT_PARAMETERS) {
 /**
  * Calcule l'accélération commune de S1 et S2 pendant la phase 1.
  */
+
+/**
+ * Position maximale du bord gauche de S1. Lorsque cette position est atteinte,
+ * son bord droit coïncide exactement avec l'extrémité du banc.
+ */
+function getMaximumMobilePosition(parameters = DEFAULT_PARAMETERS) {
+  const p = validateParameters(parameters);
+  const maximum = p.trackLength - FIXED_MOBILE_LENGTH;
+
+  if (maximum <= NUMERICAL_EPSILON) {
+    throw new PhysicsParameterError(
+      "La longueur du banc doit être supérieure à la longueur de S1.",
+    );
+  }
+
+  return maximum;
+}
+
 function computePhase1Acceleration(parameters) {
   const p = validateParameters(parameters);
   const g = getGravity(p.gravityMode);
@@ -300,7 +319,8 @@ function validateSimulationState(state, parameters = DEFAULT_PARAMETERS) {
     throw new PhysicsParameterError("Le temps ne peut pas être négatif.");
   }
 
-  if (state.position < -NUMERICAL_EPSILON || state.position > p.trackLength + NUMERICAL_EPSILON) {
+  const maximumPosition = getMaximumMobilePosition(p);
+  if (state.position < -NUMERICAL_EPSILON || state.position > maximumPosition + NUMERICAL_EPSILON) {
     throw new PhysicsParameterError("La position doit rester comprise sur le banc.");
   }
 
@@ -328,12 +348,12 @@ function validateSimulationState(state, parameters = DEFAULT_PARAMETERS) {
   return Object.freeze({ ...state });
 }
 
-return Object.freeze({ PhysicsParameterError, getGravity, validateParameters, computePhase1Acceleration, computePhase2Acceleration, computePhase1EndVelocity, timeToReachPosition, timeToStop, integrateConstantAcceleration, createInitialState, validateSimulationState });
+return Object.freeze({ PhysicsParameterError, getGravity, validateParameters, getMaximumMobilePosition, computePhase1Acceleration, computePhase2Acceleration, computePhase1EndVelocity, timeToReachPosition, timeToStop, integrateConstantAcceleration, createInitialState, validateSimulationState });
 })();
 
 modules.transitions = (() => {
 const { NUMERICAL_EPSILON } = modules.constants;
-const { PhysicsParameterError, computePhase1Acceleration, computePhase2Acceleration, integrateConstantAcceleration, timeToReachPosition, timeToStop, validateParameters, validateSimulationState } = modules.physics;
+const { PhysicsParameterError, computePhase1Acceleration, computePhase2Acceleration, getMaximumMobilePosition, integrateConstantAcceleration, timeToReachPosition, timeToStop, validateParameters, validateSimulationState } = modules.physics;
 /** Types d'événements physiques produits par le moteur. */
 const PHYSICAL_EVENT = Object.freeze({
   PHASE_CHANGE: "phase-change",
@@ -401,7 +421,9 @@ function getNextPhysicalEvent(state, parameters) {
     return null;
   }
 
-  if (current.position >= p.trackLength - NUMERICAL_EPSILON) {
+  const maximumPosition = getMaximumMobilePosition(p);
+
+  if (current.position >= maximumPosition - NUMERICAL_EPSILON) {
     return freezeEvent({ type: PHYSICAL_EVENT.TRACK_END, time: 0 });
   }
 
@@ -416,7 +438,7 @@ function getNextPhysicalEvent(state, parameters) {
       position: current.position,
       velocity: current.velocity,
       acceleration,
-      targetPosition: p.trackLength,
+      targetPosition: maximumPosition,
     });
 
     const timeToPhaseChange = timeToReachPosition({
@@ -441,7 +463,7 @@ function getNextPhysicalEvent(state, parameters) {
     position: current.position,
     velocity: current.velocity,
     acceleration,
-    targetPosition: p.trackLength,
+    targetPosition: maximumPosition,
   });
   const stopTime = timeToStop(current.velocity, acceleration);
 
@@ -506,6 +528,7 @@ function advanceToPhysicalEvent(state, parameters, event) {
 
   let reached = advanceWithinCurrentPhase(current, p, Math.max(0, event.time));
   const fromPhase = current.phase;
+  const maximumPosition = getMaximumMobilePosition(p);
 
   switch (event.type) {
     case PHYSICAL_EVENT.PHASE_CHANGE: {
@@ -525,9 +548,9 @@ function advanceToPhysicalEvent(state, parameters, event) {
     case PHYSICAL_EVENT.TRACK_END:
       reached = freezeState({
         ...reached,
-        position: p.trackLength,
+        position: maximumPosition,
         hangingDisplacement:
-          fromPhase === 1 ? Math.min(p.dropHeight, p.trackLength) : p.dropHeight,
+          fromPhase === 1 ? Math.min(p.dropHeight, maximumPosition) : p.dropHeight,
         velocity: 0,
         acceleration: 0,
         status: "finished",
@@ -1102,7 +1125,7 @@ return Object.freeze({ TIME_LOOP_DEFAULTS, PLAYBACK_SPEED_LIMITS, createTimeLoop
 })();
 
 modules.geometry = (() => {
-const { DEFAULT_PARAMETERS, FIXED_SENSOR_COUNT } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_MOBILE_LENGTH, FIXED_SENSOR_COUNT } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
@@ -1122,15 +1145,10 @@ const DRAWING = Object.freeze({
   trackHeight: 46,
   rulerTopY: 312,
   rulerHeight: 48,
-  mobileWidth: 76,
-  mobileHeight: 76,
   mobileBottomY: 248,
   pulleyCenterX: 1016,
-  pulleyCenterY: 230,
   pulleyRadius: 20,
-  hangingMassWidth: 76,
-  hangingMassHeight: 76,
-  hangingMassTopY: 270,
+  hangingMassTopY: 260,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -1220,29 +1238,30 @@ function computeApparatusLayout(options = {}) {
     DRAWING.trackStartX,
     DRAWING.trackEndX,
   );
-  const pulley = Object.freeze({
-    centerX: DRAWING.pulleyCenterX,
-    centerY: DRAWING.pulleyCenterY,
-    radius: DRAWING.pulleyRadius,
-  });
-  const mobile = Object.freeze({
-    x: positionToX(0),
-    y: DRAWING.mobileBottomY - DRAWING.mobileHeight,
-    width: DRAWING.mobileWidth,
-    height: DRAWING.mobileHeight,
-    attachX: positionToX(0) + DRAWING.mobileWidth,
-    attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
-  });
-  const ropeY = mobile.attachY;
   // La position physique x désigne le bord gauche de S1. Les capteurs et le
   // mobile utilisent donc exactement la même échelle sur toute la longueur L.
   const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
+  const mobileSize = Number((FIXED_MOBILE_LENGTH * pixelsPerMeter).toFixed(6));
+  const mobile = Object.freeze({
+    x: positionToX(0),
+    y: DRAWING.mobileBottomY - mobileSize,
+    width: mobileSize,
+    height: mobileSize,
+    attachX: positionToX(0) + mobileSize,
+    attachY: DRAWING.mobileBottomY - mobileSize / 2,
+  });
+  const ropeY = mobile.attachY;
+  const pulley = Object.freeze({
+    centerX: DRAWING.pulleyCenterX,
+    centerY: ropeY + DRAWING.pulleyRadius,
+    radius: DRAWING.pulleyRadius,
+  });
   const hangingMass = Object.freeze({
-    x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
+    x: pulley.centerX + pulley.radius - mobileSize / 2,
     y: DRAWING.hangingMassTopY,
-    width: DRAWING.hangingMassWidth,
-    height: DRAWING.hangingMassHeight,
+    width: mobileSize,
+    height: mobileSize,
   });
   const socle = Object.freeze({
     x: hangingMass.x - 34,
@@ -1295,6 +1314,7 @@ function computeApparatusLayout(options = {}) {
     motionScale: Object.freeze({
       pixelsPerMeter,
       horizontalTravel,
+      maximumMobilePosition: parameters.trackLength - FIXED_MOBILE_LENGTH,
     }),
     string: Object.freeze({
       startX: mobile.attachX,
@@ -1459,7 +1479,7 @@ function buildStaticApparatusSvg(options = {}) {
 
     <g id="layer-mobile" data-role="mobile" transform="translate(${layout.mobile.x} ${layout.mobile.y})">
       <rect id="mobile-body" class="mobile-body" data-role="mobile-body" x="0" y="0" width="${layout.mobile.width}" height="${layout.mobile.height}" rx="18" />
-      <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.attachY - layout.mobile.y}" r="5" />
+      <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.height / 2}" r="5" />
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
@@ -1540,7 +1560,7 @@ function computeAnimatedApparatusFrame(
   const position = clamp(
     interpolate(previousState.position, currentState.position, alpha),
     0,
-    layout.parameters.trackLength,
+    layout.motionScale?.maximumMobilePosition ?? layout.parameters.trackLength,
   );
   const hangingDisplacement = clamp(
     interpolate(
@@ -3113,23 +3133,20 @@ function createAnimatedApp(root = document, options = {}) {
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
 
-    const terminal = ["blocked", "finished"].includes(state.status);
-    s2StopTimeItem.hidden = !terminal;
-    s2ContactVelocityItem.hidden = !terminal;
+    const phaseTwoStarted = Boolean(phaseChangeEvent);
+    for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
+      item.classList.toggle("readout-item--pending", !phaseTwoStarted);
+      item.setAttribute("aria-disabled", String(!phaseTwoStarted));
+    }
 
-    if (!terminal) {
-      s2StopTimeValue.textContent = "—";
-      s2ContactVelocityValue.textContent = "—";
+    if (!phaseTwoStarted) {
+      s2StopTimeValue.textContent = "";
+      s2ContactVelocityValue.textContent = "";
       return;
     }
 
-    if (phaseChangeEvent) {
-      s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
-      s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
-    } else {
-      s2StopTimeValue.textContent = "Non atteint";
-      s2ContactVelocityValue.textContent = "Non atteinte";
-    }
+    s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
+    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
   }
 
   function destroyRuntime() {

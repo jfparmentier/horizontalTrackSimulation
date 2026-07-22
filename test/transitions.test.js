@@ -12,6 +12,7 @@ import {
   computePhase1Acceleration,
   computePhase2Acceleration,
   createInitialState,
+  getMaximumMobilePosition,
   getNextPhysicalEvent,
 } from "../src/index.js";
 
@@ -170,7 +171,7 @@ test("un grand pas peut produire une transition puis la fin du banc", () => {
     result.events.map((event) => event.type),
     [PHYSICAL_EVENT.PHASE_CHANGE, PHYSICAL_EVENT.TRACK_END],
   );
-  assert.equal(result.state.position, parameters.trackLength);
+  assert.equal(result.state.position, getMaximumMobilePosition(parameters));
   assert.equal(result.state.velocity, 0);
   assert.equal(result.state.endReason, "track-end");
 });
@@ -201,7 +202,7 @@ test("la fin du banc est prioritaire si elle coïncide avec l'arrêt par frottem
   const velocity = 1;
   const stoppingDistance = -(velocity ** 2) / (2 * acceleration);
   const state = phase2State(parameters, {
-    position: parameters.trackLength - stoppingDistance,
+    position: getMaximumMobilePosition(parameters) - stoppingDistance,
     velocity,
   });
   const event = getNextPhysicalEvent(state, parameters);
@@ -268,11 +269,11 @@ test("l'arrêt par frottement est localisé exactement", () => {
 
 test("la fin du banc est localisée exactement en mouvement uniforme", () => {
   const parameters = { ...DEFAULT_PARAMETERS, friction: 0, trackLength: 1 };
-  const state = phase2State(parameters, { position: 0.9, velocity: 0.5 });
+  const state = phase2State(parameters, { position: 0.7, velocity: 0.5 });
   const result = advanceSimulationWithEvents(state, parameters, 1);
 
   closeTo(result.state.time, 1.2);
-  assert.equal(result.state.position, 1);
+  assert.equal(result.state.position, getMaximumMobilePosition(parameters));
   assert.equal(result.state.velocity, 0);
   assert.equal(result.events[0].type, PHYSICAL_EVENT.TRACK_END);
 });

@@ -477,6 +477,16 @@ h1 {
   min-width: 142px;
 }
 
+.readout-item--pending {
+  border-color: #d7dde1;
+  background: #eef1f3;
+}
+
+.readout-item--pending dt,
+.readout-item--pending dd {
+  color: #9aa5ab;
+}
+
 .readout-item {
   min-width: 112px;
   padding: 7px 10px;
