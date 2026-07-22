@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG avec commandes de lecture complètes et accessibles.",
+  "description": "Simulation SVG avec capteurs de vitesse actifs et suivi des franchissements.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

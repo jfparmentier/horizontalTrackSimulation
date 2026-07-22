@@ -50,6 +50,10 @@ class FakeSvg extends FakeElement {
       ["#layer-hanging-mass", new FakeElement("layer-hanging-mass")],
       ["#string-path", new FakeElement("string-path")],
       ["#apparatus-description", new FakeElement("apparatus-description")],
+      ...Array.from({ length: 16 }, (_, index) => [
+        `#sensor-${index + 1}`,
+        new FakeElement(`sensor-${index + 1}`),
+      ]),
     ]);
   }
   querySelector(selector) {
@@ -74,7 +78,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "start-button", "pause-button", "step-button", "reset-button",
-  "time-value", "position-value", "velocity-value", "phase-value", "control-status",
+  "time-value", "position-value", "velocity-value", "phase-value", "sensor-value", "control-status",
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",
@@ -147,6 +151,9 @@ if (elements.get("#m1-number").value !== "0.5") {
 if (elements.get("#control-status").textContent !== "Simulation prête.") {
   throw new Error("L'état initial des commandes est incorrect.");
 }
+if (elements.get("#sensor-value").textContent !== "0 / 8") {
+  throw new Error("L'état initial des capteurs est incorrect.");
+}
 if (elements.get("#reset-button").disabled !== true) {
   throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
 }
@@ -165,5 +172,9 @@ if (elements.get("#time-value").textContent === "0.00 s") {
 }
 if (elements.get("#start-button").textContent !== "Reprendre") {
   throw new Error("Le libellé de reprise n'a pas été actualisé.");
+}
+const firstSensorState = host.svg.nodes.get("#sensor-1").attributes.get("data-sensor-state");
+if (!firstSensorState) {
+  throw new Error("Les capteurs n'ont pas été initialisés.");
 }
 console.log("Smoke test autonome réussi.");

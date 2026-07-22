@@ -101,6 +101,12 @@ const manifests = [
     exports: ["DEFAULT_MANUAL_STEP_DURATION", "bindSimulationControls"],
   },
   {
+    key: "sensorController",
+    file: "src/sensor-controller.js",
+    dependencies: [],
+    exports: ["detectSensorCrossings", "createSensorController"],
+  },
+  {
     key: "app",
     file: "src/animated-app.js",
     dependencies: [
@@ -110,6 +116,7 @@ const manifests = [
       ["appState", ["createAppState"]],
       ["parameterControls", ["bindParameterControls"]],
       ["simulationControls", ["bindSimulationControls"]],
+      ["sensorController", ["createSensorController"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
     exports: ["createAnimatedApp"],
@@ -210,6 +217,7 @@ ${css}
             <div class="readout-item"><dt>Position</dt><dd id="position-value">0.00 m</dd></div>
             <div class="readout-item"><dt>Vitesse</dt><dd id="velocity-value">0.00 m·s⁻¹</dd></div>
             <div class="readout-item"><dt>État</dt><dd id="phase-value">Phase 1</dd></div>
+            <div class="readout-item"><dt>Capteurs</dt><dd id="sensor-value">0 / 8</dd></div>
           </dl>
         </div>
       </section>
