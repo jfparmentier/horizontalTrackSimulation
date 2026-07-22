@@ -1424,6 +1424,17 @@ function formatUsNumber(value) {
   return US_NUMBER_FORMAT.format(value);
 }
 
+function massColorClass(value) {
+  const normalized = Number(value);
+  const classes = new Map([
+    [0.2, "mass-color--0-2"],
+    [0.5, "mass-color--0-5"],
+    [1, "mass-color--1"],
+    [2, "mass-color--2"],
+  ]);
+  return classes.get(normalized) ?? "mass-color--0-2";
+}
+
 function buildRuler(layout) {
   const { ruler } = layout;
   const ticks = ruler.ticks
@@ -1478,7 +1489,7 @@ function buildMassRack(layout) {
   const masses = layout.massRack.choices
     .filter((choice) => !choice.selected)
     .map((choice) => `
-      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
+      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice ${massColorClass(choice.value)}" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
         <rect class="mass-choice-body" x="0" y="0" width="${choice.width}" height="${choice.height}" rx="14" />
         <text class="object-label mass-value-label" x="${choice.width / 2}" y="${choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>
       </g>`)
@@ -1514,14 +1525,26 @@ function buildStaticApparatusSvg(options = {}) {
         <stop offset="0" stop-color="#83d7ff" />
         <stop offset="1" stop-color="#278fc4" />
       </linearGradient>
-      <linearGradient id="mass-gradient" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="mass-gradient-0-2" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#ffbf69" />
         <stop offset="1" stop-color="#e57a22" />
+      </linearGradient>
+      <linearGradient id="mass-gradient-0-5" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#83dfaa" />
+        <stop offset="1" stop-color="#2e9b61" />
+      </linearGradient>
+      <linearGradient id="mass-gradient-1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#b7a7ff" />
+        <stop offset="1" stop-color="#6853c5" />
+      </linearGradient>
+      <linearGradient id="mass-gradient-2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ff9797" />
+        <stop offset="1" stop-color="#d84b56" />
       </linearGradient>
       <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="160%">
         <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.2" />
       </filter>
-      <marker id="arrow-head" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <marker id="arrow-head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M 0 0 L 10 5 L 0 10 z" />
       </marker>
       <pattern id="bench-texture" width="16" height="16" patternUnits="userSpaceOnUse">
@@ -1565,7 +1588,7 @@ function buildStaticApparatusSvg(options = {}) {
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
-    <g id="layer-hanging-mass" data-role="hanging-mass" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
+    <g id="layer-hanging-mass" class="${massColorClass(parameters.m2)}" data-role="hanging-mass" data-mass-value="${parameters.m2}" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
       <rect id="mass-drop-target" class="mass-drop-target" x="-9" y="-9" width="${layout.hangingMass.width + 18}" height="${layout.hangingMass.height + 18}" rx="20" aria-hidden="true" />
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
       <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>

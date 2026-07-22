@@ -275,9 +275,31 @@ h1 {
 }
 
 .hanging-mass-body {
-  fill: url(#mass-gradient);
-  stroke: #b95a16;
   stroke-width: 4;
+}
+
+.mass-color--0-2 .hanging-mass-body,
+.mass-color--0-2 .mass-choice-body {
+  fill: url(#mass-gradient-0-2);
+  stroke: #b95a16;
+}
+
+.mass-color--0-5 .hanging-mass-body,
+.mass-color--0-5 .mass-choice-body {
+  fill: url(#mass-gradient-0-5);
+  stroke: #257d4e;
+}
+
+.mass-color--1 .hanging-mass-body,
+.mass-color--1 .mass-choice-body {
+  fill: url(#mass-gradient-1);
+  stroke: #4e3aa8;
+}
+
+.mass-color--2 .hanging-mass-body,
+.mass-color--2 .mass-choice-body {
+  fill: url(#mass-gradient-2);
+  stroke: #ae3540;
 }
 
 .object-label {
@@ -704,8 +726,6 @@ h1 {
 }
 
 .mass-choice-body {
-  fill: url(#mass-gradient);
-  stroke: #b95a16;
   stroke-width: 4;
 }
 

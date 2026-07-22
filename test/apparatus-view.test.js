@@ -123,6 +123,31 @@ test("la masse actuellement suspendue quitte son emplacement du support", () => 
 });
 
 
+test("les quatre masses utilisent des couleurs distinctes", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  for (const colorClass of [
+    "mass-color--0-2",
+    "mass-color--0-5",
+    "mass-color--1",
+    "mass-color--2",
+  ]) {
+    assert.match(svg, new RegExp(colorClass));
+  }
+  assert.match(svg, /id="layer-hanging-mass" class="mass-color--0-2"/);
+  assert.match(svg, /id="mass-choice-0-5" class="mass-choice mass-color--0-5"/);
+  assert.match(svg, /id="mass-choice-1" class="mass-choice mass-color--1"/);
+  assert.match(svg, /id="mass-choice-2" class="mass-choice mass-color--2"/);
+});
+
+test("les pointes des flèches de hauteur coïncident avec les extrémités de la ligne", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.match(svg, /marker id="arrow-head"[^>]+refX="10" refY="5"/);
+  assert.match(svg, /<line class="height-guide"[^>]+marker-start="url\(#arrow-head\)" marker-end="url\(#arrow-head\)"/);
+});
+
+
 test("le support d'arrêt de S2 ne contient que le rectangle supérieur", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
