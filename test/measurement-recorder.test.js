@@ -101,7 +101,7 @@ test("une position inaccessible ne produit aucun état mesurable", () => {
   assert.equal(computeKinematicStateAtPosition(blocked, 0.2), null);
 });
 
-test("une mesure contient la position du capteur et l'état exact au franchissement", () => {
+test("une mesure utilise la position physique exacte du mobile au franchissement", () => {
   const layout = computeApparatusLayout(PARAMETERS);
   const sensor = layout.sensors[0];
   const triggerPosition = computeSensorTriggerPosition(layout, sensor);
@@ -113,10 +113,14 @@ test("une mesure contient la position du capteur et l'état exact au franchissem
   });
 
   assert.equal(measurement.sensorId, sensor.id);
-  assert.equal(measurement.position, sensor.position);
+  closeTo(measurement.position, triggerPosition);
   closeTo(measurement.mobilePosition, triggerPosition);
+  assert.notEqual(measurement.position, sensor.position);
   assert.ok(measurement.time > 0);
   assert.ok(measurement.velocity > 0);
+  const acceleration = computePhase1Acceleration(PARAMETERS);
+  closeTo(measurement.position, 0.5 * acceleration * measurement.time ** 2);
+  closeTo(measurement.velocity, acceleration * measurement.time);
   assert.equal(Object.isFrozen(measurement), true);
 });
 

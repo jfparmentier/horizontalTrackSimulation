@@ -78,7 +78,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
-  "time-value", "position-value", "control-status",
+  "time-value", "control-status",
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",

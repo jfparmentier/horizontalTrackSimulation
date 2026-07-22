@@ -93,7 +93,7 @@ function normalizeMeasurement(measurement, parameters, sequence) {
     }
   }
   if (normalized.position < 0 || normalized.position > parameters.trackLength) {
-    throw new PhysicsParameterError("La position du capteur doit rester comprise sur le banc.");
+    throw new PhysicsParameterError("La position mesurée doit rester comprise sur le banc.");
   }
   if (normalized.mobilePosition < 0 || normalized.mobilePosition > parameters.trackLength) {
     throw new PhysicsParameterError("La position du mobile doit rester comprise sur le banc.");

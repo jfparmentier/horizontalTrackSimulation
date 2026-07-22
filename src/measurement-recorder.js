@@ -154,9 +154,9 @@ export function computeKinematicStateAtPosition(parameters, targetPosition) {
 
 /**
  * Transforme un franchissement de faisceau en mesure scientifique immuable.
- * `position` est la position graduée du capteur ; `mobilePosition` est la
- * position interne du moteur au moment où le bord gauche de S1 franchit le
- * faisceau.
+ * `position` et `mobilePosition` utilisent le même repère physique : elles
+ * correspondent au déplacement de S1 lorsque son bord gauche franchit le
+ * faisceau. Cette convention garantit la cohérence entre x, t et v.
  */
 export function createMeasurement(layout, crossing, parameters = layout?.parameters) {
   assertLayout(layout);
@@ -178,8 +178,8 @@ export function createMeasurement(layout, crossing, parameters = layout?.paramet
 
   return Object.freeze({
     sensorId: sensor.id,
-    position: sensor.position,
-    mobilePosition,
+    position: kinematics.position,
+    mobilePosition: kinematics.position,
     time: kinematics.time,
     velocity: kinematics.velocity,
     acceleration: kinematics.acceleration,

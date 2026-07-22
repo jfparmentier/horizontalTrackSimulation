@@ -229,17 +229,24 @@ ${css}
       <section class="apparatus-card" aria-label="Montage expérimental animé">
         <div id="apparatus-host" class="apparatus-host"></div>
         <div class="animation-controls" aria-label="Commandes de la simulation">
-          <button id="start-button" class="control-button control-button--primary" type="button">Démarrer</button>
-          <button id="pause-button" class="control-button" type="button">Pause</button>
-          <button id="step-button" class="control-button" type="button">Pas à pas</button>
-          <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
-          <button id="download-data-button" class="control-button" type="button" disabled>Télécharger les données</button>
+          <div class="main-control-buttons">
+            <button id="start-button" class="control-button control-button--primary" type="button">Démarrer</button>
+            <button id="pause-button" class="control-button" type="button">Pause</button>
+            <button id="step-button" class="control-button" type="button">Pas à pas</button>
+            <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
+          </div>
           <p id="control-status" class="control-status" role="status" aria-live="polite">Simulation prête.</p>
 
-          <dl class="animation-readout">
-            <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
-            <div class="readout-item"><dt>Position</dt><dd id="position-value">0.00 m</dd></div>
-          </dl>
+          <div class="readout-actions">
+            <dl class="animation-readout">
+              <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
+            </dl>
+            <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
+              <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+              </svg>
+            </button>
+          </div>
         </div>
       </section>
     </div>

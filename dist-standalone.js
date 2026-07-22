@@ -1756,7 +1756,7 @@ function normalizeMeasurement(measurement, parameters, sequence) {
     }
   }
   if (normalized.position < 0 || normalized.position > parameters.trackLength) {
-    throw new PhysicsParameterError("La position du capteur doit rester comprise sur le banc.");
+    throw new PhysicsParameterError("La position mesurée doit rester comprise sur le banc.");
   }
   if (normalized.mobilePosition < 0 || normalized.mobilePosition > parameters.trackLength) {
     throw new PhysicsParameterError("La position du mobile doit rester comprise sur le banc.");
@@ -2847,9 +2847,9 @@ function computeKinematicStateAtPosition(parameters, targetPosition) {
 
 /**
  * Transforme un franchissement de faisceau en mesure scientifique immuable.
- * `position` est la position graduée du capteur ; `mobilePosition` est la
- * position interne du moteur au moment où le bord gauche de S1 franchit le
- * faisceau.
+ * `position` et `mobilePosition` utilisent le même repère physique : elles
+ * correspondent au déplacement de S1 lorsque son bord gauche franchit le
+ * faisceau. Cette convention garantit la cohérence entre x, t et v.
  */
 function createMeasurement(layout, crossing, parameters = layout?.parameters) {
   assertLayout(layout);
@@ -2871,8 +2871,8 @@ function createMeasurement(layout, crossing, parameters = layout?.parameters) {
 
   return Object.freeze({
     sensorId: sensor.id,
-    position: sensor.position,
-    mobilePosition,
+    position: kinematics.position,
+    mobilePosition: kinematics.position,
     time: kinematics.time,
     velocity: kinematics.velocity,
     acceleration: kinematics.acceleration,
@@ -3124,11 +3124,6 @@ const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const POSITION_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 3,
-});
-
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -3145,7 +3140,6 @@ function getRequiredElement(root, selector) {
 function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
-  const positionValue = getRequiredElement(root, "#position-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -3158,7 +3152,6 @@ function createAnimatedApp(root = document, options = {}) {
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
-    positionValue.textContent = `${POSITION_FORMAT.format(state.position)} m`;
   }
 
   function destroyRuntime() {

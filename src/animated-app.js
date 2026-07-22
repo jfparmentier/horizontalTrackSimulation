@@ -14,11 +14,6 @@ const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const POSITION_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 3,
-});
-
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -35,7 +30,6 @@ function getRequiredElement(root, selector) {
 export function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
-  const positionValue = getRequiredElement(root, "#position-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -48,7 +42,6 @@ export function createAnimatedApp(root = document, options = {}) {
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
-    positionValue.textContent = `${POSITION_FORMAT.format(state.position)} m`;
   }
 
   function destroyRuntime() {

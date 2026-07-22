@@ -9,7 +9,7 @@ Cette version enregistre automatiquement une mesure scientifique lors du franchi
 - stockage centralisé et immuable des données ;
 - affichage inférieur limité au temps et à la position ;
 - temps affiché avec exactement deux décimales ;
-- bouton « Télécharger les données » désactivé pendant l’expérience ;
+- bouton d’export représenté par une icône de téléchargement désactivé pendant l’expérience ;
 - activation automatique du bouton à la fin de la simulation ;
 - export CSV autonome, sans bibliothèque externe ;
 - quatre colonnes exportées : numéro du capteur, position, instant de déclenchement et vitesse mesurée ;
@@ -31,3 +31,8 @@ npm test
 npm run build
 npm run smoke
 ```
+
+
+## Correction de cohérence des mesures
+
+La colonne `Position (m)` utilise désormais la position physique de S1 au moment exact où son bord gauche traverse le faisceau. Le temps, la position et la vitesse sont donc calculés dans un repère unique et satisfont les relations cinématiques du modèle.

@@ -74,7 +74,7 @@ test("les franchissements de capteurs alimentent l'état central avec des mesure
   );
   for (const measurement of snapshot.measurements) {
     assert.ok(measurement.position > 0);
-    assert.ok(measurement.mobilePosition > 0);
+    assert.equal(measurement.position, measurement.mobilePosition);
     assert.ok(measurement.time > 0);
     assert.ok(measurement.velocity > 0);
     assert.ok([1, 2].includes(measurement.phase));

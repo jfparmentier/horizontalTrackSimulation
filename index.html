@@ -362,12 +362,19 @@ h1 {
 
 .animation-controls {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   padding: 16px 18px;
   border-top: 1px solid #d7e8f0;
   background: #f8fcfe;
+}
+
+.main-control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .control-button {
@@ -396,6 +403,24 @@ h1 {
   opacity: 0.45;
 }
 
+.control-button--icon {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  place-items: center;
+}
+
+.download-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .control-button--primary {
   border-color: #247da9;
   background: #247da9;
@@ -408,7 +433,6 @@ h1 {
 
 
 .control-status {
-  flex: 1 1 100%;
   min-height: 1.25rem;
   margin: 0;
   color: #557484;
@@ -424,12 +448,16 @@ h1 {
   color: #8a4c22;
 }
 
+.readout-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
 .animation-readout {
   display: flex;
-  flex: 1 1 430px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
+  flex: 0 0 auto;
   margin: 0;
 }
 
@@ -703,17 +731,24 @@ h1 {
       <section class="apparatus-card" aria-label="Montage expérimental animé">
         <div id="apparatus-host" class="apparatus-host"></div>
         <div class="animation-controls" aria-label="Commandes de la simulation">
-          <button id="start-button" class="control-button control-button--primary" type="button">Démarrer</button>
-          <button id="pause-button" class="control-button" type="button">Pause</button>
-          <button id="step-button" class="control-button" type="button">Pas à pas</button>
-          <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
-          <button id="download-data-button" class="control-button" type="button" disabled>Télécharger les données</button>
+          <div class="main-control-buttons">
+            <button id="start-button" class="control-button control-button--primary" type="button">Démarrer</button>
+            <button id="pause-button" class="control-button" type="button">Pause</button>
+            <button id="step-button" class="control-button" type="button">Pas à pas</button>
+            <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
+          </div>
           <p id="control-status" class="control-status" role="status" aria-live="polite">Simulation prête.</p>
 
-          <dl class="animation-readout">
-            <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
-            <div class="readout-item"><dt>Position</dt><dd id="position-value">0.00 m</dd></div>
-          </dl>
+          <div class="readout-actions">
+            <dl class="animation-readout">
+              <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
+            </dl>
+            <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
+              <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+              </svg>
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -2477,7 +2512,7 @@ function normalizeMeasurement(measurement, parameters, sequence) {
     }
   }
   if (normalized.position < 0 || normalized.position > parameters.trackLength) {
-    throw new PhysicsParameterError("La position du capteur doit rester comprise sur le banc.");
+    throw new PhysicsParameterError("La position mesurée doit rester comprise sur le banc.");
   }
   if (normalized.mobilePosition < 0 || normalized.mobilePosition > parameters.trackLength) {
     throw new PhysicsParameterError("La position du mobile doit rester comprise sur le banc.");
@@ -3568,9 +3603,9 @@ function computeKinematicStateAtPosition(parameters, targetPosition) {
 
 /**
  * Transforme un franchissement de faisceau en mesure scientifique immuable.
- * `position` est la position graduée du capteur ; `mobilePosition` est la
- * position interne du moteur au moment où le bord gauche de S1 franchit le
- * faisceau.
+ * `position` et `mobilePosition` utilisent le même repère physique : elles
+ * correspondent au déplacement de S1 lorsque son bord gauche franchit le
+ * faisceau. Cette convention garantit la cohérence entre x, t et v.
  */
 function createMeasurement(layout, crossing, parameters = layout?.parameters) {
   assertLayout(layout);
@@ -3592,8 +3627,8 @@ function createMeasurement(layout, crossing, parameters = layout?.parameters) {
 
   return Object.freeze({
     sensorId: sensor.id,
-    position: sensor.position,
-    mobilePosition,
+    position: kinematics.position,
+    mobilePosition: kinematics.position,
     time: kinematics.time,
     velocity: kinematics.velocity,
     acceleration: kinematics.acceleration,
@@ -3845,11 +3880,6 @@ const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const POSITION_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 3,
-});
-
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -3866,7 +3896,6 @@ function getRequiredElement(root, selector) {
 function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
-  const positionValue = getRequiredElement(root, "#position-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -3879,7 +3908,6 @@ function createAnimatedApp(root = document, options = {}) {
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
-    positionValue.textContent = `${POSITION_FORMAT.format(state.position)} m`;
   }
 
   function destroyRuntime() {

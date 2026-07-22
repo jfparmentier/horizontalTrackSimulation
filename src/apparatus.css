@@ -354,12 +354,19 @@ h1 {
 
 .animation-controls {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   padding: 16px 18px;
   border-top: 1px solid #d7e8f0;
   background: #f8fcfe;
+}
+
+.main-control-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .control-button {
@@ -388,6 +395,24 @@ h1 {
   opacity: 0.45;
 }
 
+.control-button--icon {
+  display: inline-grid;
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  place-items: center;
+}
+
+.download-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .control-button--primary {
   border-color: #247da9;
   background: #247da9;
@@ -400,7 +425,6 @@ h1 {
 
 
 .control-status {
-  flex: 1 1 100%;
   min-height: 1.25rem;
   margin: 0;
   color: #557484;
@@ -416,12 +440,16 @@ h1 {
   color: #8a4c22;
 }
 
+.readout-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
 .animation-readout {
   display: flex;
-  flex: 1 1 430px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 10px;
+  flex: 0 0 auto;
   margin: 0;
 }
 
@@ -604,4 +632,34 @@ h1 {
   .parameter-list {
     grid-template-columns: 1fr;
   }
+}
+
+.sensor[data-sensor-state="active"] .sensor-head {
+  fill: #fff1b8;
+  stroke: #d88a00;
+  stroke-width: 4;
+}
+
+.sensor[data-sensor-state="active"] .sensor-lens {
+  fill: #ff9f1c;
+}
+
+.sensor[data-sensor-state="active"] .sensor-beam {
+  stroke: #ff9f1c;
+  stroke-width: 5;
+  opacity: 1;
+}
+
+.sensor[data-sensor-state="triggered"] .sensor-head {
+  fill: #e5f8ed;
+  stroke: #35a95c;
+}
+
+.sensor[data-sensor-state="triggered"] .sensor-lens {
+  fill: #35a95c;
+}
+
+.sensor[data-sensor-state="triggered"] .sensor-beam {
+  stroke: #35a95c;
+  opacity: 0.75;
 }
