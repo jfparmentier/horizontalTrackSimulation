@@ -2943,6 +2943,171 @@ function createMeasurementRecorder(layout, parameters = layout?.parameters) {
 return Object.freeze({ computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
 })();
 
+modules.measurementExport = (() => {
+
+const CSV_HEADERS = Object.freeze([
+  "Numéro du capteur",
+  "Position (m)",
+  "Instant de déclenchement (s)",
+  "Vitesse mesurée (m/s)",
+]);
+
+const CSV_NUMBER_PRECISION = 6;
+
+function getRequiredElement(root, selector) {
+  const element = root.querySelector(selector);
+  if (!element) {
+    throw new Error(`Élément d'export introuvable : ${selector}`);
+  }
+  return element;
+}
+
+function isTerminalState(state) {
+  return ["blocked", "finished"].includes(state?.status);
+}
+
+function formatCsvNumber(value) {
+  const normalized = Number(value);
+  if (!Number.isFinite(normalized)) {
+    throw new TypeError("Les valeurs exportées doivent être des nombres finis.");
+  }
+
+  const fixed = normalized.toFixed(CSV_NUMBER_PRECISION);
+  return fixed.replace(/(\.\d*?[1-9])0+$|\.0+$/, "$1");
+}
+
+function normalizeMeasurements(measurements) {
+  if (!Array.isArray(measurements)) {
+    throw new TypeError("Les mesures à exporter doivent être fournies dans un tableau.");
+  }
+
+  return [...measurements]
+    .map((measurement) => {
+      if (!measurement || typeof measurement !== "object") {
+        throw new TypeError("Chaque mesure doit être un objet.");
+      }
+
+      const sensorId = Number(measurement.sensorId);
+      if (!Number.isInteger(sensorId) || sensorId <= 0) {
+        throw new RangeError("Le numéro de capteur doit être un entier strictement positif.");
+      }
+
+      return Object.freeze({
+        sensorId,
+        position: Number(measurement.position),
+        time: Number(measurement.time),
+        velocity: Number(measurement.velocity),
+      });
+    })
+    .sort((left, right) => left.sensorId - right.sensorId);
+}
+
+/**
+ * Construit un CSV à quatre colonnes, trié par numéro de capteur.
+ * Les nombres utilisent le point décimal et au plus six décimales.
+ */
+function buildMeasurementsCsv(measurements) {
+  const normalized = normalizeMeasurements(measurements);
+  const lines = [CSV_HEADERS.map((header) => `"${header}"`).join(",")];
+
+  for (const measurement of normalized) {
+    lines.push([
+      String(measurement.sensorId),
+      formatCsvNumber(measurement.position),
+      formatCsvNumber(measurement.time),
+      formatCsvNumber(measurement.velocity),
+    ].join(","));
+  }
+
+  return `${lines.join("\r\n")}\r\n`;
+}
+
+/** Déclenche le téléchargement local d'un fichier CSV sans dépendance externe. */
+function downloadMeasurementsCsv(measurements, options = {}) {
+  const documentRef = options.documentRef ?? globalThis.document;
+  const urlApi = options.urlApi ?? globalThis.URL;
+  const BlobConstructor = options.BlobConstructor ?? globalThis.Blob;
+  const filename = options.filename ?? "mesures-capteurs.csv";
+
+  if (!documentRef || typeof documentRef.createElement !== "function") {
+    throw new Error("Un document capable de créer un lien est requis pour le téléchargement.");
+  }
+  if (!urlApi || typeof urlApi.createObjectURL !== "function" || typeof urlApi.revokeObjectURL !== "function") {
+    throw new Error("Une API URL valide est requise pour le téléchargement.");
+  }
+  if (typeof BlobConstructor !== "function") {
+    throw new Error("Le constructeur Blob est indisponible.");
+  }
+
+  const csv = buildMeasurementsCsv(measurements);
+  const blob = new BlobConstructor(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
+  const url = urlApi.createObjectURL(blob);
+  const link = documentRef.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  link.hidden = true;
+  documentRef.body?.appendChild?.(link);
+
+  try {
+    link.click();
+  } finally {
+    link.remove?.();
+    urlApi.revokeObjectURL(url);
+  }
+
+  return Object.freeze({ filename, csv });
+}
+
+/**
+ * Active le bouton d'export uniquement lorsque l'expérience est terminée.
+ */
+function bindMeasurementExport(root, appState, options = {}) {
+  if (!root || typeof root.querySelector !== "function") {
+    throw new TypeError("Une racine DOM interrogeable est requise.");
+  }
+  if (!appState || typeof appState.getSnapshot !== "function" || typeof appState.subscribe !== "function") {
+    throw new TypeError("Un état central valide est requis.");
+  }
+
+  const button = getRequiredElement(root, "#download-data-button");
+  const downloader = options.downloader
+    ?? ((measurements) => downloadMeasurementsCsv(measurements, options));
+  let destroyed = false;
+
+  function update(snapshot = appState.getSnapshot()) {
+    if (destroyed) return false;
+    const enabled = isTerminalState(snapshot.simulation);
+    button.disabled = !enabled;
+    button.setAttribute("aria-disabled", String(!enabled));
+    return enabled;
+  }
+
+  function onClick() {
+    const snapshot = appState.getSnapshot();
+    if (!isTerminalState(snapshot.simulation)) return;
+    downloader(snapshot.measurements);
+  }
+
+  button.addEventListener("click", onClick);
+  const unsubscribe = appState.subscribe((snapshot) => update(snapshot));
+  update();
+
+  return Object.freeze({
+    update,
+    destroy() {
+      if (destroyed) return false;
+      destroyed = true;
+      button.removeEventListener?.("click", onClick);
+      unsubscribe();
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ buildMeasurementsCsv, downloadMeasurementsCsv, bindMeasurementExport });
+})();
+
 modules.app = (() => {
 const { computeApparatusLayout } = modules.geometry;
 const { createApparatusAnimator } = modules.animation;
@@ -2952,8 +3117,14 @@ const { bindParameterControls } = modules.parameterControls;
 const { bindSimulationControls } = modules.simulationControls;
 const { createSensorController } = modules.sensorController;
 const { createMeasurementRecorder } = modules.measurementRecorder;
+const { bindMeasurementExport } = modules.measurementExport;
 const { createTimeLoop } = modules.timeLoop;
-const READOUT_FORMAT = new Intl.NumberFormat("en-US", {
+const TIME_FORMAT = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const POSITION_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 3,
 });
@@ -2966,12 +3137,6 @@ function getRequiredElement(root, selector) {
   return element;
 }
 
-function phaseLabel(state) {
-  if (state.status === "blocked") return "Système immobile";
-  if (state.endReason === "track-end") return "Fin du banc";
-  if (state.endReason === "friction-stop") return "Mobile arrêté";
-  return state.phase === 1 ? "Phase 1" : "Phase 2";
-}
 
 /**
  * Monte l'application animée et relie tous les paramètres à un état central
@@ -2981,9 +3146,6 @@ function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
   const positionValue = getRequiredElement(root, "#position-value");
-  const velocityValue = getRequiredElement(root, "#velocity-value");
-  const phaseValue = getRequiredElement(root, "#phase-value");
-  const sensorValue = getRequiredElement(root, "#sensor-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -2994,12 +3156,9 @@ function createAnimatedApp(root = document, options = {}) {
   let simulationControls = null;
   let destroyed = false;
 
-  function updateReadout(state, meta) {
-    timeValue.textContent = `${READOUT_FORMAT.format(state.time)} s`;
-    positionValue.textContent = `${READOUT_FORMAT.format(state.position)} m`;
-    velocityValue.textContent = `${READOUT_FORMAT.format(state.velocity)} m·s⁻¹`;
-    phaseValue.textContent = phaseLabel(state);
-
+  function updateReadout(state) {
+    timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
+    positionValue.textContent = `${POSITION_FORMAT.format(state.position)} m`;
   }
 
   function destroyRuntime() {
@@ -3032,7 +3191,6 @@ function createAnimatedApp(root = document, options = {}) {
         }
       },
     });
-    sensorValue.textContent = `0 / ${layout.sensorCount}`;
     host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
@@ -3042,8 +3200,7 @@ function createAnimatedApp(root = document, options = {}) {
       cancelFrame: options.cancelFrame,
       onRender(state, previousState, meta) {
         animator.render(state, previousState, meta);
-        const sensorSnapshot = sensorController.render(state, previousState, meta);
-        sensorValue.textContent = `${sensorSnapshot.triggeredCount} / ${sensorSnapshot.totalCount}`;
+        sensorController.render(state, previousState, meta);
         appState.setSimulationState(state);
         updateReadout(state, meta);
         simulationControls?.update(state, meta);
@@ -3077,6 +3234,8 @@ function createAnimatedApp(root = document, options = {}) {
     }
   });
 
+  const measurementExport = bindMeasurementExport(root, appState, options.exportOptions);
+
   simulationControls = bindSimulationControls(root, {
     appState,
     getLoop: () => runtime?.loop,
@@ -3093,6 +3252,7 @@ function createAnimatedApp(root = document, options = {}) {
       if (destroyed) return false;
       destroyed = true;
       simulationControls?.destroy();
+      measurementExport.destroy();
       parameterControls.destroy();
       unsubscribe();
       destroyRuntime();

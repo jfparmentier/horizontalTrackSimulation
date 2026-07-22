@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG enregistrant les mesures exactes de vitesse lors du franchissement des capteurs.",
+  "description": "Simulation SVG animée avec état central, mesures de capteurs et export CSV autonome.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

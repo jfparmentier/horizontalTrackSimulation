@@ -120,6 +120,14 @@ const manifests = [
     ],
   },
   {
+    key: "measurementExport",
+    file: "src/measurement-export.js",
+    dependencies: [],
+    exports: [
+      "buildMeasurementsCsv", "downloadMeasurementsCsv", "bindMeasurementExport",
+    ],
+  },
+  {
     key: "app",
     file: "src/animated-app.js",
     dependencies: [
@@ -131,6 +139,7 @@ const manifests = [
       ["simulationControls", ["bindSimulationControls"]],
       ["sensorController", ["createSensorController"]],
       ["measurementRecorder", ["createMeasurementRecorder"]],
+      ["measurementExport", ["bindMeasurementExport"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
     exports: ["createAnimatedApp"],
@@ -224,14 +233,12 @@ ${css}
           <button id="pause-button" class="control-button" type="button">Pause</button>
           <button id="step-button" class="control-button" type="button">Pas à pas</button>
           <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
+          <button id="download-data-button" class="control-button" type="button" disabled>Télécharger les données</button>
           <p id="control-status" class="control-status" role="status" aria-live="polite">Simulation prête.</p>
 
           <dl class="animation-readout">
             <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
             <div class="readout-item"><dt>Position</dt><dd id="position-value">0.00 m</dd></div>
-            <div class="readout-item"><dt>Vitesse</dt><dd id="velocity-value">0.00 m·s⁻¹</dd></div>
-            <div class="readout-item"><dt>État</dt><dd id="phase-value">Phase 1</dd></div>
-            <div class="readout-item"><dt>Capteurs</dt><dd id="sensor-value">0 / 8</dd></div>
           </dl>
         </div>
       </section>

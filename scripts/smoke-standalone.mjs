@@ -77,8 +77,8 @@ class FakeHost extends FakeElement {
 
 const elements = new Map();
 for (const id of [
-  "start-button", "pause-button", "step-button", "reset-button",
-  "time-value", "position-value", "velocity-value", "phase-value", "sensor-value", "control-status",
+  "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
+  "time-value", "position-value", "control-status",
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",
@@ -94,6 +94,16 @@ const host = new FakeHost();
 elements.set("#apparatus-host", host);
 const documentListeners = new Map();
 const document = {
+  body: { appendChild() {} },
+  createElement() {
+    return {
+      click() {},
+      remove() {},
+      href: "",
+      download: "",
+      hidden: false,
+    };
+  },
   querySelector(selector) {
     return elements.get(selector) ?? null;
   },
@@ -132,6 +142,11 @@ const context = vm.createContext({
   TypeError,
   RangeError,
   Error,
+  Blob: class Blob {},
+  URL: {
+    createObjectURL() { return "blob:smoke"; },
+    revokeObjectURL() {},
+  },
 });
 context.globalThis = context;
 
@@ -151,8 +166,8 @@ if (elements.get("#m1-number").value !== "0.5") {
 if (elements.get("#control-status").textContent !== "Simulation prête.") {
   throw new Error("L'état initial des commandes est incorrect.");
 }
-if (elements.get("#sensor-value").textContent !== "0 / 8") {
-  throw new Error("L'état initial des capteurs est incorrect.");
+if (elements.get("#download-data-button").disabled !== true) {
+  throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
 }
 if (elements.get("#reset-button").disabled !== true) {
   throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
