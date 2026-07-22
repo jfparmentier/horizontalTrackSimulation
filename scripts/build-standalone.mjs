@@ -203,11 +203,6 @@ ${css}
             <input id="friction-range" type="range" min="0" max="0.2" step="0.005" value="0">
             <span class="number-with-unit"><input id="friction-number" type="number" min="0" max="0.2" step="0.005" value="0"><span>—</span></span>
           </div>
-          <fieldset class="gravity-choice">
-            <legend>Gravité</legend>
-            <label class="gravity-option"><input id="gravity-earth" type="radio" name="gravity" value="earth" checked> Terre</label>
-            <label class="gravity-option"><input id="gravity-moon" type="radio" name="gravity" value="moon"> Lune</label>
-          </fieldset>
         </div>
 
         <h3>Expérience</h3>
@@ -235,8 +230,6 @@ ${css}
             <button id="step-button" class="control-button" type="button">Pas à pas</button>
             <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
           </div>
-          <p id="control-status" class="control-status" role="status" aria-live="polite">Simulation prête.</p>
-
           <div class="readout-actions">
             <dl class="animation-readout">
               <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>

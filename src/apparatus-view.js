@@ -23,10 +23,6 @@ function formatNumber(value) {
   return NUMBER_FORMAT.format(value);
 }
 
-function gravityLabel(mode) {
-  return mode === "moon" ? "Lune" : "Terre";
-}
-
 function formatUsNumber(value) {
   return US_NUMBER_FORMAT.format(value);
 }
@@ -58,7 +54,7 @@ function buildRuler(layout) {
 function buildSensors(layout) {
   return layout.sensors
     .map((sensor) => `
-      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="Capteur ${sensor.id}, position ${formatNumber(sensor.position)} mètre">
+      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-state="idle" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="Capteur ${sensor.id}, position ${formatNumber(sensor.position)} mètre">
         <line class="sensor-beam" x1="0" y1="${sensor.gateTopY + 12}" x2="0" y2="${sensor.gateBottomY - 6}" />
         <rect class="sensor-head" x="-16" y="${sensor.gateTopY - 10}" width="32" height="22" rx="7" />
         <circle class="sensor-lens" cx="-7" cy="${sensor.gateTopY + 1}" r="4" />
@@ -82,7 +78,6 @@ function buildStringPath(layout) {
 export function buildStaticApparatusSvg(options = {}) {
   const layout = computeApparatusLayout(options);
   const { parameters } = layout;
-  const gLabel = gravityLabel(parameters.gravityMode);
   const description = [
     "Montage initial avec le mobile S1 sur un banc horizontal,",
     "la masse S2 suspendue par un fil passant sur une poulie,",
@@ -114,23 +109,16 @@ export function buildStaticApparatusSvg(options = {}) {
     </defs>
 
     <g id="layer-background" aria-hidden="true">
-      <rect class="scene-background" x="16" y="16" width="1168" height="528" rx="28" />
+      <rect class="scene-background" x="16" y="16" width="1168" height="${layout.viewBox.height - 32}" rx="28" />
     </g>
 
-    <g id="layer-status" aria-label="État initial">
-      <g class="gravity-badge" transform="translate(946 48)">
-        <rect width="188" height="50" rx="14" />
-        <text x="94" y="22" text-anchor="middle">Gravité</text>
-        <text class="gravity-value" x="94" y="40" text-anchor="middle">${gLabel}</text>
-      </g>
-    </g>
 
     <g id="layer-track" data-role="track">
       <rect class="bench-top" x="${layout.track.x}" y="${layout.track.y}" width="${layout.track.width}" height="${layout.track.height}" rx="8" />
       <rect class="bench-texture" x="${layout.track.x}" y="${layout.track.y + 7}" width="${layout.track.width}" height="${layout.track.height - 14}" rx="5" />
       <path class="bench-edge" d="M ${layout.track.x} ${layout.track.y + layout.track.height} H ${layout.track.endX}" />
-      <path class="bench-leg" d="M ${layout.track.x + 90} ${layout.track.y + layout.track.height} L ${layout.track.x + 72} 445 H ${layout.track.x + 152} L ${layout.track.x + 134} ${layout.track.y + layout.track.height}" />
-      <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} 445 H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
+      <path class="bench-leg" d="M ${layout.track.x + 90} ${layout.track.y + layout.track.height} L ${layout.track.x + 72} ${layout.track.y + 139} H ${layout.track.x + 152} L ${layout.track.x + 134} ${layout.track.y + layout.track.height}" />
+      <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} ${layout.track.y + 139} H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
     </g>
 
     ${buildRuler(layout)}
@@ -163,7 +151,7 @@ export function buildStaticApparatusSvg(options = {}) {
 
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
-      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} 520 H ${layout.socle.x - 2} Z" />
+      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} ${layout.socle.y + 58} H ${layout.socle.x - 2} Z" />
     </g>
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">

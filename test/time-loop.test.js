@@ -320,7 +320,7 @@ test("start ne redémarre pas un état terminal", () => {
 test("reset restaure x0, v0, le compteur et les paramètres", () => {
   const { loop } = createHarness();
   loop.step(0.1);
-  const nextParameters = { ...DEFAULT_PARAMETERS, gravityMode: "moon", m2: 0.2 };
+  const nextParameters = { ...DEFAULT_PARAMETERS, m2: 0.2 };
   loop.reset(nextParameters);
 
   assert.deepEqual(loop.getParameters(), nextParameters);

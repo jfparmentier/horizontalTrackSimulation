@@ -58,8 +58,6 @@ export function bindParameterControls(root, appState) {
     range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
     number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
   };
-  const gravityEarth = getRequiredElement(root, "#gravity-earth");
-  const gravityMoon = getRequiredElement(root, "#gravity-moon");
   const listeners = [];
 
   function listen(element, eventName, callback) {
@@ -88,8 +86,6 @@ export function bindParameterControls(root, appState) {
     }
     setPairValue(sensorPair, snapshot.experimental.sensorCount);
     setPairValue(playbackPair, snapshot.playbackSpeed);
-    gravityEarth.checked = snapshot.parameters.gravityMode === "earth";
-    gravityMoon.checked = snapshot.parameters.gravityMode === "moon";
   }
 
   function commitPhysical(key, rawValue, pair) {
@@ -153,23 +149,6 @@ export function bindParameterControls(root, appState) {
       sync();
       showError(error, playbackPair);
     }
-  });
-
-  function commitGravity(mode) {
-    try {
-      clearError();
-      appState.updateParameters({ gravityMode: mode });
-    } catch (error) {
-      sync();
-      showError(error);
-    }
-  }
-
-  listen(gravityEarth, "change", () => {
-    if (gravityEarth.checked) commitGravity("earth");
-  });
-  listen(gravityMoon, "change", () => {
-    if (gravityMoon.checked) commitGravity("moon");
   });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {

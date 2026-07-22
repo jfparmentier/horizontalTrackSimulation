@@ -16,21 +16,6 @@ function isInitialState(state) {
   return state.time === 0 && state.position === 0 && state.velocity === 0;
 }
 
-function statusText(state, running) {
-  if (state.status === "blocked") {
-    return "Système immobile : la force motrice est insuffisante.";
-  }
-  if (state.endReason === "track-end") {
-    return "Simulation terminée : S1 a atteint la fin du banc.";
-  }
-  if (state.endReason === "friction-stop") {
-    return "Simulation terminée : S1 s’est arrêté sous l’effet des frottements.";
-  }
-  if (running) return "Simulation en cours.";
-  if (isInitialState(state)) return "Simulation prête.";
-  return "Simulation en pause.";
-}
-
 function shouldIgnoreKeyboardShortcut(event) {
   if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) {
     return true;
@@ -69,7 +54,6 @@ export function bindSimulationControls(root, configuration = {}) {
   const pauseButton = getRequiredElement(root, "#pause-button");
   const stepButton = getRequiredElement(root, "#step-button");
   const resetButton = getRequiredElement(root, "#reset-button");
-  const statusElement = getRequiredElement(root, "#control-status");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
@@ -112,15 +96,6 @@ export function bindSimulationControls(root, configuration = {}) {
     startButton.textContent = initial ? "Démarrer" : "Reprendre";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
-    statusElement.textContent = statusText(state, running);
-    statusElement.dataset.state = terminal
-      ? "terminal"
-      : running
-        ? "running"
-        : initial
-          ? "ready"
-          : "paused";
-
     return Object.freeze({ running, terminal, initial });
   }
 

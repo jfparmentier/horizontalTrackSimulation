@@ -172,3 +172,11 @@ test("les mesures invalides sont refusées", () => {
   assert.throws(() => store.addMeasurements([{ sensorId: 1 }]), /measurement/i);
   assert.throws(() => store.addMeasurements("mesure"), /tableau/i);
 });
+
+
+test("l'état central refuse une gravité autre que la gravité terrestre", () => {
+  assert.throws(
+    () => createAppState({ parameters: { gravityMode: "moon" } }),
+    /gravité|gravity|earth/i,
+  );
+});

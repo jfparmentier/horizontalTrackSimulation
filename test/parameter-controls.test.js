@@ -38,7 +38,6 @@ function createRoot() {
     "friction-range", "friction-number",
     "sensor-count-range", "sensor-count-number",
     "playback-speed-range", "playback-speed-number",
-    "gravity-earth", "gravity-moon",
   ];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
   return {
@@ -53,7 +52,7 @@ function createRoot() {
 
 test("les contrôles sont initialisés depuis l'état central", () => {
   const store = createAppState({
-    parameters: { m1: 0.8, gravityMode: "moon" },
+    parameters: { m1: 0.8 },
     sensorCount: 10,
     playbackSpeed: 1.5,
   });
@@ -64,7 +63,7 @@ test("les contrôles sont initialisés depuis l'état central", () => {
   assert.equal(elements.get("#m1-number").value, "0.8");
   assert.equal(elements.get("#sensor-count-number").value, "10");
   assert.equal(elements.get("#playback-speed-number").value, "1.5");
-  assert.equal(elements.get("#gravity-moon").checked, true);
+  assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
 });
 
 test("un curseur physique met à jour l'état central", () => {
@@ -80,20 +79,16 @@ test("un curseur physique met à jour l'état central", () => {
   assert.equal(elements.get("#m2-number").value, "0.45");
 });
 
-test("le choix de gravité et la vitesse de lecture sont reliés", () => {
+test("la vitesse de lecture est reliée et la gravité reste terrestre", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
-
-  const moon = elements.get("#gravity-moon");
-  moon.checked = true;
-  moon.dispatch("change");
 
   const speed = elements.get("#playback-speed-number");
   speed.value = "2.5";
   speed.dispatch("change");
 
-  assert.equal(store.getSnapshot().parameters.gravityMode, "moon");
+  assert.equal(store.getSnapshot().parameters.gravityMode, "earth");
   assert.equal(store.getSnapshot().playbackSpeed, 2.5);
 });
 

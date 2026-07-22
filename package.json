@@ -1,6 +1,6 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "type": "module",
   "description": "Simulation SVG animée avec état central, mesures de capteurs et export CSV autonome.",

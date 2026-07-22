@@ -36,3 +36,11 @@ npm run smoke
 ## Correction de cohérence des mesures
 
 La colonne `Position (m)` utilise désormais la position physique de S1 au moment exact où son bord gauche traverse le faisceau. Le temps, la position et la vitesse sont donc calculés dans un repère unique et satisfont les relations cinématiques du modèle.
+
+
+## Ajustements d’interface
+
+- Gravité terrestre fixée à 9,81 m·s⁻² ; aucun sélecteur de gravité n’est affiché.
+- Le montage SVG est remonté et les deux masses sont des carrés arrondis de même taille.
+- Le fil est attaché au centre du côté droit de S1.
+- Les messages textuels d’état sous les commandes ont été supprimés.

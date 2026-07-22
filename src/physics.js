@@ -18,13 +18,13 @@ export class PhysicsParameterError extends RangeError {
 /**
  * Retourne la valeur de g correspondant au milieu choisi.
  *
- * @param {"earth"|"moon"} gravityMode
+ * @param {"earth"} gravityMode
  * @returns {number} accélération de la pesanteur en m·s⁻²
  */
 export function getGravity(gravityMode) {
   if (!Object.hasOwn(GRAVITY, gravityMode)) {
     throw new PhysicsParameterError(
-      `Mode de gravité inconnu : ${String(gravityMode)}. Valeurs admises : earth, moon.`,
+      `Mode de gravité inconnu : ${String(gravityMode)}. Seule la valeur earth est admise.`,
     );
   }
 

@@ -74,14 +74,14 @@ h1 {
 
 .apparatus-host {
   width: 100%;
-  min-height: 360px;
+  min-height: 320px;
 }
 
 .apparatus-svg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 1200 / 560;
+  aspect-ratio: 1200 / 500;
 }
 
 .scene-background {
@@ -113,22 +113,6 @@ h1 {
   font-weight: 800;
 }
 
-.gravity-badge rect {
-  fill: #edf6ff;
-  stroke: #a8cae4;
-  stroke-width: 2;
-}
-
-.gravity-badge text {
-  fill: #35647f;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.gravity-badge .gravity-value {
-  font-size: 16px;
-  font-weight: 800;
-}
 
 .bench-top {
   fill: #8399a7;
@@ -424,21 +408,6 @@ h1 {
 }
 
 
-.control-status {
-  min-height: 1.25rem;
-  margin: 0;
-  color: #557484;
-  font-size: 0.82rem;
-  font-weight: 650;
-}
-
-.control-status[data-state="running"] {
-  color: #267347;
-}
-
-.control-status[data-state="terminal"] {
-  color: #8a4c22;
-}
 
 .readout-actions {
   display: flex;
@@ -569,42 +538,6 @@ h1 {
   outline-offset: 1px;
 }
 
-.gravity-choice {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.gravity-choice legend {
-  margin-bottom: 7px;
-  color: #365d72;
-  font-size: 0.84rem;
-  font-weight: 750;
-}
-
-.gravity-option {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 38px;
-  border: 1px solid #aac8d8;
-  border-radius: 9px;
-  background: #f8fcfe;
-  color: #28536a;
-  font-size: 0.84rem;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.gravity-option:has(input:checked) {
-  border-color: #247da9;
-  background: #e7f5fc;
-  color: #155c7e;
-}
 
 .parameter-error {
   min-height: 1.3em;

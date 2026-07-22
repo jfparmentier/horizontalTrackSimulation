@@ -3,7 +3,6 @@ import test from "node:test";
 
 import {
   DEFAULT_PARAMETERS,
-  GRAVITY,
   PhysicsParameterError,
   computePhase1Acceleration,
   computePhase1EndVelocity,
@@ -24,12 +23,12 @@ const closeTo = (actual, expected, tolerance = 1e-10) => {
   );
 };
 
-test("getGravity retourne les valeurs terrestre et lunaire", () => {
+test("getGravity retourne la gravité terrestre", () => {
   assert.equal(getGravity("earth"), 9.81);
-  assert.equal(getGravity("moon"), 1.62);
 });
 
-test("getGravity refuse un milieu inconnu", () => {
+test("getGravity refuse tout autre milieu", () => {
+  assert.throws(() => getGravity("moon"), PhysicsParameterError);
   assert.throws(() => getGravity("mars"), PhysicsParameterError);
 });
 
@@ -48,7 +47,7 @@ test("validateParameters accepte les bornes définies", () => {
       dropHeight: 0.2,
       trackLength: 1,
       friction: 0,
-      gravityMode: "moon",
+      gravityMode: "earth",
     }),
   );
 
@@ -110,12 +109,6 @@ test("computePhase1Acceleration renvoie zéro si la force motrice est insuffisan
     }),
     0,
   );
-});
-
-test("l'accélération lunaire est proportionnelle à g", () => {
-  const earth = computePhase1Acceleration({ ...DEFAULT_PARAMETERS, gravityMode: "earth" });
-  const moon = computePhase1Acceleration({ ...DEFAULT_PARAMETERS, gravityMode: "moon" });
-  closeTo(moon / earth, GRAVITY.moon / GRAVITY.earth);
 });
 
 test("computePhase2Acceleration renvoie zéro sans frottement", () => {

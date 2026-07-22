@@ -82,6 +82,25 @@ test("la masse suspendue est carrée à coins arrondis", () => {
   assert.equal(layout.heightGuide.bottomY, layout.socle.y);
 });
 
+test("S1 et S2 ont la même géométrie carrée et le fil est attaché au centre de S1", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  assert.equal(layout.mobile.width, layout.mobile.height);
+  assert.equal(layout.mobile.width, layout.hangingMass.width);
+  assert.equal(layout.mobile.height, layout.hangingMass.height);
+  assert.equal(layout.mobile.attachY, layout.mobile.y + layout.mobile.height / 2);
+  assert.equal(layout.string.startY, layout.mobile.attachY);
+  assert.equal(layout.pulley.centerY - layout.pulley.radius, layout.string.startY);
+});
+
+test("le montage est remonté dans le viewBox", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  assert.equal(layout.viewBox.height, 500);
+  assert.ok(layout.track.y < 300);
+  assert.ok(layout.socle.y < 450);
+});
+
 test("les coordonnées des capteurs croissent strictement", () => {
   const layout = computeApparatusLayout(DEFAULTS);
   const coordinates = layout.sensors.map((sensor) => sensor.x);

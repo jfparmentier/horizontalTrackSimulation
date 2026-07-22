@@ -78,7 +78,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
-  "time-value", "control-status",
+  "time-value",
   "parameter-error",
   "m1-range", "m1-number", "m2-range", "m2-number",
   "drop-height-range", "drop-height-number",
@@ -86,7 +86,6 @@ for (const id of [
   "friction-range", "friction-number",
   "sensor-count-range", "sensor-count-number",
   "playback-speed-range", "playback-speed-number",
-  "gravity-earth", "gravity-moon",
 ]) {
   elements.set(`#${id}`, new FakeElement(id));
 }
@@ -162,9 +161,6 @@ if (elements.get("#time-value").textContent !== "0.00 s") {
 }
 if (elements.get("#m1-number").value !== "0.5") {
   throw new Error("Les paramètres n'ont pas été synchronisés avec l'état central.");
-}
-if (elements.get("#control-status").textContent !== "Simulation prête.") {
-  throw new Error("L'état initial des commandes est incorrect.");
 }
 if (elements.get("#download-data-button").disabled !== true) {
   throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");

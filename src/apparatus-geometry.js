@@ -3,7 +3,7 @@ import { PhysicsParameterError, validateParameters } from "./physics.js";
 
 export const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 560,
+  height: 500,
 });
 
 export const SENSOR_COUNT_LIMITS = Object.freeze({
@@ -15,20 +15,20 @@ export const SENSOR_COUNT_LIMITS = Object.freeze({
 const DRAWING = Object.freeze({
   trackStartX: 98,
   trackEndX: 936,
-  trackTopY: 306,
+  trackTopY: 252,
   trackHeight: 46,
-  rulerTopY: 366,
+  rulerTopY: 312,
   rulerHeight: 48,
-  mobileWidth: 112,
-  mobileHeight: 74,
-  mobileBottomY: 302,
+  mobileWidth: 76,
+  mobileHeight: 76,
+  mobileBottomY: 248,
   pulleyCenterX: 1016,
-  pulleyCenterY: 260,
+  pulleyCenterY: 230,
   pulleyRadius: 20,
   hangingMassWidth: 76,
   hangingMassHeight: 76,
-  hangingMassTopY: 292,
-  socleTopY: 462,
+  hangingMassTopY: 240,
+  socleTopY: 408,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -123,16 +123,15 @@ export function computeApparatusLayout(options = {}) {
     centerY: DRAWING.pulleyCenterY,
     radius: DRAWING.pulleyRadius,
   });
-  const ropeY = pulley.centerY - pulley.radius;
-
   const mobile = Object.freeze({
     x: positionToX(0),
     y: DRAWING.mobileBottomY - DRAWING.mobileHeight,
     width: DRAWING.mobileWidth,
     height: DRAWING.mobileHeight,
     attachX: positionToX(0) + DRAWING.mobileWidth,
-    attachY: ropeY,
+    attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
+  const ropeY = mobile.attachY;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
     y: DRAWING.hangingMassTopY,

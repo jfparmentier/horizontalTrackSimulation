@@ -97,7 +97,6 @@ function createFixture() {
     ["#pause-button", new FakeElement()],
     ["#step-button", new FakeElement()],
     ["#reset-button", new FakeElement()],
-    ["#control-status", new FakeElement("p")],
   ]);
   const keyboard = new FakeElement("div");
   const root = {
@@ -124,7 +123,6 @@ test("les commandes sont initialisées dans l'état prêt", () => {
   assert.equal(elements.get("#step-button").disabled, false);
   assert.equal(elements.get("#reset-button").disabled, true);
   assert.equal(elements.get("#start-button").textContent, "Démarrer");
-  assert.equal(elements.get("#control-status").textContent, "Simulation prête.");
 });
 
 test("démarrer, mettre en pause et reprendre actualisent les boutons", () => {
@@ -140,14 +138,12 @@ test("démarrer, mettre en pause et reprendre actualisent les boutons", () => {
   elements.get("#start-button").dispatch("click");
   assert.equal(elements.get("#start-button").disabled, true);
   assert.equal(elements.get("#pause-button").disabled, false);
-  assert.equal(elements.get("#control-status").textContent, "Simulation en cours.");
 
   elements.get("#pause-button").dispatch("click");
   loop.step(0.01);
   controls.update(loop.getState(), loop.getDiagnostics());
   assert.equal(elements.get("#start-button").textContent, "Reprendre");
   assert.equal(elements.get("#start-button").disabled, false);
-  assert.equal(elements.get("#control-status").textContent, "Simulation en pause.");
 });
 
 test("le bouton pas à pas utilise une durée physique déterministe", () => {
@@ -239,5 +235,4 @@ test("un état terminal désactive les commandes de progression", () => {
   assert.equal(elements.get("#start-button").disabled, true);
   assert.equal(elements.get("#pause-button").disabled, true);
   assert.equal(elements.get("#step-button").disabled, true);
-  assert.match(elements.get("#control-status").textContent, /fin du banc/i);
 });

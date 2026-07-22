@@ -4,7 +4,6 @@
 
 export const GRAVITY = Object.freeze({
   earth: 9.81,
-  moon: 1.62,
 });
 
 export const PARAMETER_LIMITS = Object.freeze({

@@ -9,7 +9,6 @@ modules.constants = (() => {
 
 const GRAVITY = Object.freeze({
   earth: 9.81,
-  moon: 1.62,
 });
 
 const PARAMETER_LIMITS = Object.freeze({
@@ -49,13 +48,13 @@ class PhysicsParameterError extends RangeError {
 /**
  * Retourne la valeur de g correspondant au milieu choisi.
  *
- * @param {"earth"|"moon"} gravityMode
+ * @param {"earth"} gravityMode
  * @returns {number} accélération de la pesanteur en m·s⁻²
  */
 function getGravity(gravityMode) {
   if (!Object.hasOwn(GRAVITY, gravityMode)) {
     throw new PhysicsParameterError(
-      `Mode de gravité inconnu : ${String(gravityMode)}. Valeurs admises : earth, moon.`,
+      `Mode de gravité inconnu : ${String(gravityMode)}. Seule la valeur earth est admise.`,
     );
   }
 
@@ -1093,7 +1092,7 @@ const { DEFAULT_PARAMETERS } = modules.constants;
 const { PhysicsParameterError, validateParameters } = modules.physics;
 const APPARATUS_VIEWBOX = Object.freeze({
   width: 1200,
-  height: 560,
+  height: 500,
 });
 
 const SENSOR_COUNT_LIMITS = Object.freeze({
@@ -1105,20 +1104,20 @@ const SENSOR_COUNT_LIMITS = Object.freeze({
 const DRAWING = Object.freeze({
   trackStartX: 98,
   trackEndX: 936,
-  trackTopY: 306,
+  trackTopY: 252,
   trackHeight: 46,
-  rulerTopY: 366,
+  rulerTopY: 312,
   rulerHeight: 48,
-  mobileWidth: 112,
-  mobileHeight: 74,
-  mobileBottomY: 302,
+  mobileWidth: 76,
+  mobileHeight: 76,
+  mobileBottomY: 248,
   pulleyCenterX: 1016,
-  pulleyCenterY: 260,
+  pulleyCenterY: 230,
   pulleyRadius: 20,
   hangingMassWidth: 76,
   hangingMassHeight: 76,
-  hangingMassTopY: 292,
-  socleTopY: 462,
+  hangingMassTopY: 240,
+  socleTopY: 408,
 });
 
 function assertIntegerInRange(name, value, limits) {
@@ -1213,16 +1212,15 @@ function computeApparatusLayout(options = {}) {
     centerY: DRAWING.pulleyCenterY,
     radius: DRAWING.pulleyRadius,
   });
-  const ropeY = pulley.centerY - pulley.radius;
-
   const mobile = Object.freeze({
     x: positionToX(0),
     y: DRAWING.mobileBottomY - DRAWING.mobileHeight,
     width: DRAWING.mobileWidth,
     height: DRAWING.mobileHeight,
     attachX: positionToX(0) + DRAWING.mobileWidth,
-    attachY: ropeY,
+    attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
+  const ropeY = mobile.attachY;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
     y: DRAWING.hangingMassTopY,
@@ -1323,10 +1321,6 @@ function formatNumber(value) {
   return NUMBER_FORMAT.format(value);
 }
 
-function gravityLabel(mode) {
-  return mode === "moon" ? "Lune" : "Terre";
-}
-
 function formatUsNumber(value) {
   return US_NUMBER_FORMAT.format(value);
 }
@@ -1382,7 +1376,6 @@ function buildStringPath(layout) {
 function buildStaticApparatusSvg(options = {}) {
   const layout = computeApparatusLayout(options);
   const { parameters } = layout;
-  const gLabel = gravityLabel(parameters.gravityMode);
   const description = [
     "Montage initial avec le mobile S1 sur un banc horizontal,",
     "la masse S2 suspendue par un fil passant sur une poulie,",
@@ -1414,23 +1407,16 @@ function buildStaticApparatusSvg(options = {}) {
     </defs>
 
     <g id="layer-background" aria-hidden="true">
-      <rect class="scene-background" x="16" y="16" width="1168" height="528" rx="28" />
+      <rect class="scene-background" x="16" y="16" width="1168" height="${layout.viewBox.height - 32}" rx="28" />
     </g>
 
-    <g id="layer-status" aria-label="État initial">
-      <g class="gravity-badge" transform="translate(946 48)">
-        <rect width="188" height="50" rx="14" />
-        <text x="94" y="22" text-anchor="middle">Gravité</text>
-        <text class="gravity-value" x="94" y="40" text-anchor="middle">${gLabel}</text>
-      </g>
-    </g>
 
     <g id="layer-track" data-role="track">
       <rect class="bench-top" x="${layout.track.x}" y="${layout.track.y}" width="${layout.track.width}" height="${layout.track.height}" rx="8" />
       <rect class="bench-texture" x="${layout.track.x}" y="${layout.track.y + 7}" width="${layout.track.width}" height="${layout.track.height - 14}" rx="5" />
       <path class="bench-edge" d="M ${layout.track.x} ${layout.track.y + layout.track.height} H ${layout.track.endX}" />
-      <path class="bench-leg" d="M ${layout.track.x + 90} ${layout.track.y + layout.track.height} L ${layout.track.x + 72} 445 H ${layout.track.x + 152} L ${layout.track.x + 134} ${layout.track.y + layout.track.height}" />
-      <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} 445 H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
+      <path class="bench-leg" d="M ${layout.track.x + 90} ${layout.track.y + layout.track.height} L ${layout.track.x + 72} ${layout.track.y + 139} H ${layout.track.x + 152} L ${layout.track.x + 134} ${layout.track.y + layout.track.height}" />
+      <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} ${layout.track.y + 139} H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
     </g>
 
     ${buildRuler(layout)}
@@ -1463,7 +1449,7 @@ function buildStaticApparatusSvg(options = {}) {
 
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
-      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} 520 H ${layout.socle.x - 2} Z" />
+      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} ${layout.socle.y + 58} H ${layout.socle.x - 2} Z" />
     </g>
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
@@ -2083,8 +2069,6 @@ function bindParameterControls(root, appState) {
     range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
     number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
   };
-  const gravityEarth = getRequiredElement(root, "#gravity-earth");
-  const gravityMoon = getRequiredElement(root, "#gravity-moon");
   const listeners = [];
 
   function listen(element, eventName, callback) {
@@ -2113,8 +2097,6 @@ function bindParameterControls(root, appState) {
     }
     setPairValue(sensorPair, snapshot.experimental.sensorCount);
     setPairValue(playbackPair, snapshot.playbackSpeed);
-    gravityEarth.checked = snapshot.parameters.gravityMode === "earth";
-    gravityMoon.checked = snapshot.parameters.gravityMode === "moon";
   }
 
   function commitPhysical(key, rawValue, pair) {
@@ -2180,23 +2162,6 @@ function bindParameterControls(root, appState) {
     }
   });
 
-  function commitGravity(mode) {
-    try {
-      clearError();
-      appState.updateParameters({ gravityMode: mode });
-    } catch (error) {
-      sync();
-      showError(error);
-    }
-  }
-
-  listen(gravityEarth, "change", () => {
-    if (gravityEarth.checked) commitGravity("earth");
-  });
-  listen(gravityMoon, "change", () => {
-    if (gravityMoon.checked) commitGravity("moon");
-  });
-
   const unsubscribe = appState.subscribe((snapshot, meta) => {
     if (meta.reason !== "simulation-change") sync(snapshot);
   });
@@ -2233,21 +2198,6 @@ function isTerminalState(state) {
 
 function isInitialState(state) {
   return state.time === 0 && state.position === 0 && state.velocity === 0;
-}
-
-function statusText(state, running) {
-  if (state.status === "blocked") {
-    return "Système immobile : la force motrice est insuffisante.";
-  }
-  if (state.endReason === "track-end") {
-    return "Simulation terminée : S1 a atteint la fin du banc.";
-  }
-  if (state.endReason === "friction-stop") {
-    return "Simulation terminée : S1 s’est arrêté sous l’effet des frottements.";
-  }
-  if (running) return "Simulation en cours.";
-  if (isInitialState(state)) return "Simulation prête.";
-  return "Simulation en pause.";
 }
 
 function shouldIgnoreKeyboardShortcut(event) {
@@ -2288,7 +2238,6 @@ function bindSimulationControls(root, configuration = {}) {
   const pauseButton = getRequiredElement(root, "#pause-button");
   const stepButton = getRequiredElement(root, "#step-button");
   const resetButton = getRequiredElement(root, "#reset-button");
-  const statusElement = getRequiredElement(root, "#control-status");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
@@ -2331,15 +2280,6 @@ function bindSimulationControls(root, configuration = {}) {
     startButton.textContent = initial ? "Démarrer" : "Reprendre";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
-    statusElement.textContent = statusText(state, running);
-    statusElement.dataset.state = terminal
-      ? "terminal"
-      : running
-        ? "running"
-        : initial
-          ? "ready"
-          : "paused";
-
     return Object.freeze({ running, terminal, initial });
   }
 

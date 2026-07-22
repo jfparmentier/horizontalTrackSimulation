@@ -20,3 +20,15 @@ test("le temps précède immédiatement le bouton d’export dans la zone de lec
   assert.ok(section.indexOf('id="time-value"') >= 0);
   assert.ok(section.indexOf('id="download-data-button"') > section.indexOf('id="time-value"'));
 });
+
+
+test("la gravité terrestre est fixe et aucun sélecteur ni badge n'est affiché", () => {
+  assert.doesNotMatch(html, /id="gravity-earth"/);
+  assert.doesNotMatch(html, /id="gravity-moon"/);
+  assert.doesNotMatch(html, /class="gravity-badge"/);
+});
+
+test("aucun message d'état n'est affiché sous les commandes", () => {
+  assert.doesNotMatch(html, /id="control-status"/);
+  assert.doesNotMatch(html, /Simulation prête\.|Simulation terminée|Simulation en cours\.|Simulation en pause\./);
+});

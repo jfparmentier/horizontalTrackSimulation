@@ -24,7 +24,7 @@ test("le SVG possède un viewBox, un titre et une description accessibles", () =
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, /^<svg[^>]+id="apparatus-svg"/);
-  assert.match(svg, /viewBox="0 0 1200 560"/);
+  assert.match(svg, /viewBox="0 0 1200 500"/);
   assert.match(svg, /role="img"/);
   assert.match(svg, /aria-labelledby="apparatus-title apparatus-description"/);
   assert.match(svg, /<title id="apparatus-title">/);
@@ -56,8 +56,8 @@ test("les éléments destinés à l'animation disposent d'identifiants stables",
 test("le SVG affiche seulement les indications souhaitées", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
-  assert.match(svg, />Terre</);
   assert.match(svg, />0.5 m</);
+  assert.doesNotMatch(svg, /gravity-badge|>Gravité<|>Terre</);
   assert.doesNotMatch(svg, /m₁ =/);
   assert.doesNotMatch(svg, />0,1 kg</);
   assert.doesNotMatch(svg, /L = 2 m/);
@@ -68,13 +68,6 @@ test("le SVG affiche seulement les indications souhaitées", () => {
   assert.doesNotMatch(svg, /x = 0/);
   assert.doesNotMatch(svg, /h =/);
   assert.doesNotMatch(svg, /scene-horizon/);
-});
-
-test("le choix lunaire est correctement affiché sans valeur numérique", () => {
-  const svg = buildStaticApparatusSvg({ ...DEFAULTS, gravityMode: "moon" });
-
-  assert.match(svg, />Lune</);
-  assert.doesNotMatch(svg, /1,62 m·s⁻²/);
 });
 
 test("la poulie, son support et la corde respectent la nouvelle géométrie", () => {
@@ -96,6 +89,13 @@ test("la masse suspendue est rendue comme un carré arrondi", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, /<rect id="hanging-mass-body"[^>]+width="76" height="76" rx="14"/);
+});
+
+test("S1 est rendu comme un carré arrondi de même taille que S2", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.match(svg, /<rect id="mobile-body"[^>]+width="76" height="76" rx="18"/);
+  assert.match(svg, /<circle class="mobile-port" cx="76" cy="38" r="5"/);
 });
 
 test("aucun vecteur de force, vitesse ou accélération n'est dessiné", () => {
