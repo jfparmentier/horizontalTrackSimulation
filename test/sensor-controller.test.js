@@ -139,6 +139,7 @@ test("le capteur se déclenche lorsque le bord gauche de S1 traverse le faisceau
   assert.equal(emitted.length, 1);
   assert.equal(emitted[0].beamX, firstSensor.x);
   assert.equal(emitted[0].position, firstSensor.position);
+  assert.ok(Math.abs(emitted[0].triggerPosition - crossingPosition) < 1e-12);
 
   const triggeredSnapshot = controller.render(
     state(crossingPosition + 0.01),

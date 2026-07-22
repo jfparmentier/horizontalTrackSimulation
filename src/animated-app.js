@@ -4,6 +4,8 @@ import { mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
 import { bindParameterControls } from "./parameter-controls.js";
 import { bindSimulationControls } from "./simulation-controls.js";
+import { createSensorController } from "./sensor-controller.js";
+import { createMeasurementRecorder } from "./measurement-recorder.js";
 import { createTimeLoop } from "./time-loop.js";
 
 const READOUT_FORMAT = new Intl.NumberFormat("en-US", {
@@ -36,6 +38,7 @@ export function createAnimatedApp(root = document, options = {}) {
   const positionValue = getRequiredElement(root, "#position-value");
   const velocityValue = getRequiredElement(root, "#velocity-value");
   const phaseValue = getRequiredElement(root, "#phase-value");
+  const sensorValue = getRequiredElement(root, "#sensor-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -56,6 +59,8 @@ export function createAnimatedApp(root = document, options = {}) {
 
   function destroyRuntime() {
     if (runtime) {
+      runtime.sensorController?.destroy();
+      runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
       runtime = null;
     }
@@ -73,6 +78,17 @@ export function createAnimatedApp(root = document, options = {}) {
       sensorCount,
     });
     const animator = createApparatusAnimator(svg, layout);
+    const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
+    const sensorController = createSensorController(svg, layout, {
+      onCrossings(crossings) {
+        const measurements = measurementRecorder.recordCrossings(crossings);
+        if (measurements.length > 0) {
+          appState.addMeasurements(measurements);
+        }
+      },
+    });
+    sensorValue.textContent = `0 / ${layout.sensorCount}`;
+    host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
       physicsStep: options.physicsStep ?? 0.002,
@@ -81,13 +97,22 @@ export function createAnimatedApp(root = document, options = {}) {
       cancelFrame: options.cancelFrame,
       onRender(state, previousState, meta) {
         animator.render(state, previousState, meta);
+        const sensorSnapshot = sensorController.render(state, previousState, meta);
+        sensorValue.textContent = `${sensorSnapshot.triggeredCount} / ${sensorSnapshot.totalCount}`;
         appState.setSimulationState(state);
         updateReadout(state, meta);
         simulationControls?.update(state, meta);
       },
     });
 
-    runtime = Object.freeze({ loop, layout, svg, animator });
+    runtime = Object.freeze({
+      loop,
+      layout,
+      svg,
+      animator,
+      sensorController,
+      measurementRecorder,
+    });
     return runtime;
   }
 
@@ -98,7 +123,11 @@ export function createAnimatedApp(root = document, options = {}) {
       mountRuntime(snapshot);
     } else if (meta.reason === "playback-speed-change" && runtime) {
       runtime.loop.setPlaybackSpeed(snapshot.playbackSpeed);
+    } else if (meta.reason === "measurements-recorded") {
+      host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     } else if (meta.reason === "experiment-reset" && runtime) {
+      host.setAttribute("data-measurement-count", "0");
+      runtime.measurementRecorder.reset();
       runtime.loop.reset(snapshot.parameters);
     }
   });

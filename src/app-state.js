@@ -23,6 +23,10 @@ function freezeArray(items = []) {
   return Object.freeze([...items]);
 }
 
+function freezeRecordArray(items = []) {
+  return Object.freeze(items.map((item) => Object.freeze({ ...item })));
+}
+
 function freezeSnapshot(snapshot) {
   return Object.freeze({
     parameters: snapshot.parameters,
@@ -30,8 +34,8 @@ function freezeSnapshot(snapshot) {
     playbackSpeed: snapshot.playbackSpeed,
     simulation: snapshot.simulation,
     display: Object.freeze({ ...snapshot.display }),
-    measurements: freezeArray(snapshot.measurements),
-    continuousData: freezeArray(snapshot.continuousData),
+    measurements: freezeRecordArray(snapshot.measurements),
+    continuousData: freezeRecordArray(snapshot.continuousData),
     revision: snapshot.revision,
   });
 }
@@ -62,6 +66,61 @@ function validatePlaybackSpeed(value) {
     );
   }
   return normalized;
+}
+
+function normalizeMeasurement(measurement, parameters, sequence) {
+  if (!measurement || typeof measurement !== "object") {
+    throw new TypeError("Chaque mesure doit être un objet.");
+  }
+
+  const normalized = {
+    sequence,
+    sensorId: Number(measurement.sensorId),
+    position: Number(measurement.position),
+    mobilePosition: Number(measurement.mobilePosition),
+    time: Number(measurement.time),
+    velocity: Number(measurement.velocity),
+    acceleration: Number(measurement.acceleration),
+    phase: Number(measurement.phase),
+  };
+
+  if (!Number.isInteger(normalized.sensorId) || normalized.sensorId <= 0) {
+    throw new PhysicsParameterError("measurement.sensorId doit être un entier strictement positif.");
+  }
+  for (const field of ["position", "mobilePosition", "time", "velocity", "acceleration"]) {
+    if (!Number.isFinite(normalized[field])) {
+      throw new TypeError(`measurement.${field} doit être un nombre fini.`);
+    }
+  }
+  if (normalized.position < 0 || normalized.position > parameters.trackLength) {
+    throw new PhysicsParameterError("La position du capteur doit rester comprise sur le banc.");
+  }
+  if (normalized.mobilePosition < 0 || normalized.mobilePosition > parameters.trackLength) {
+    throw new PhysicsParameterError("La position du mobile doit rester comprise sur le banc.");
+  }
+  if (normalized.time < 0 || normalized.velocity < 0) {
+    throw new PhysicsParameterError("Le temps et la vitesse mesurés doivent être positifs ou nuls.");
+  }
+  if (![1, 2].includes(normalized.phase)) {
+    throw new PhysicsParameterError("measurement.phase doit valoir 1 ou 2.");
+  }
+
+  return Object.freeze(normalized);
+}
+
+function normalizeInitialMeasurements(items, parameters) {
+  if (!Array.isArray(items)) {
+    throw new TypeError("measurements doit être un tableau.");
+  }
+  const ids = new Set();
+  return items.map((item, index) => {
+    const measurement = normalizeMeasurement(item, parameters, index + 1);
+    if (ids.has(measurement.sensorId)) {
+      throw new PhysicsParameterError("Un capteur ne peut posséder qu'une mesure par expérience.");
+    }
+    ids.add(measurement.sensorId);
+    return measurement;
+  });
 }
 
 function sameParameters(left, right) {
@@ -103,7 +162,7 @@ export function createAppState(initial = {}) {
       ...DEFAULT_DISPLAY_SETTINGS,
       ...(initial.display ?? {}),
     },
-    measurements: initial.measurements ?? [],
+    measurements: normalizeInitialMeasurements(initial.measurements ?? [], parameters),
     continuousData: initial.continuousData ?? [],
     revision: 0,
   });
@@ -217,6 +276,34 @@ export function createAppState(initial = {}) {
     return snapshot;
   }
 
+  function addMeasurements(items) {
+    assertUsable();
+    if (!Array.isArray(items)) {
+      throw new TypeError("Les mesures à enregistrer doivent être fournies dans un tableau.");
+    }
+
+    const existingIds = new Set(snapshot.measurements.map((item) => item.sensorId));
+    const accepted = [];
+
+    for (const item of items) {
+      const sequence = snapshot.measurements.length + accepted.length + 1;
+      const measurement = normalizeMeasurement(item, snapshot.parameters, sequence);
+      if (existingIds.has(measurement.sensorId)) continue;
+      existingIds.add(measurement.sensorId);
+      accepted.push(measurement);
+    }
+
+    if (accepted.length === 0) return snapshot;
+
+    return replace({
+      ...snapshot,
+      measurements: [...snapshot.measurements, ...accepted],
+    }, "measurements-recorded", {
+      measurementCount: accepted.length,
+      sensorIds: Object.freeze(accepted.map((item) => item.sensorId)),
+    });
+  }
+
   function resetExperiment() {
     assertUsable();
     return replace({
@@ -261,6 +348,7 @@ export function createAppState(initial = {}) {
     updateExperimental,
     setPlaybackSpeed,
     setSimulationState,
+    addMeasurements,
     resetExperiment,
     updateDisplay,
     destroy,

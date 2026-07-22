@@ -2409,6 +2409,10 @@ function freezeArray(items = []) {
   return Object.freeze([...items]);
 }
 
+function freezeRecordArray(items = []) {
+  return Object.freeze(items.map((item) => Object.freeze({ ...item })));
+}
+
 function freezeSnapshot(snapshot) {
   return Object.freeze({
     parameters: snapshot.parameters,
@@ -2416,8 +2420,8 @@ function freezeSnapshot(snapshot) {
     playbackSpeed: snapshot.playbackSpeed,
     simulation: snapshot.simulation,
     display: Object.freeze({ ...snapshot.display }),
-    measurements: freezeArray(snapshot.measurements),
-    continuousData: freezeArray(snapshot.continuousData),
+    measurements: freezeRecordArray(snapshot.measurements),
+    continuousData: freezeRecordArray(snapshot.continuousData),
     revision: snapshot.revision,
   });
 }
@@ -2448,6 +2452,61 @@ function validatePlaybackSpeed(value) {
     );
   }
   return normalized;
+}
+
+function normalizeMeasurement(measurement, parameters, sequence) {
+  if (!measurement || typeof measurement !== "object") {
+    throw new TypeError("Chaque mesure doit être un objet.");
+  }
+
+  const normalized = {
+    sequence,
+    sensorId: Number(measurement.sensorId),
+    position: Number(measurement.position),
+    mobilePosition: Number(measurement.mobilePosition),
+    time: Number(measurement.time),
+    velocity: Number(measurement.velocity),
+    acceleration: Number(measurement.acceleration),
+    phase: Number(measurement.phase),
+  };
+
+  if (!Number.isInteger(normalized.sensorId) || normalized.sensorId <= 0) {
+    throw new PhysicsParameterError("measurement.sensorId doit être un entier strictement positif.");
+  }
+  for (const field of ["position", "mobilePosition", "time", "velocity", "acceleration"]) {
+    if (!Number.isFinite(normalized[field])) {
+      throw new TypeError(`measurement.${field} doit être un nombre fini.`);
+    }
+  }
+  if (normalized.position < 0 || normalized.position > parameters.trackLength) {
+    throw new PhysicsParameterError("La position du capteur doit rester comprise sur le banc.");
+  }
+  if (normalized.mobilePosition < 0 || normalized.mobilePosition > parameters.trackLength) {
+    throw new PhysicsParameterError("La position du mobile doit rester comprise sur le banc.");
+  }
+  if (normalized.time < 0 || normalized.velocity < 0) {
+    throw new PhysicsParameterError("Le temps et la vitesse mesurés doivent être positifs ou nuls.");
+  }
+  if (![1, 2].includes(normalized.phase)) {
+    throw new PhysicsParameterError("measurement.phase doit valoir 1 ou 2.");
+  }
+
+  return Object.freeze(normalized);
+}
+
+function normalizeInitialMeasurements(items, parameters) {
+  if (!Array.isArray(items)) {
+    throw new TypeError("measurements doit être un tableau.");
+  }
+  const ids = new Set();
+  return items.map((item, index) => {
+    const measurement = normalizeMeasurement(item, parameters, index + 1);
+    if (ids.has(measurement.sensorId)) {
+      throw new PhysicsParameterError("Un capteur ne peut posséder qu'une mesure par expérience.");
+    }
+    ids.add(measurement.sensorId);
+    return measurement;
+  });
 }
 
 function sameParameters(left, right) {
@@ -2489,7 +2548,7 @@ function createAppState(initial = {}) {
       ...DEFAULT_DISPLAY_SETTINGS,
       ...(initial.display ?? {}),
     },
-    measurements: initial.measurements ?? [],
+    measurements: normalizeInitialMeasurements(initial.measurements ?? [], parameters),
     continuousData: initial.continuousData ?? [],
     revision: 0,
   });
@@ -2603,6 +2662,34 @@ function createAppState(initial = {}) {
     return snapshot;
   }
 
+  function addMeasurements(items) {
+    assertUsable();
+    if (!Array.isArray(items)) {
+      throw new TypeError("Les mesures à enregistrer doivent être fournies dans un tableau.");
+    }
+
+    const existingIds = new Set(snapshot.measurements.map((item) => item.sensorId));
+    const accepted = [];
+
+    for (const item of items) {
+      const sequence = snapshot.measurements.length + accepted.length + 1;
+      const measurement = normalizeMeasurement(item, snapshot.parameters, sequence);
+      if (existingIds.has(measurement.sensorId)) continue;
+      existingIds.add(measurement.sensorId);
+      accepted.push(measurement);
+    }
+
+    if (accepted.length === 0) return snapshot;
+
+    return replace({
+      ...snapshot,
+      measurements: [...snapshot.measurements, ...accepted],
+    }, "measurements-recorded", {
+      measurementCount: accepted.length,
+      sensorIds: Object.freeze(accepted.map((item) => item.sensorId)),
+    });
+  }
+
   function resetExperiment() {
     assertUsable();
     return replace({
@@ -2647,6 +2734,7 @@ function createAppState(initial = {}) {
     updateExperimental,
     setPlaybackSpeed,
     setSimulationState,
+    addMeasurements,
     resetExperiment,
     updateDisplay,
     destroy,
@@ -3158,6 +3246,19 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     + (normalizedPosition / layout.parameters.trackLength) * mobileTravel;
 }
 
+/** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
+function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
+  const mobileTravel = layout.track.width - layout.mobile.width;
+  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
+    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  }
+  return clamp(
+    ((leftEdgeX - layout.mobile.x) / mobileTravel) * layout.parameters.trackLength,
+    0,
+    layout.parameters.trackLength,
+  );
+}
+
 /** Calcule la position effectivement affichée pendant l'interpolation visuelle. */
 function displayedSimulationPosition(currentState, previousState, meta) {
   const terminal = ["blocked", "finished"].includes(currentState.status);
@@ -3277,6 +3378,7 @@ function createSensorController(svg, layout, options = {}) {
         id: sensor.id,
         position: sensor.position,
         beamX: sensor.x,
+        triggerPosition: simulationPositionForLeftEdgeX(layout, sensor.x),
       });
     });
 
@@ -3316,6 +3418,254 @@ function createSensorController(svg, layout, options = {}) {
 return Object.freeze({ detectSensorCrossings, createSensorController });
 })();
 
+modules.measurementRecorder = (() => {
+const { computePhase1Acceleration, computePhase2Acceleration, validateParameters } = modules.physics;
+const MEASUREMENT_EPSILON = 1e-10;
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function assertLayout(layout) {
+  if (!layout || typeof layout !== "object") {
+    throw new TypeError("Un layout de montage est requis.");
+  }
+  if (!layout.parameters || !layout.track || !layout.mobile || !Array.isArray(layout.sensors)) {
+    throw new TypeError("Le layout doit contenir les paramètres, le banc, le mobile et les capteurs.");
+  }
+}
+
+function assertSensor(sensor) {
+  if (!sensor || !Number.isInteger(sensor.id) || !Number.isFinite(sensor.position)) {
+    throw new TypeError("Le capteur doit posséder un identifiant entier et une position finie.");
+  }
+  if (!Number.isFinite(sensor.x)) {
+    throw new TypeError("Le capteur doit posséder une coordonnée SVG finie.");
+  }
+}
+
+/**
+ * Retourne le déplacement physique de S1 pour lequel son bord gauche visible
+ * est exactement aligné avec le faisceau d'un capteur.
+ */
+function computeSensorTriggerPosition(layout, sensor) {
+  assertLayout(layout);
+  assertSensor(sensor);
+
+  const mobileTravel = layout.track.width - layout.mobile.width;
+  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
+    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  }
+
+  const normalized = (sensor.x - layout.mobile.x) / mobileTravel;
+  return clamp(
+    normalized * layout.parameters.trackLength,
+    0,
+    layout.parameters.trackLength,
+  );
+}
+
+/**
+ * Calcule l'état cinématique exact au déplacement demandé à partir des lois à
+ * accélération constante utilisées par le moteur. Retourne null si la position
+ * n'est pas atteignable (système bloqué ou arrêt antérieur par frottement).
+ */
+function computeKinematicStateAtPosition(parameters, targetPosition) {
+  const p = validateParameters(parameters);
+  const x = Number(targetPosition);
+
+  if (!Number.isFinite(x)) {
+    throw new TypeError("targetPosition doit être un nombre fini.");
+  }
+  if (x < -MEASUREMENT_EPSILON || x > p.trackLength + MEASUREMENT_EPSILON) {
+    throw new RangeError("targetPosition doit rester comprise sur le banc.");
+  }
+
+  const position = clamp(x, 0, p.trackLength);
+  const a1 = computePhase1Acceleration(p);
+
+  if (position <= MEASUREMENT_EPSILON) {
+    return Object.freeze({
+      time: 0,
+      position: 0,
+      velocity: 0,
+      acceleration: a1,
+      phase: 1,
+    });
+  }
+
+  if (a1 <= MEASUREMENT_EPSILON) {
+    return null;
+  }
+
+  const phase1EndPosition = Math.min(p.dropHeight, p.trackLength);
+
+  if (position < phase1EndPosition - MEASUREMENT_EPSILON) {
+    const velocity = Math.sqrt(Math.max(0, 2 * a1 * position));
+    return Object.freeze({
+      time: velocity / a1,
+      position,
+      velocity,
+      acceleration: a1,
+      phase: 1,
+    });
+  }
+
+  const transitionVelocity = Math.sqrt(
+    Math.max(0, 2 * a1 * phase1EndPosition),
+  );
+  const transitionTime = transitionVelocity / a1;
+
+  // Si le banc se termine avant la fin de chute, la phase 2 n'existe pas.
+  if (p.trackLength <= p.dropHeight + MEASUREMENT_EPSILON) {
+    return Object.freeze({
+      time: transitionTime,
+      position,
+      velocity: transitionVelocity,
+      acceleration: a1,
+      phase: 1,
+    });
+  }
+
+  if (position <= p.dropHeight + MEASUREMENT_EPSILON) {
+    return Object.freeze({
+      time: transitionTime,
+      position: p.dropHeight,
+      velocity: transitionVelocity,
+      acceleration: computePhase2Acceleration(p, transitionVelocity),
+      phase: 2,
+    });
+  }
+
+  const a2 = computePhase2Acceleration(p, transitionVelocity);
+  const phase2Distance = position - p.dropHeight;
+
+  if (Math.abs(a2) <= MEASUREMENT_EPSILON) {
+    if (transitionVelocity <= MEASUREMENT_EPSILON) return null;
+    return Object.freeze({
+      time: transitionTime + phase2Distance / transitionVelocity,
+      position,
+      velocity: transitionVelocity,
+      acceleration: 0,
+      phase: 2,
+    });
+  }
+
+  const velocitySquared = transitionVelocity ** 2 + 2 * a2 * phase2Distance;
+  if (velocitySquared < -MEASUREMENT_EPSILON) {
+    return null;
+  }
+
+  const velocity = Math.sqrt(Math.max(0, velocitySquared));
+  const phase2Time = (velocity - transitionVelocity) / a2;
+
+  return Object.freeze({
+    time: transitionTime + phase2Time,
+    position,
+    velocity,
+    acceleration: velocity <= MEASUREMENT_EPSILON ? 0 : a2,
+    phase: 2,
+  });
+}
+
+/**
+ * Transforme un franchissement de faisceau en mesure scientifique immuable.
+ * `position` est la position graduée du capteur ; `mobilePosition` est la
+ * position interne du moteur au moment où le bord gauche de S1 franchit le
+ * faisceau.
+ */
+function createMeasurement(layout, crossing, parameters = layout?.parameters) {
+  assertLayout(layout);
+  if (!crossing || !Number.isInteger(crossing.id)) {
+    throw new TypeError("Le franchissement doit posséder un identifiant entier.");
+  }
+
+  const sensor = layout.sensors.find((candidate) => candidate.id === crossing.id);
+  if (!sensor) {
+    throw new RangeError(`Capteur ${crossing.id} absent du layout.`);
+  }
+
+  const mobilePosition = Number.isFinite(crossing.triggerPosition)
+    ? crossing.triggerPosition
+    : computeSensorTriggerPosition(layout, sensor);
+  const kinematics = computeKinematicStateAtPosition(parameters, mobilePosition);
+
+  if (!kinematics) return null;
+
+  return Object.freeze({
+    sensorId: sensor.id,
+    position: sensor.position,
+    mobilePosition,
+    time: kinematics.time,
+    velocity: kinematics.velocity,
+    acceleration: kinematics.acceleration,
+    phase: kinematics.phase,
+  });
+}
+
+/**
+ * Enregistre chaque capteur au plus une fois au cours d'une expérience.
+ */
+function createMeasurementRecorder(layout, parameters = layout?.parameters) {
+  assertLayout(layout);
+  const validatedParameters = validateParameters(parameters);
+  const recordedSensorIds = new Set();
+  let destroyed = false;
+
+  function assertUsable() {
+    if (destroyed) {
+      throw new Error("Cet enregistreur de mesures a été détruit.");
+    }
+  }
+
+  function recordCrossings(crossings) {
+    assertUsable();
+    if (!Array.isArray(crossings)) {
+      throw new TypeError("crossings doit être un tableau.");
+    }
+
+    const measurements = [];
+    for (const crossing of crossings) {
+      if (recordedSensorIds.has(crossing.id)) continue;
+      const measurement = createMeasurement(layout, crossing, validatedParameters);
+      if (!measurement) continue;
+      recordedSensorIds.add(crossing.id);
+      measurements.push(measurement);
+    }
+
+    measurements.sort((left, right) => left.time - right.time || left.sensorId - right.sensorId);
+    return Object.freeze(measurements);
+  }
+
+  function reset() {
+    assertUsable();
+    recordedSensorIds.clear();
+    return getSnapshot();
+  }
+
+  function getSnapshot() {
+    return Object.freeze({
+      recordedSensorIds: Object.freeze([...recordedSensorIds].sort((a, b) => a - b)),
+      count: recordedSensorIds.size,
+    });
+  }
+
+  return Object.freeze({
+    recordCrossings,
+    reset,
+    getSnapshot,
+    destroy() {
+      if (destroyed) return false;
+      recordedSensorIds.clear();
+      destroyed = true;
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
+})();
+
 modules.app = (() => {
 const { computeApparatusLayout } = modules.geometry;
 const { createApparatusAnimator } = modules.animation;
@@ -3324,6 +3674,7 @@ const { createAppState } = modules.appState;
 const { bindParameterControls } = modules.parameterControls;
 const { bindSimulationControls } = modules.simulationControls;
 const { createSensorController } = modules.sensorController;
+const { createMeasurementRecorder } = modules.measurementRecorder;
 const { createTimeLoop } = modules.timeLoop;
 const READOUT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -3377,6 +3728,7 @@ function createAnimatedApp(root = document, options = {}) {
   function destroyRuntime() {
     if (runtime) {
       runtime.sensorController?.destroy();
+      runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
       runtime = null;
     }
@@ -3394,8 +3746,17 @@ function createAnimatedApp(root = document, options = {}) {
       sensorCount,
     });
     const animator = createApparatusAnimator(svg, layout);
-    const sensorController = createSensorController(svg, layout);
+    const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
+    const sensorController = createSensorController(svg, layout, {
+      onCrossings(crossings) {
+        const measurements = measurementRecorder.recordCrossings(crossings);
+        if (measurements.length > 0) {
+          appState.addMeasurements(measurements);
+        }
+      },
+    });
     sensorValue.textContent = `0 / ${layout.sensorCount}`;
+    host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
       physicsStep: options.physicsStep ?? 0.002,
@@ -3412,7 +3773,14 @@ function createAnimatedApp(root = document, options = {}) {
       },
     });
 
-    runtime = Object.freeze({ loop, layout, svg, animator, sensorController });
+    runtime = Object.freeze({
+      loop,
+      layout,
+      svg,
+      animator,
+      sensorController,
+      measurementRecorder,
+    });
     return runtime;
   }
 
@@ -3423,7 +3791,11 @@ function createAnimatedApp(root = document, options = {}) {
       mountRuntime(snapshot);
     } else if (meta.reason === "playback-speed-change" && runtime) {
       runtime.loop.setPlaybackSpeed(snapshot.playbackSpeed);
+    } else if (meta.reason === "measurements-recorded") {
+      host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     } else if (meta.reason === "experiment-reset" && runtime) {
+      host.setAttribute("data-measurement-count", "0");
+      runtime.measurementRecorder.reset();
       runtime.loop.reset(snapshot.parameters);
     }
   });

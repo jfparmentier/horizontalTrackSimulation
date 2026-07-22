@@ -107,6 +107,19 @@ const manifests = [
     exports: ["detectSensorCrossings", "createSensorController"],
   },
   {
+    key: "measurementRecorder",
+    file: "src/measurement-recorder.js",
+    dependencies: [
+      ["physics", [
+        "computePhase1Acceleration", "computePhase2Acceleration", "validateParameters",
+      ]],
+    ],
+    exports: [
+      "computeSensorTriggerPosition", "computeKinematicStateAtPosition",
+      "createMeasurement", "createMeasurementRecorder",
+    ],
+  },
+  {
     key: "app",
     file: "src/animated-app.js",
     dependencies: [
@@ -117,6 +130,7 @@ const manifests = [
       ["parameterControls", ["bindParameterControls"]],
       ["simulationControls", ["bindSimulationControls"]],
       ["sensorController", ["createSensorController"]],
+      ["measurementRecorder", ["createMeasurementRecorder"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
     exports: ["createAnimatedApp"],

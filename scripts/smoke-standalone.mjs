@@ -177,4 +177,11 @@ const firstSensorState = host.svg.nodes.get("#sensor-1").attributes.get("data-se
 if (!firstSensorState) {
   throw new Error("Les capteurs n'ont pas été initialisés.");
 }
+for (let index = 0; index < 20; index += 1) {
+  elements.get("#step-button").dispatch("click");
+}
+const measurementCount = Number(host.attributes.get("data-measurement-count"));
+if (!Number.isInteger(measurementCount) || measurementCount <= 0) {
+  throw new Error("Aucune mesure de capteur n'a été enregistrée dans l'état central.");
+}
 console.log("Smoke test autonome réussi.");

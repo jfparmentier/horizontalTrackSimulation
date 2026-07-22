@@ -19,7 +19,15 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
 
 test("modifier un paramètre physique réinitialise l'expérience", () => {
   const store = createAppState({
-    measurements: [{ position: 0.2 }],
+    measurements: [{
+      sensorId: 1,
+      position: 0.2,
+      mobilePosition: 0.24,
+      time: 0.5,
+      velocity: 0.4,
+      acceleration: 0.8,
+      phase: 1,
+    }],
     continuousData: [{ position: 0.1 }],
   });
   store.setSimulationState({
@@ -102,4 +110,65 @@ test("les réglages d'affichage futurs sont centralisés", () => {
 
   assert.equal(updated.display.showMeasurements, true);
   assert.equal(updated.display.showCurves, false);
+});
+
+
+test("les mesures de capteurs sont enregistrées, numérotées et figées", () => {
+  const store = createAppState();
+  const reasons = [];
+  store.subscribe((_snapshot, meta) => reasons.push(meta));
+
+  const updated = store.addMeasurements([
+    {
+      sensorId: 2,
+      position: 0.4,
+      mobilePosition: 0.46,
+      time: 0.8,
+      velocity: 0.7,
+      acceleration: 1.2,
+      phase: 1,
+    },
+    {
+      sensorId: 3,
+      position: 0.6,
+      mobilePosition: 0.69,
+      time: 1.1,
+      velocity: 0.9,
+      acceleration: 0,
+      phase: 2,
+    },
+  ]);
+
+  assert.equal(updated.measurements.length, 2);
+  assert.deepEqual(updated.measurements.map((item) => item.sequence), [1, 2]);
+  assert.equal(Object.isFrozen(updated.measurements), true);
+  assert.equal(Object.isFrozen(updated.measurements[0]), true);
+  assert.equal(reasons.at(-1).reason, "measurements-recorded");
+  assert.deepEqual(reasons.at(-1).sensorIds, [2, 3]);
+});
+
+test("une mesure déjà associée au même capteur n'est pas dupliquée", () => {
+  const store = createAppState();
+  const measurement = {
+    sensorId: 1,
+    position: 0.2,
+    mobilePosition: 0.24,
+    time: 0.5,
+    velocity: 0.4,
+    acceleration: 0.8,
+    phase: 1,
+  };
+
+  store.addMeasurements([measurement]);
+  const unchanged = store.addMeasurements([{ ...measurement, velocity: 9 }]);
+
+  assert.equal(unchanged.measurements.length, 1);
+  assert.equal(unchanged.measurements[0].velocity, 0.4);
+});
+
+test("les mesures invalides sont refusées", () => {
+  const store = createAppState();
+
+  assert.throws(() => store.addMeasurements([{ sensorId: 1 }]), /measurement/i);
+  assert.throws(() => store.addMeasurements("mesure"), /tableau/i);
 });

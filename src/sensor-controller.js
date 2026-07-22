@@ -95,6 +95,19 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     + (normalizedPosition / layout.parameters.trackLength) * mobileTravel;
 }
 
+/** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
+function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
+  const mobileTravel = layout.track.width - layout.mobile.width;
+  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
+    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  }
+  return clamp(
+    ((leftEdgeX - layout.mobile.x) / mobileTravel) * layout.parameters.trackLength,
+    0,
+    layout.parameters.trackLength,
+  );
+}
+
 /** Calcule la position effectivement affichée pendant l'interpolation visuelle. */
 function displayedSimulationPosition(currentState, previousState, meta) {
   const terminal = ["blocked", "finished"].includes(currentState.status);
@@ -214,6 +227,7 @@ export function createSensorController(svg, layout, options = {}) {
         id: sensor.id,
         position: sensor.position,
         beamX: sensor.x,
+        triggerPosition: simulationPositionForLeftEdgeX(layout, sensor.x),
       });
     });
 
