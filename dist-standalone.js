@@ -18,7 +18,7 @@ const FIXED_SENSOR_COUNT = 9;
 
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
-  m2: Object.freeze({ min: 0.01, max: 2.0, unit: "kg" }),
+  m2: Object.freeze({ min: 0.1, max: 2.0, step: 0.1, unit: "kg" }),
   dropHeight: Object.freeze({ min: 0.2, max: 1.0, unit: "m" }),
   trackLength: Object.freeze({ min: 1.0, max: 3.0, unit: "m" }),
   friction: Object.freeze({ min: 0.0, max: 0.2, unit: "1" }),
@@ -98,6 +98,15 @@ function validateParameters(parameters = DEFAULT_PARAMETERS) {
       throw new PhysicsParameterError(
         `${key} doit appartenir à [${limits.min}, ${limits.max}] ${limits.unit}.`,
       );
+    }
+
+    if (limits.step) {
+      const stepIndex = (value - limits.min) / limits.step;
+      if (Math.abs(stepIndex - Math.round(stepIndex)) > 1e-9) {
+        throw new PhysicsParameterError(
+          `${key} doit varier par pas de ${limits.step} ${limits.unit}.`,
+        );
+      }
     }
   }
 
@@ -1451,17 +1460,16 @@ function buildStaticApparatusSvg(options = {}) {
     <g id="layer-mobile" data-role="mobile" transform="translate(${layout.mobile.x} ${layout.mobile.y})">
       <rect id="mobile-body" class="mobile-body" data-role="mobile-body" x="0" y="0" width="${layout.mobile.width}" height="${layout.mobile.height}" rx="18" />
       <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.attachY - layout.mobile.y}" r="5" />
-      <text class="object-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">S1</text>
+      <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
     <g id="layer-hanging-mass" data-role="hanging-mass" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
-      <text class="object-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">S2</text>
+      <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>
     </g>
 
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
-      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} ${layout.socle.y + 58} H ${layout.socle.x - 2} Z" />
     </g>
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
@@ -2119,7 +2127,12 @@ function bindParameterControls(root, appState) {
   function commitPhysical(key, rawValue, pair) {
     try {
       clearError();
-      appState.updateParameters({ [key]: Number(rawValue) });
+      const numericValue = Number(rawValue);
+      const normalizedValue = key === "m2"
+        ? Math.round(numericValue * 10) / 10
+        : numericValue;
+      appState.updateParameters({ [key]: normalizedValue });
+      sync();
     } catch (error) {
       sync();
       showError(error, pair);
@@ -3061,6 +3074,11 @@ const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+const VELOCITY_FORMAT = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -3077,6 +3095,10 @@ function getRequiredElement(root, selector) {
 function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
+  const s2StopTimeItem = getRequiredElement(root, "#s2-stop-time-item");
+  const s2StopTimeValue = getRequiredElement(root, "#s2-stop-time-value");
+  const s2ContactVelocityItem = getRequiredElement(root, "#s2-contact-velocity-item");
+  const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -3085,10 +3107,29 @@ function createAnimatedApp(root = document, options = {}) {
   });
   let runtime = null;
   let simulationControls = null;
+  let phaseChangeEvent = null;
   let destroyed = false;
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
+
+    const terminal = ["blocked", "finished"].includes(state.status);
+    s2StopTimeItem.hidden = !terminal;
+    s2ContactVelocityItem.hidden = !terminal;
+
+    if (!terminal) {
+      s2StopTimeValue.textContent = "—";
+      s2ContactVelocityValue.textContent = "—";
+      return;
+    }
+
+    if (phaseChangeEvent) {
+      s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
+      s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
+    } else {
+      s2StopTimeValue.textContent = "Non atteint";
+      s2ContactVelocityValue.textContent = "Non atteinte";
+    }
   }
 
   function destroyRuntime() {
@@ -3102,6 +3143,7 @@ function createAnimatedApp(root = document, options = {}) {
 
   function mountRuntime(snapshot) {
     destroyRuntime();
+    phaseChangeEvent = null;
     const sensorCount = snapshot.experimental.sensorCount;
     const layout = computeApparatusLayout({
       ...snapshot.parameters,
@@ -3128,6 +3170,10 @@ function createAnimatedApp(root = document, options = {}) {
       playbackSpeed: snapshot.playbackSpeed,
       requestFrame: options.requestFrame,
       cancelFrame: options.cancelFrame,
+      onEvents(events) {
+        const transition = events.find((event) => event.type === "phase-change");
+        if (transition) phaseChangeEvent = transition;
+      },
       onRender(state, previousState, meta) {
         animator.render(state, previousState, meta);
         sensorController.render(state, previousState, meta);

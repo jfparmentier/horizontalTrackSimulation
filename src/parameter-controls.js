@@ -82,7 +82,12 @@ export function bindParameterControls(root, appState) {
   function commitPhysical(key, rawValue, pair) {
     try {
       clearError();
-      appState.updateParameters({ [key]: Number(rawValue) });
+      const numericValue = Number(rawValue);
+      const normalizedValue = key === "m2"
+        ? Math.round(numericValue * 10) / 10
+        : numericValue;
+      appState.updateParameters({ [key]: normalizedValue });
+      sync();
     } catch (error) {
       sync();
       showError(error, pair);

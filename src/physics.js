@@ -64,6 +64,15 @@ export function validateParameters(parameters = DEFAULT_PARAMETERS) {
         `${key} doit appartenir à [${limits.min}, ${limits.max}] ${limits.unit}.`,
       );
     }
+
+    if (limits.step) {
+      const stepIndex = (value - limits.min) / limits.step;
+      if (Math.abs(stepIndex - Math.round(stepIndex)) > 1e-9) {
+        throw new PhysicsParameterError(
+          `${key} doit varier par pas de ${limits.step} ${limits.unit}.`,
+        );
+      }
+    }
   }
 
   getGravity(normalized.gravityMode);

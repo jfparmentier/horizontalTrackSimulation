@@ -14,6 +14,11 @@ const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+const VELOCITY_FORMAT = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -30,6 +35,10 @@ function getRequiredElement(root, selector) {
 export function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
   const timeValue = getRequiredElement(root, "#time-value");
+  const s2StopTimeItem = getRequiredElement(root, "#s2-stop-time-item");
+  const s2StopTimeValue = getRequiredElement(root, "#s2-stop-time-value");
+  const s2ContactVelocityItem = getRequiredElement(root, "#s2-contact-velocity-item");
+  const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
 
   const appState = options.appState ?? createAppState({
     parameters: options.parameters,
@@ -38,10 +47,29 @@ export function createAnimatedApp(root = document, options = {}) {
   });
   let runtime = null;
   let simulationControls = null;
+  let phaseChangeEvent = null;
   let destroyed = false;
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
+
+    const terminal = ["blocked", "finished"].includes(state.status);
+    s2StopTimeItem.hidden = !terminal;
+    s2ContactVelocityItem.hidden = !terminal;
+
+    if (!terminal) {
+      s2StopTimeValue.textContent = "—";
+      s2ContactVelocityValue.textContent = "—";
+      return;
+    }
+
+    if (phaseChangeEvent) {
+      s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
+      s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
+    } else {
+      s2StopTimeValue.textContent = "Non atteint";
+      s2ContactVelocityValue.textContent = "Non atteinte";
+    }
   }
 
   function destroyRuntime() {
@@ -55,6 +83,7 @@ export function createAnimatedApp(root = document, options = {}) {
 
   function mountRuntime(snapshot) {
     destroyRuntime();
+    phaseChangeEvent = null;
     const sensorCount = snapshot.experimental.sensorCount;
     const layout = computeApparatusLayout({
       ...snapshot.parameters,
@@ -81,6 +110,10 @@ export function createAnimatedApp(root = document, options = {}) {
       playbackSpeed: snapshot.playbackSpeed,
       requestFrame: options.requestFrame,
       cancelFrame: options.cancelFrame,
+      onEvents(events) {
+        const transition = events.find((event) => event.type === "phase-change");
+        if (transition) phaseChangeEvent = transition;
+      },
       onRender(state, previousState, meta) {
         animator.render(state, previousState, meta);
         sensorController.render(state, previousState, meta);

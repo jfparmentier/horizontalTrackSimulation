@@ -78,7 +78,8 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
-  "time-value",
+  "time-value", "s2-stop-time-item", "s2-stop-time-value",
+  "s2-contact-velocity-item", "s2-contact-velocity-value",
   "parameter-error",
   "m2-range", "m2-number",
   "friction-range", "friction-number",
@@ -162,6 +163,9 @@ if (elements.get("#m2-number").value !== "0.1") {
 if (elements.get("#download-data-button").disabled !== true) {
   throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
 }
+if (elements.get("#s2-stop-time-item").hidden !== true || elements.get("#s2-contact-velocity-item").hidden !== true) {
+  throw new Error("Les résultats de contact de S2 doivent être masqués avant la fin.");
+}
 if (elements.get("#reset-button").disabled !== true) {
   throw new Error("Le bouton de réinitialisation devrait être désactivé à l'état initial.");
 }
@@ -191,5 +195,21 @@ for (let index = 0; index < 20; index += 1) {
 const measurementCount = Number(host.attributes.get("data-measurement-count"));
 if (!Number.isInteger(measurementCount) || measurementCount <= 0) {
   throw new Error("Aucune mesure de capteur n'a été enregistrée dans l'état central.");
+}
+
+for (let index = 0; index < 100 && elements.get("#download-data-button").disabled; index += 1) {
+  elements.get("#step-button").dispatch("click");
+}
+if (elements.get("#download-data-button").disabled) {
+  throw new Error("La simulation autonome n'a pas atteint son état terminal.");
+}
+if (elements.get("#s2-stop-time-item").hidden || elements.get("#s2-contact-velocity-item").hidden) {
+  throw new Error("Les résultats de contact de S2 ne sont pas affichés à la fin.");
+}
+if (!/ s$/.test(elements.get("#s2-stop-time-value").textContent)) {
+  throw new Error("Le temps d'arrêt de S2 n'est pas affiché avec son unité.");
+}
+if (!/ m\/s$/.test(elements.get("#s2-contact-velocity-value").textContent)) {
+  throw new Error("La vitesse de contact de S2 n'est pas affichée avec son unité.");
 }
 console.log("Smoke test autonome réussi.");

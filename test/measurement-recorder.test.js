@@ -93,7 +93,7 @@ test("une position inaccessible ne produit aucun état mesurable", () => {
   const blocked = {
     ...PARAMETERS,
     m1: 2,
-    m2: 0.01,
+    m2: 0.1,
     friction: 0.2,
   };
 

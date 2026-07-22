@@ -141,17 +141,16 @@ export function buildStaticApparatusSvg(options = {}) {
     <g id="layer-mobile" data-role="mobile" transform="translate(${layout.mobile.x} ${layout.mobile.y})">
       <rect id="mobile-body" class="mobile-body" data-role="mobile-body" x="0" y="0" width="${layout.mobile.width}" height="${layout.mobile.height}" rx="18" />
       <circle class="mobile-port" cx="${layout.mobile.width}" cy="${layout.mobile.attachY - layout.mobile.y}" r="5" />
-      <text class="object-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">S1</text>
+      <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
     <g id="layer-hanging-mass" data-role="hanging-mass" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
-      <text class="object-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">S2</text>
+      <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>
     </g>
 
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
-      <path class="socle-base" d="M ${layout.socle.x + 14} ${layout.socle.y + layout.socle.height} H ${layout.socle.x + layout.socle.width - 14} L ${layout.socle.x + layout.socle.width + 2} ${layout.socle.y + 58} H ${layout.socle.x - 2} Z" />
     </g>
 
     <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">

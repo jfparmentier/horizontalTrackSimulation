@@ -179,9 +179,9 @@ ${css}
         <h2 id="parameters-title">Paramètres</h2>
         <div class="parameter-list">
           <div class="parameter-control">
-            <label for="m2-range">Masse suspendue S2</label>
-            <input id="m2-range" type="range" min="0.01" max="2" step="0.01" value="0.1">
-            <span class="number-with-unit"><input id="m2-number" type="number" min="0.01" max="2" step="0.01" value="0.1"><span>kg</span></span>
+            <label for="m2-range">Masse suspendue</label>
+            <input id="m2-range" type="range" min="0.1" max="2" step="0.1" value="0.1">
+            <span class="number-with-unit"><input id="m2-number" type="number" min="0.1" max="2" step="0.1" value="0.1"><span>kg</span></span>
           </div>
           <div class="parameter-control">
             <label for="friction-range">Coefficient de frottement</label>
@@ -209,6 +209,8 @@ ${css}
           <div class="readout-actions">
             <dl class="animation-readout">
               <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
+              <div id="s2-stop-time-item" class="readout-item readout-item--result" hidden><dt>Arrêt de S2</dt><dd id="s2-stop-time-value">—</dd></div>
+              <div id="s2-contact-velocity-item" class="readout-item readout-item--result" hidden><dt>Vitesse au socle</dt><dd id="s2-contact-velocity-value">—</dd></div>
             </dl>
             <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
               <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

@@ -74,3 +74,10 @@ Seuls la masse de S2 et le coefficient de frottement restent réglables dans le 
 ## Correction 0.9.6 — repère des capteurs
 
 Le bord gauche de S1, les faisceaux SVG et les positions exportées utilisent désormais exactement le même repère physique. Avec neuf capteurs sur un banc de 2 m, le CSV contient donc les positions 0.2 m, 0.4 m, …, 1.8 m.
+
+## Ajustements de l'interface
+
+- S1 affiche sa masse fixe de 1 kg.
+- S2 affiche sa masse réglable par pas de 0.1 kg.
+- Le support inférieur de S2 est réduit à un rectangle.
+- À la fin, l'interface affiche le temps de contact de S2 avec le support et la vitesse correspondante avant le bouton CSV.

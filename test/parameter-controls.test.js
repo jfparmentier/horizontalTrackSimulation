@@ -66,11 +66,26 @@ test("un curseur physique met à jour l'état central", () => {
   bindParameterControls(root, store);
 
   const range = elements.get("#m2-range");
-  range.value = "0.45";
+  range.value = "0.4";
   range.dispatch("input");
 
-  assert.equal(store.getSnapshot().parameters.m2, 0.45);
-  assert.equal(elements.get("#m2-number").value, "0.45");
+  assert.equal(store.getSnapshot().parameters.m2, 0.4);
+  assert.equal(elements.get("#m2-number").value, "0.4");
+});
+
+
+test("la masse suspendue est arrondie au pas de 0.1 kg", () => {
+  const store = createAppState();
+  const { root, elements } = createRoot();
+  bindParameterControls(root, store);
+
+  const input = elements.get("#m2-number");
+  input.value = "0.26";
+  input.dispatch("change");
+
+  assert.equal(store.getSnapshot().parameters.m2, 0.3);
+  assert.equal(elements.get("#m2-range").value, "0.3");
+  assert.equal(input.value, "0.3");
 });
 
 test("la vitesse de lecture est reliée et la gravité reste terrestre", () => {

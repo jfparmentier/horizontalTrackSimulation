@@ -43,7 +43,7 @@ test("validateParameters accepte les bornes définies", () => {
   assert.doesNotThrow(() =>
     validateParameters({
       m1: 0.1,
-      m2: 0.01,
+      m2: 0.1,
       dropHeight: 0.2,
       trackLength: 1,
       friction: 0,
@@ -67,6 +67,7 @@ test("validateParameters refuse les valeurs hors plage", () => {
   const invalidCases = [
     { ...DEFAULT_PARAMETERS, m1: 0.09 },
     { ...DEFAULT_PARAMETERS, m2: 0 },
+    { ...DEFAULT_PARAMETERS, m2: 0.15 },
     { ...DEFAULT_PARAMETERS, dropHeight: 0.19 },
     { ...DEFAULT_PARAMETERS, trackLength: 3.01 },
     { ...DEFAULT_PARAMETERS, friction: 0.21 },
@@ -104,7 +105,7 @@ test("computePhase1Acceleration renvoie zéro si la force motrice est insuffisan
     computePhase1Acceleration({
       ...DEFAULT_PARAMETERS,
       m1: 2,
-      m2: 0.01,
+      m2: 0.1,
       friction: 0.2,
     }),
     0,

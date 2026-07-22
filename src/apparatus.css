@@ -284,14 +284,13 @@ h1 {
   stroke-width: 4;
 }
 
-.socle-top {
-  fill: #899ca7;
-  stroke: #526b79;
-  stroke-width: 3;
+.mass-value-label {
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
 }
 
-.socle-base {
-  fill: #687f8c;
+.socle-top {
+  fill: #899ca7;
   stroke: #526b79;
   stroke-width: 3;
 }
@@ -466,7 +465,16 @@ h1 {
 .animation-readout {
   display: flex;
   flex: 0 0 auto;
+  gap: 10px;
   margin: 0;
+}
+
+.readout-item[hidden] {
+  display: none;
+}
+
+.readout-item--result {
+  min-width: 142px;
 }
 
 .readout-item {

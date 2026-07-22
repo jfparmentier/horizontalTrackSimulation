@@ -15,10 +15,16 @@ test("le bouton d’export est une icône accessible sans texte visible", () => 
   assert.doesNotMatch(html, />Télécharger les données<\/button>/);
 });
 
-test("le temps précède immédiatement le bouton d’export dans la zone de lecture", () => {
+test("les résultats finaux puis le bouton d’export sont ordonnés à droite du chronomètre", () => {
   const section = html.match(/<div class="readout-actions">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] ?? "";
-  assert.ok(section.indexOf('id="time-value"') >= 0);
-  assert.ok(section.indexOf('id="download-data-button"') > section.indexOf('id="time-value"'));
+  const time = section.indexOf('id="time-value"');
+  const stopTime = section.indexOf('id="s2-stop-time-value"');
+  const velocity = section.indexOf('id="s2-contact-velocity-value"');
+  const download = section.indexOf('id="download-data-button"');
+  assert.ok(time >= 0);
+  assert.ok(stopTime > time);
+  assert.ok(velocity > stopTime);
+  assert.ok(download > velocity);
 });
 
 
@@ -66,4 +72,19 @@ test("la vitesse de lecture est limitée à 1×", () => {
   assert.match(html, /id="playback-speed-range"[^>]+max="1"/);
   assert.match(html, /id="playback-speed-number"[^>]+max="1"/);
   assert.doesNotMatch(html, /id="playback-speed-range"[^>]+max="8"/);
+});
+
+
+test("le contrôle de la masse suspendue utilise un pas de 0.1 kg sans mention de S2", () => {
+  assert.match(html, /<label for="m2-range">Masse suspendue<\/label>/);
+  assert.doesNotMatch(html, /Masse suspendue S2/);
+  assert.match(html, /id="m2-range"[^>]+min="0.1"[^>]+step="0.1"/);
+  assert.match(html, /id="m2-number"[^>]+min="0.1"[^>]+step="0.1"/);
+});
+
+test("les résultats de contact de S2 sont masqués avant la fin", () => {
+  assert.match(html, /id="s2-stop-time-item"[^>]+hidden/);
+  assert.match(html, /id="s2-contact-velocity-item"[^>]+hidden/);
+  assert.match(html, /<dt>Arrêt de S2<\/dt>/);
+  assert.match(html, /<dt>Vitesse au socle<\/dt>/);
 });

@@ -57,6 +57,10 @@ test("le SVG affiche seulement les indications souhaitées", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, />0.5 m</);
+  assert.match(svg, />1 kg</);
+  assert.match(svg, />0.1 kg</);
+  assert.doesNotMatch(svg, />S1</);
+  assert.doesNotMatch(svg, />S2</);
   assert.doesNotMatch(svg, /gravity-badge|>Gravité<|>Terre</);
   assert.doesNotMatch(svg, /m₁ =/);
   assert.doesNotMatch(svg, />0,1 kg</);
@@ -89,6 +93,15 @@ test("la masse suspendue est rendue comme un carré arrondi", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);
 
   assert.match(svg, /<rect id="hanging-mass-body"[^>]+width="76" height="76" rx="14"/);
+});
+
+
+test("le support d'arrêt de S2 ne contient que le rectangle supérieur", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  const socleLayer = svg.match(/<g id="layer-socle"[\s\S]*?<\/g>/)?.[0] ?? "";
+  assert.match(socleLayer, /<rect class="socle-top"/);
+  assert.doesNotMatch(socleLayer, /<path|socle-base/);
 });
 
 test("S1 est rendu comme un carré arrondi de même taille que S2", () => {

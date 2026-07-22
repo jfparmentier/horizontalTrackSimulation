@@ -235,7 +235,7 @@ test("le système bloqué produit un événement à t = 0", () => {
   const parameters = {
     ...DEFAULT_PARAMETERS,
     m1: 2,
-    m2: 0.01,
+    m2: 0.1,
     friction: 0.2,
   };
   const result = advanceSimulationWithEvents(
