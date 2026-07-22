@@ -131,7 +131,9 @@ export function computeApparatusLayout(options = {}) {
     attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
   const ropeY = mobile.attachY;
-  const horizontalTravel = trackWidth - DRAWING.mobileWidth;
+  // La position physique x désigne le bord gauche de S1. Les capteurs et le
+  // mobile utilisent donc exactement la même échelle sur toute la longueur L.
+  const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,

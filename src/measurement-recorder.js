@@ -36,14 +36,14 @@ export function computeSensorTriggerPosition(layout, sensor) {
   assertLayout(layout);
   assertSensor(sensor);
 
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
-    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? layout.track.width / layout.parameters.trackLength;
+  if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
+    throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }
 
-  const normalized = (sensor.x - layout.mobile.x) / mobileTravel;
   return clamp(
-    normalized * layout.parameters.trackLength,
+    (sensor.x - layout.mobile.x) / pixelsPerMeter,
     0,
     layout.parameters.trackLength,
   );

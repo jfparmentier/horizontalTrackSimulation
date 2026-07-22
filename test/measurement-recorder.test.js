@@ -34,12 +34,11 @@ test("la position de déclenchement correspond à l'alignement du bord gauche et
   const layout = computeApparatusLayout(PARAMETERS);
   const sensor = layout.sensors[0];
   const triggerPosition = computeSensorTriggerPosition(layout, sensor);
-  const mobileTravel = layout.track.width - layout.mobile.width;
   const reconstructedX = layout.mobile.x
-    + (triggerPosition / layout.parameters.trackLength) * mobileTravel;
+    + triggerPosition * layout.motionScale.pixelsPerMeter;
 
   closeTo(reconstructedX, sensor.x);
-  assert.ok(triggerPosition > sensor.position);
+  closeTo(triggerPosition, sensor.position);
 });
 
 test("l'état cinématique est exact pendant la phase 1", () => {
@@ -101,7 +100,7 @@ test("une position inaccessible ne produit aucun état mesurable", () => {
   assert.equal(computeKinematicStateAtPosition(blocked, 0.2), null);
 });
 
-test("une mesure utilise la position physique exacte du mobile au franchissement", () => {
+test("une mesure utilise la position nominale du capteur au franchissement", () => {
   const layout = computeApparatusLayout(PARAMETERS);
   const sensor = layout.sensors[0];
   const triggerPosition = computeSensorTriggerPosition(layout, sensor);
@@ -115,7 +114,7 @@ test("une mesure utilise la position physique exacte du mobile au franchissement
   assert.equal(measurement.sensorId, sensor.id);
   closeTo(measurement.position, triggerPosition);
   closeTo(measurement.mobilePosition, triggerPosition);
-  assert.notEqual(measurement.position, sensor.position);
+  closeTo(measurement.position, sensor.position);
   assert.ok(measurement.time > 0);
   assert.ok(measurement.velocity > 0);
   const acceleration = computePhase1Acceleration(PARAMETERS);

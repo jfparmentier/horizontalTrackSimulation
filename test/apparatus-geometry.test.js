@@ -110,8 +110,7 @@ test("S2 est initialement séparée de la poulie", () => {
 
 test("la même échelle en pixels par mètre est utilisée horizontalement et verticalement", () => {
   const layout = computeApparatusLayout(DEFAULTS);
-  const horizontalScale = (layout.track.width - layout.mobile.width)
-    / layout.parameters.trackLength;
+  const horizontalScale = layout.track.width / layout.parameters.trackLength;
   const verticalScale = (layout.socle.y - layout.hangingMass.y - layout.hangingMass.height)
     / layout.parameters.dropHeight;
 
@@ -148,4 +147,14 @@ test("les objets structurants du layout sont gelés", () => {
   assert.equal(Object.isFrozen(layout.track), true);
   assert.equal(Object.isFrozen(layout.sensors), true);
   assert.equal(Object.isFrozen(layout.sensors[0]), true);
+});
+
+test("les faisceaux des capteurs utilisent exactement le repère physique x", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  for (const sensor of layout.sensors) {
+    const expectedX = layout.mobile.x
+      + sensor.position * layout.motionScale.pixelsPerMeter;
+    assert.ok(Math.abs(sensor.x - expectedX) < 1e-10);
+  }
 });

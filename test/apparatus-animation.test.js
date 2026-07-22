@@ -48,14 +48,14 @@ test("la position initiale conserve les coordonnées statiques", () => {
   assert.equal(frame.slack, false);
 });
 
-test("S1 atteint le bord du banc sans le dépasser lorsque x = L", () => {
+test("le bord gauche de S1 atteint l’extrémité du banc lorsque x = L", () => {
   const layout = computeApparatusLayout(PARAMETERS);
   const frame = computeAnimatedApparatusFrame(
     layout,
     state({ position: PARAMETERS.trackLength, phase: 2, hangingDisplacement: 0.5 }),
   );
 
-  closeTo(frame.mobileX + layout.mobile.width, layout.track.endX);
+  closeTo(frame.mobileX, layout.track.endX);
 });
 
 test("S2 atteint exactement le haut du support pour une chute h", () => {
@@ -169,7 +169,7 @@ test("un état terminal est affiché exactement même avec une interpolation nul
   const frame = animator.render(current, previous, { interpolationAlpha: 0, running: false });
 
   closeTo(frame.position, 2);
-  closeTo(frame.mobileX + layout.mobile.width, layout.track.endX);
+  closeTo(frame.mobileX, layout.track.endX);
 });
 
 test("l'animateur signale les éléments SVG manquants", () => {

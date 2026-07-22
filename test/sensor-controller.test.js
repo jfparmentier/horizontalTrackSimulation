@@ -111,23 +111,17 @@ test("le capteur se déclenche lorsque le bord gauche de S1 traverse le faisceau
 
   controller.render(state(0), state(0), { reason: "initialization" });
   const firstSensor = layout.sensors[0];
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  const crossingPosition = (
-    (firstSensor.x - layout.mobile.x)
-    / mobileTravel
-  ) * layout.parameters.trackLength;
+  const crossingPosition = firstSensor.position;
 
-  // Le capteur ne doit pas réagir lorsque la coordonnée physique de S1 atteint
-  // simplement celle du capteur : son bord gauche est encore avant le faisceau.
   const beforeCrossing = controller.render(
-    state(firstSensor.position + 0.001),
+    state(firstSensor.position - 0.001),
     state(0),
   );
   assert.equal(beforeCrossing.triggeredCount, 0);
 
   const activeSnapshot = controller.render(
     state(crossingPosition),
-    state(firstSensor.position + 0.001),
+    state(firstSensor.position - 0.001),
   );
 
   assert.equal(activeSnapshot.triggeredCount, 1);
@@ -157,11 +151,7 @@ test("le déclenchement suit la position interpolée réellement affichée", () 
   const { svg } = createFakeSvg(layout);
   const controller = createSensorController(svg, layout);
   const firstSensor = layout.sensors[0];
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  const crossingPosition = (
-    (firstSensor.x - layout.mobile.x)
-    / mobileTravel
-  ) * layout.parameters.trackLength;
+  const crossingPosition = firstSensor.position;
 
   controller.render(state(0), state(0), { reason: "initialization" });
 

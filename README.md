@@ -69,3 +69,8 @@ Seuls la masse de S2 et le coefficient de frottement restent réglables dans le 
 - hauteur du `viewBox` SVG réduite de 820 à 620 unités afin de supprimer l’espace vertical devenu inutile avec la chute fixée à 0,5 m ;
 - rapport d’aspect de l’affichage mis à jour en conséquence ;
 - vitesse de lecture limitée à l’intervalle 0,1× à 1×.
+
+
+## Correction 0.9.6 — repère des capteurs
+
+Le bord gauche de S1, les faisceaux SVG et les positions exportées utilisent désormais exactement le même repère physique. Avec neuf capteurs sur un banc de 2 m, le CSV contient donc les positions 0.2 m, 0.4 m, …, 1.8 m.

@@ -1225,7 +1225,9 @@ function computeApparatusLayout(options = {}) {
     attachY: DRAWING.mobileBottomY - DRAWING.mobileHeight / 2,
   });
   const ropeY = mobile.attachY;
-  const horizontalTravel = trackWidth - DRAWING.mobileWidth;
+  // La position physique x désigne le bord gauche de S1. Les capteurs et le
+  // mobile utilisent donc exactement la même échelle sur toute la longueur L.
+  const horizontalTravel = trackWidth;
   const pixelsPerMeter = horizontalTravel / parameters.trackLength;
   const hangingMass = Object.freeze({
     x: pulley.centerX + pulley.radius - DRAWING.hangingMassWidth / 2,
@@ -1545,7 +1547,7 @@ function computeAnimatedApparatusFrame(
   // Les deux solides utilisent la même échelle graphique : un déplacement
   // physique identique produit le même déplacement en pixels à l'écran.
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   const mobileX = layout.mobile.x + position * pixelsPerMeter;
   const mobileY = layout.mobile.y;
 
@@ -2453,14 +2455,14 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     layout.parameters.trackLength,
   );
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   return layout.mobile.x + normalizedPosition * pixelsPerMeter;
 }
 
 /** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
 function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
     throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }
@@ -2664,14 +2666,14 @@ function computeSensorTriggerPosition(layout, sensor) {
   assertLayout(layout);
   assertSensor(sensor);
 
-  const mobileTravel = layout.track.width - layout.mobile.width;
-  if (!Number.isFinite(mobileTravel) || mobileTravel <= 0) {
-    throw new RangeError("La course graphique du mobile doit être strictement positive.");
+  const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
+    ?? layout.track.width / layout.parameters.trackLength;
+  if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
+    throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }
 
-  const normalized = (sensor.x - layout.mobile.x) / mobileTravel;
   return clamp(
-    normalized * layout.parameters.trackLength,
+    (sensor.x - layout.mobile.x) / pixelsPerMeter,
     0,
     layout.parameters.trackLength,
   );

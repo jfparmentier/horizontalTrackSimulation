@@ -91,14 +91,14 @@ function mobileLeftEdgeX(layout, simulationPosition) {
     layout.parameters.trackLength,
   );
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   return layout.mobile.x + normalizedPosition * pixelsPerMeter;
 }
 
 /** Retourne la position du moteur lorsque le bord gauche atteint une abscisse SVG. */
 function simulationPositionForLeftEdgeX(layout, leftEdgeX) {
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   if (!Number.isFinite(pixelsPerMeter) || pixelsPerMeter <= 0) {
     throw new RangeError("L’échelle graphique du mobile doit être strictement positive.");
   }

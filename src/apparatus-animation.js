@@ -56,7 +56,7 @@ export function computeAnimatedApparatusFrame(
   // Les deux solides utilisent la même échelle graphique : un déplacement
   // physique identique produit le même déplacement en pixels à l'écran.
   const pixelsPerMeter = layout.motionScale?.pixelsPerMeter
-    ?? (layout.track.width - layout.mobile.width) / layout.parameters.trackLength;
+    ?? layout.track.width / layout.parameters.trackLength;
   const mobileX = layout.mobile.x + position * pixelsPerMeter;
   const mobileY = layout.mobile.y;
 

@@ -165,3 +165,18 @@ test("un système bloqué est considéré comme une simulation terminée", () =>
   });
   assert.equal(button.disabled, false);
 });
+
+test("le CSV conserve les positions nominales des neuf capteurs", () => {
+  const measurements = Array.from({ length: 9 }, (_, index) => ({
+    sensorId: index + 1,
+    position: (index + 1) * 0.2,
+    time: index + 0.1,
+    velocity: index + 0.2,
+  }));
+  const lines = buildMeasurementsCsv(measurements).trim().split("\r\n").slice(1);
+
+  assert.deepEqual(
+    lines.map((line) => Number(line.split(",")[1])),
+    [0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8],
+  );
+});
