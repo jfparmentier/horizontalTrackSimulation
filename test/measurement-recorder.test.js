@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 
 import { computeApparatusLayout } from "../src/apparatus-geometry.js";
 import {
+  addVelocityMeasurementNoise,
   computeSensorTriggerPosition,
   computeKinematicStateAtPosition,
   createMeasurement,
   createMeasurementRecorder,
+  sampleStandardNormal,
 } from "../src/measurement-recorder.js";
 import {
   computePhase1Acceleration,
@@ -158,4 +160,41 @@ test("la réinitialisation de l'enregistreur autorise une nouvelle expérience",
   const repeated = recorder.recordCrossings([crossing]);
 
   assert.equal(repeated.length, 1);
+});
+
+
+test("le mode idéal ne modifie pas la vitesse théorique", () => {
+  assert.equal(addVelocityMeasurementNoise(1.25, 0, () => 0.1), 1.25);
+});
+
+test("le bruit des vitesses est déterministe avec une source aléatoire injectée", () => {
+  const values = [0.5, 0.5];
+  const random = () => values.shift();
+  const normal = sampleStandardNormal(random);
+  closeTo(normal, -Math.sqrt(-2 * Math.log(0.5)));
+
+  const noisyValues = [0.5, 0.5];
+  const noisyVelocity = addVelocityMeasurementNoise(1, 0.02, () => noisyValues.shift());
+  closeTo(noisyVelocity, 1 - 0.02 * Math.sqrt(-2 * Math.log(0.5)));
+});
+
+test("l'enregistreur bruité conserve la position et le temps mais perturbe la vitesse", () => {
+  const layout = computeApparatusLayout(PARAMETERS);
+  const sensor = layout.sensors[0];
+  const crossing = {
+    id: sensor.id,
+    position: sensor.position,
+    beamX: sensor.x,
+    triggerPosition: computeSensorTriggerPosition(layout, sensor),
+  };
+  const exact = createMeasurement(layout, crossing, PARAMETERS);
+  const values = [0.5, 0.5];
+  const noisy = createMeasurement(layout, crossing, PARAMETERS, {
+    noiseStdDev: 0.02,
+    random: () => values.shift(),
+  });
+
+  closeTo(noisy.position, exact.position);
+  closeTo(noisy.time, exact.time);
+  assert.notEqual(noisy.velocity, exact.velocity);
 });

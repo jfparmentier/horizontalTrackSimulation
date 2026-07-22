@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.9.11",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG animée avec sélection de la masse suspendue par glisser-déposer.",
+  "description": "Simulation SVG autonome avec deux modes : idéal ou frottement avec mesures bruitées.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

@@ -4,7 +4,7 @@ const modules = {};
 modules.constants = (() => {
 
 /**
- * Constantes physiques et limites retenues pour la première version.
+ * Constantes physiques et paramètres fixes de la simulation.
  */
 
 const GRAVITY = Object.freeze({
@@ -22,6 +22,35 @@ const FIXED_SENSOR_COUNT = FIXED_SENSOR_POSITIONS.length;
 const FIXED_MOBILE_LENGTH = 0.2;
 const AVAILABLE_HANGING_MASSES = Object.freeze([0.2, 0.5, 1.0, 2.0]);
 
+const SIMULATION_MODE_IDS = Object.freeze({
+  ideal: "ideal",
+  friction: "friction",
+});
+
+/**
+ * Le coefficient du second mode est volontairement absent de l'interface :
+ * il constitue la grandeur à déterminer expérimentalement par les élèves.
+ * Le bruit est appliqué uniquement aux vitesses mesurées par les capteurs.
+ */
+const SIMULATION_MODES = Object.freeze({
+  [SIMULATION_MODE_IDS.ideal]: Object.freeze({
+    id: SIMULATION_MODE_IDS.ideal,
+    label: "Cas idéal",
+    shortLabel: "Idéal",
+    friction: 0,
+    measurementNoiseStdDev: 0,
+    measurementsAreNoisy: false,
+  }),
+  [SIMULATION_MODE_IDS.friction]: Object.freeze({
+    id: SIMULATION_MODE_IDS.friction,
+    label: "Cas avec frottement",
+    shortLabel: "Frottement",
+    friction: 0.058,
+    measurementNoiseStdDev: 0.02,
+    measurementsAreNoisy: true,
+  }),
+});
+
 const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
   m2: Object.freeze({ min: 0.1, max: 2.0, step: 0.1, unit: "kg" }),
@@ -35,13 +64,13 @@ const DEFAULT_PARAMETERS = Object.freeze({
   m2: 0.2,
   dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
-  friction: 0.0,
+  friction: SIMULATION_MODES[SIMULATION_MODE_IDS.ideal].friction,
   gravityMode: "earth",
 });
 
 const NUMERICAL_EPSILON = 1e-12;
 
-return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS, FIXED_MOBILE_LENGTH, AVAILABLE_HANGING_MASSES, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
+return Object.freeze({ GRAVITY, FIXED_TRACK_LENGTH, FIXED_M1, FIXED_DROP_HEIGHT, FIXED_SENSOR_COUNT, FIXED_SENSOR_POSITIONS, FIXED_MOBILE_LENGTH, AVAILABLE_HANGING_MASSES, SIMULATION_MODE_IDS, SIMULATION_MODES, PARAMETER_LIMITS, DEFAULT_PARAMETERS, NUMERICAL_EPSILON });
 })();
 
 modules.physics = (() => {
@@ -1801,12 +1830,13 @@ return Object.freeze({ computeAnimatedApparatusFrame, createApparatusAnimator })
 })();
 
 modules.appState = (() => {
-const { DEFAULT_PARAMETERS, FIXED_DROP_HEIGHT, FIXED_M1, FIXED_SENSOR_COUNT, FIXED_TRACK_LENGTH } = modules.constants;
+const { DEFAULT_PARAMETERS, FIXED_DROP_HEIGHT, FIXED_M1, FIXED_SENSOR_COUNT, FIXED_TRACK_LENGTH, SIMULATION_MODES } = modules.constants;
 const { SENSOR_COUNT_LIMITS } = modules.geometry;
 const { PLAYBACK_SPEED_LIMITS } = modules.timeLoop;
 const { PhysicsParameterError, createInitialState, validateParameters, validateSimulationState } = modules.physics;
 const DEFAULT_EXPERIMENTAL_SETTINGS = Object.freeze({
   sensorCount: SENSOR_COUNT_LIMITS.default,
+  measurementNoiseStdDev: 0,
 });
 
 const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
@@ -1816,16 +1846,13 @@ const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
 
 const DEFAULT_PLAYBACK_SPEED = 1;
 
-function freezeArray(items = []) {
-  return Object.freeze([...items]);
-}
-
 function freezeRecordArray(items = []) {
   return Object.freeze(items.map((item) => Object.freeze({ ...item })));
 }
 
 function freezeSnapshot(snapshot) {
   return Object.freeze({
+    mode: snapshot.mode,
     parameters: snapshot.parameters,
     experimental: Object.freeze({ ...snapshot.experimental }),
     playbackSpeed: snapshot.playbackSpeed,
@@ -1835,6 +1862,14 @@ function freezeSnapshot(snapshot) {
     continuousData: freezeRecordArray(snapshot.continuousData),
     revision: snapshot.revision,
   });
+}
+
+function validateModeId(value, { allowNull = true } = {}) {
+  if (value === null && allowNull) return null;
+  if (typeof value !== "string" || !Object.hasOwn(SIMULATION_MODES, value)) {
+    throw new PhysicsParameterError(`Mode de simulation inconnu : ${String(value)}.`);
+  }
+  return value;
 }
 
 function validateSensorCount(value) {
@@ -1925,23 +1960,35 @@ function sameParameters(left, right) {
     .every((key) => left[key] === right[key]);
 }
 
+function createExperimentalSettings(modeId) {
+  const mode = modeId ? SIMULATION_MODES[modeId] : null;
+  return Object.freeze({
+    sensorCount: FIXED_SENSOR_COUNT,
+    measurementNoiseStdDev: mode?.measurementNoiseStdDev ?? 0,
+  });
+}
+
 /**
  * État central de l'application. Il constitue la source unique de vérité pour
- * les paramètres, l'état physique courant et les réglages d'affichage futurs.
+ * le mode, les paramètres, l'état physique et les mesures de l'expérience.
  */
 function createAppState(initial = {}) {
   if (initial === null || typeof initial !== "object") {
     throw new TypeError("La configuration initiale doit être un objet.");
   }
 
+  const mode = validateModeId(initial.mode ?? null);
+  const modeDefinition = mode ? SIMULATION_MODES[mode] : null;
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
     m1: FIXED_M1,
     dropHeight: FIXED_DROP_HEIGHT,
     trackLength: FIXED_TRACK_LENGTH,
+    friction: modeDefinition?.friction
+      ?? initial.parameters?.friction
+      ?? DEFAULT_PARAMETERS.friction,
   });
-  const sensorCount = FIXED_SENSOR_COUNT;
   const playbackSpeed = validatePlaybackSpeed(
     initial.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
   );
@@ -1950,8 +1997,9 @@ function createAppState(initial = {}) {
     : createInitialState(parameters);
 
   let snapshot = freezeSnapshot({
+    mode,
     parameters,
-    experimental: { sensorCount },
+    experimental: createExperimentalSettings(mode),
     playbackSpeed,
     simulation,
     display: {
@@ -2000,6 +2048,53 @@ function createAppState(initial = {}) {
     return () => listeners.delete(listener);
   }
 
+  function selectMode(modeId) {
+    assertUsable();
+    const normalizedMode = validateModeId(modeId, { allowNull: false });
+    const definition = SIMULATION_MODES[normalizedMode];
+    const nextParameters = validateParameters({
+      ...snapshot.parameters,
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
+      trackLength: FIXED_TRACK_LENGTH,
+      friction: definition.friction,
+    });
+
+    return replace({
+      ...snapshot,
+      mode: normalizedMode,
+      parameters: nextParameters,
+      experimental: createExperimentalSettings(normalizedMode),
+      simulation: createInitialState(nextParameters),
+      measurements: [],
+      continuousData: [],
+      revision: snapshot.revision + 1,
+    }, "mode-change", {
+      previousMode: snapshot.mode,
+      mode: normalizedMode,
+    });
+  }
+
+  function clearMode() {
+    assertUsable();
+    if (snapshot.mode === null) return snapshot;
+    const nextParameters = validateParameters({
+      ...snapshot.parameters,
+      friction: DEFAULT_PARAMETERS.friction,
+    });
+
+    return replace({
+      ...snapshot,
+      mode: null,
+      parameters: nextParameters,
+      experimental: createExperimentalSettings(null),
+      simulation: createInitialState(nextParameters),
+      measurements: [],
+      continuousData: [],
+      revision: snapshot.revision + 1,
+    }, "mode-cleared", { previousMode: snapshot.mode });
+  }
+
   function updateParameters(partial) {
     assertUsable();
     if (partial === null || typeof partial !== "object") {
@@ -2024,12 +2119,25 @@ function createAppState(initial = {}) {
       }
     }
 
+    if (
+      snapshot.mode
+      && Object.hasOwn(partial, "friction")
+      && Number(partial.friction) !== SIMULATION_MODES[snapshot.mode].friction
+    ) {
+      throw new PhysicsParameterError(
+        "Le coefficient de frottement est imposé par le mode de simulation.",
+      );
+    }
+
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
       m1: FIXED_M1,
       dropHeight: FIXED_DROP_HEIGHT,
       trackLength: FIXED_TRACK_LENGTH,
+      friction: snapshot.mode
+        ? SIMULATION_MODES[snapshot.mode].friction
+        : Number(partial.friction ?? snapshot.parameters.friction),
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
       return snapshot;
@@ -2057,6 +2165,11 @@ function createAppState(initial = {}) {
     ) {
       throw new PhysicsParameterError(
         `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
+      );
+    }
+    if (Object.hasOwn(partial, "measurementNoiseStdDev")) {
+      throw new PhysicsParameterError(
+        "Le bruit des mesures est imposé par le mode de simulation.",
       );
     }
 
@@ -2155,6 +2268,8 @@ function createAppState(initial = {}) {
   return Object.freeze({
     getSnapshot,
     subscribe,
+    selectMode,
+    clearMode,
     updateParameters,
     updateExperimental,
     setPlaybackSpeed,
@@ -2169,14 +2284,93 @@ function createAppState(initial = {}) {
 return Object.freeze({ DEFAULT_EXPERIMENTAL_SETTINGS, DEFAULT_DISPLAY_SETTINGS, DEFAULT_PLAYBACK_SPEED, createAppState });
 })();
 
+modules.modeSelector = (() => {
+const { SIMULATION_MODES } = modules.constants;
+function getRequiredElement(root, selector) {
+  const element = root.querySelector(selector);
+  if (!element) {
+    throw new Error(`Élément de sélection du mode introuvable : ${selector}`);
+  }
+  return element;
+}
+
+/**
+ * Relie l'écran d'accueil à l'état central et permet de revenir au choix du
+ * mode depuis la simulation.
+ */
+function bindModeSelector(root, appState) {
+  if (!root || typeof root.querySelector !== "function") {
+    throw new TypeError("Une racine DOM interrogeable est requise.");
+  }
+  if (
+    !appState
+    || typeof appState.selectMode !== "function"
+    || typeof appState.clearMode !== "function"
+  ) {
+    throw new TypeError("Un état central prenant en charge les modes est requis.");
+  }
+
+  const selectionScreen = getRequiredElement(root, "#mode-selection");
+  const simulationScreen = getRequiredElement(root, "#simulation-screen");
+  const idealButton = getRequiredElement(root, "#mode-ideal-button");
+  const frictionButton = getRequiredElement(root, "#mode-friction-button");
+  const homeButton = getRequiredElement(root, "#mode-home-button");
+  const activeModeLabel = getRequiredElement(root, "#active-mode-label");
+  const activeModeDetail = getRequiredElement(root, "#active-mode-detail");
+  const listeners = [];
+
+  function listen(element, eventName, callback) {
+    element.addEventListener(eventName, callback);
+    listeners.push(() => element.removeEventListener?.(eventName, callback));
+  }
+
+  function sync(snapshot = appState.getSnapshot()) {
+    const hasMode = Boolean(snapshot.mode);
+    selectionScreen.hidden = hasMode;
+    simulationScreen.hidden = !hasMode;
+    selectionScreen.setAttribute("aria-hidden", String(hasMode));
+    simulationScreen.setAttribute("aria-hidden", String(!hasMode));
+
+    if (!hasMode) {
+      activeModeLabel.textContent = "";
+      activeModeDetail.textContent = "";
+      return;
+    }
+
+    const definition = SIMULATION_MODES[snapshot.mode];
+    activeModeLabel.textContent = definition.label;
+    activeModeDetail.textContent = definition.measurementsAreNoisy
+      ? "Frottement inconnu · mesures bruitées"
+      : "Sans frottement · mesures parfaites";
+  }
+
+  listen(idealButton, "click", () => appState.selectMode("ideal"));
+  listen(frictionButton, "click", () => appState.selectMode("friction"));
+  listen(homeButton, "click", () => appState.clearMode());
+
+  const unsubscribe = appState.subscribe((snapshot, meta) => {
+    if (["mode-change", "mode-cleared", "subscription"].includes(meta.reason)) {
+      sync(snapshot);
+    }
+  }, { emitCurrent: true });
+
+  return Object.freeze({
+    sync,
+    destroy() {
+      unsubscribe();
+      listeners.splice(0).forEach((remove) => remove());
+    },
+  });
+}
+
+return Object.freeze({ bindModeSelector });
+})();
+
 modules.parameterControls = (() => {
 
-const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
-]);
-
-const OTHER_CONTROLS = Object.freeze({
-  playbackSpeed: Object.freeze({ range: "#playback-speed-range", number: "#playback-speed-number" }),
+const PLAYBACK_CONTROLS = Object.freeze({
+  range: "#playback-speed-range",
+  number: "#playback-speed-number",
 });
 
 function getRequiredElement(root, selector) {
@@ -2199,7 +2393,7 @@ function setInvalid(pair, invalid) {
   pair.number.setAttribute("aria-invalid", value);
 }
 
-/** Relie les champs de paramètres numériques à l'état central. */
+/** Relie uniquement la vitesse de lecture à l'état central. */
 function bindParameterControls(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
@@ -2208,19 +2402,9 @@ function bindParameterControls(root, appState) {
     throw new TypeError("Un état central valide est requis.");
   }
 
-  const errorElement = getRequiredElement(root, "#parameter-error");
-  const physicalPairs = new Map(
-    PHYSICAL_CONTROLS.map((definition) => [
-      definition.key,
-      {
-        range: getRequiredElement(root, definition.range),
-        number: getRequiredElement(root, definition.number),
-      },
-    ]),
-  );
   const playbackPair = {
-    range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
-    number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
+    range: getRequiredElement(root, PLAYBACK_CONTROLS.range),
+    number: getRequiredElement(root, PLAYBACK_CONTROLS.number),
   };
   const listeners = [];
 
@@ -2229,69 +2413,29 @@ function bindParameterControls(root, appState) {
     listeners.push(() => element.removeEventListener?.(eventName, callback));
   }
 
-  function clearError() {
-    errorElement.textContent = "";
-    for (const pair of [...physicalPairs.values(), playbackPair]) {
-      setInvalid(pair, false);
-    }
-  }
-
-  function showError(error, pair) {
-    errorElement.textContent = error instanceof Error
-      ? error.message
-      : String(error);
-    if (pair) setInvalid(pair, true);
-  }
-
   function sync(snapshot = appState.getSnapshot()) {
-    for (const [key, pair] of physicalPairs) {
-      setPairValue(pair, snapshot.parameters[key]);
-      setInvalid(pair, false);
-    }
     setPairValue(playbackPair, snapshot.playbackSpeed);
+    setInvalid(playbackPair, false);
   }
 
-  function commitPhysical(key, rawValue, pair) {
+  function commit(rawValue) {
     try {
-      clearError();
-      appState.updateParameters({ [key]: Number(rawValue) });
+      setInvalid(playbackPair, false);
+      appState.setPlaybackSpeed(Number(rawValue));
       sync();
-    } catch (error) {
+    } catch {
       sync();
-      showError(error, pair);
+      setInvalid(playbackPair, true);
     }
-  }
-
-  for (const [key, pair] of physicalPairs) {
-    listen(pair.range, "input", () => {
-      pair.number.value = pair.range.value;
-      commitPhysical(key, pair.range.value, pair);
-    });
-    listen(pair.number, "change", () => {
-      pair.range.value = pair.number.value;
-      commitPhysical(key, pair.number.value, pair);
-    });
   }
 
   listen(playbackPair.range, "input", () => {
     playbackPair.number.value = playbackPair.range.value;
-    try {
-      clearError();
-      appState.setPlaybackSpeed(Number(playbackPair.range.value));
-    } catch (error) {
-      sync();
-      showError(error, playbackPair);
-    }
+    commit(playbackPair.range.value);
   });
   listen(playbackPair.number, "change", () => {
     playbackPair.range.value = playbackPair.number.value;
-    try {
-      clearError();
-      appState.setPlaybackSpeed(Number(playbackPair.number.value));
-    } catch (error) {
-      sync();
-      showError(error, playbackPair);
-    }
+    commit(playbackPair.number.value);
   });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
@@ -2980,6 +3124,46 @@ modules.measurementRecorder = (() => {
 const { computePhase1Acceleration, computePhase2Acceleration, validateParameters } = modules.physics;
 const MEASUREMENT_EPSILON = 1e-10;
 
+function validateNoiseStdDev(value) {
+  const normalized = Number(value ?? 0);
+  if (!Number.isFinite(normalized) || normalized < 0) {
+    throw new RangeError("noiseStdDev doit être un nombre positif ou nul.");
+  }
+  return normalized;
+}
+
+function validateRandom(random) {
+  if (typeof random !== "function") {
+    throw new TypeError("random doit être une fonction.");
+  }
+  return random;
+}
+
+/** Produit un écart normal centré réduit par la transformation de Box-Muller. */
+function sampleStandardNormal(random = Math.random) {
+  const source = validateRandom(random);
+  const first = Number(source());
+  const second = Number(source());
+  if (
+    !Number.isFinite(first) || first < 0 || first >= 1
+    || !Number.isFinite(second) || second < 0 || second >= 1
+  ) {
+    throw new RangeError("random doit produire des valeurs appartenant à [0, 1[.");
+  }
+  const u1 = Math.max(first, Number.MIN_VALUE);
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * second);
+}
+
+function addVelocityMeasurementNoise(velocity, noiseStdDev = 0, random = Math.random) {
+  const exactVelocity = Number(velocity);
+  if (!Number.isFinite(exactVelocity) || exactVelocity < 0) {
+    throw new RangeError("La vitesse exacte doit être positive ou nulle.");
+  }
+  const sigma = validateNoiseStdDev(noiseStdDev);
+  if (sigma === 0) return exactVelocity;
+  return Math.max(0, exactVelocity + sigma * sampleStandardNormal(random));
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -3132,7 +3316,12 @@ function computeKinematicStateAtPosition(parameters, targetPosition) {
  * correspondent au déplacement de S1 lorsque son bord gauche franchit le
  * faisceau. Cette convention garantit la cohérence entre x, t et v.
  */
-function createMeasurement(layout, crossing, parameters = layout?.parameters) {
+function createMeasurement(
+  layout,
+  crossing,
+  parameters = layout?.parameters,
+  options = {},
+) {
   assertLayout(layout);
   if (!crossing || !Number.isInteger(crossing.id)) {
     throw new TypeError("Le franchissement doit posséder un identifiant entier.");
@@ -3155,7 +3344,11 @@ function createMeasurement(layout, crossing, parameters = layout?.parameters) {
     position: kinematics.position,
     mobilePosition: kinematics.position,
     time: kinematics.time,
-    velocity: kinematics.velocity,
+    velocity: addVelocityMeasurementNoise(
+      kinematics.velocity,
+      options.noiseStdDev ?? 0,
+      options.random ?? Math.random,
+    ),
     acceleration: kinematics.acceleration,
     phase: kinematics.phase,
   });
@@ -3164,9 +3357,15 @@ function createMeasurement(layout, crossing, parameters = layout?.parameters) {
 /**
  * Enregistre chaque capteur au plus une fois au cours d'une expérience.
  */
-function createMeasurementRecorder(layout, parameters = layout?.parameters) {
+function createMeasurementRecorder(
+  layout,
+  parameters = layout?.parameters,
+  options = {},
+) {
   assertLayout(layout);
   const validatedParameters = validateParameters(parameters);
+  const noiseStdDev = validateNoiseStdDev(options.noiseStdDev ?? 0);
+  const random = validateRandom(options.random ?? Math.random);
   const recordedSensorIds = new Set();
   let destroyed = false;
 
@@ -3185,7 +3384,10 @@ function createMeasurementRecorder(layout, parameters = layout?.parameters) {
     const measurements = [];
     for (const crossing of crossings) {
       if (recordedSensorIds.has(crossing.id)) continue;
-      const measurement = createMeasurement(layout, crossing, validatedParameters);
+      const measurement = createMeasurement(layout, crossing, validatedParameters, {
+        noiseStdDev,
+        random,
+      });
       if (!measurement) continue;
       recordedSensorIds.add(crossing.id);
       measurements.push(measurement);
@@ -3221,7 +3423,7 @@ function createMeasurementRecorder(layout, parameters = layout?.parameters) {
   });
 }
 
-return Object.freeze({ computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
+return Object.freeze({ sampleStandardNormal, addVelocityMeasurementNoise, computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
 })();
 
 modules.measurementExport = (() => {
@@ -3394,6 +3596,7 @@ const { computeApparatusLayout } = modules.geometry;
 const { createApparatusAnimator } = modules.animation;
 const { mountStaticApparatus } = modules.view;
 const { createAppState } = modules.appState;
+const { bindModeSelector } = modules.modeSelector;
 const { bindParameterControls } = modules.parameterControls;
 const { createMassSelector } = modules.massSelector;
 const { bindSimulationControls } = modules.simulationControls;
@@ -3419,10 +3622,9 @@ function getRequiredElement(root, selector) {
   return element;
 }
 
-
 /**
- * Monte l'application animée et relie tous les paramètres à un état central
- * unique. Toute modification physique reconstruit et réinitialise le montage.
+ * Monte l'application animée. Le moteur physique n'est créé qu'après le choix
+ * explicite d'un mode sur l'écran d'accueil.
  */
 function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
@@ -3433,6 +3635,7 @@ function createAnimatedApp(root = document, options = {}) {
   const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
 
   const appState = options.appState ?? createAppState({
+    mode: options.mode ?? null,
     parameters: options.parameters,
     sensorCount: options.sensorCount,
     playbackSpeed: options.playbackSpeed,
@@ -3441,6 +3644,17 @@ function createAnimatedApp(root = document, options = {}) {
   let simulationControls = null;
   let phaseChangeEvent = null;
   let destroyed = false;
+
+  function clearReadout() {
+    timeValue.textContent = "0.00 s";
+    phaseChangeEvent = null;
+    for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
+      item.classList.toggle("readout-item--pending", true);
+      item.setAttribute("aria-disabled", "true");
+    }
+    s2StopTimeValue.textContent = "";
+    s2ContactVelocityValue.textContent = "";
+  }
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
@@ -3461,7 +3675,7 @@ function createAnimatedApp(root = document, options = {}) {
     s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
   }
 
-  function destroyRuntime() {
+  function destroyRuntime({ clearHost = false } = {}) {
     if (runtime) {
       runtime.massSelector?.destroy();
       runtime.sensorController?.destroy();
@@ -3469,11 +3683,13 @@ function createAnimatedApp(root = document, options = {}) {
       runtime.loop.destroy();
       runtime = null;
     }
+    if (clearHost) host.innerHTML = "";
   }
 
   function mountRuntime(snapshot) {
+    if (!snapshot.mode) return null;
     destroyRuntime();
-    phaseChangeEvent = null;
+    clearReadout();
     const sensorCount = snapshot.experimental.sensorCount;
     const layout = computeApparatusLayout({
       ...snapshot.parameters,
@@ -3490,7 +3706,14 @@ function createAnimatedApp(root = document, options = {}) {
         appState.updateParameters({ m2: value });
       },
     });
-    const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
+    const measurementRecorder = createMeasurementRecorder(
+      layout,
+      snapshot.parameters,
+      {
+        noiseStdDev: snapshot.experimental.measurementNoiseStdDev,
+        random: options.random ?? Math.random,
+      },
+    );
     const sensorController = createSensorController(svg, layout, {
       onCrossings(crossings) {
         const measurements = measurementRecorder.recordCrossings(crossings);
@@ -3500,6 +3723,7 @@ function createAnimatedApp(root = document, options = {}) {
       },
     });
     host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
+    host.setAttribute("data-simulation-mode", snapshot.mode);
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
       physicsStep: options.physicsStep ?? 0.002,
@@ -3514,7 +3738,7 @@ function createAnimatedApp(root = document, options = {}) {
         animator.render(state, previousState, meta);
         sensorController.render(state, previousState, meta);
         appState.setSimulationState(state);
-        updateReadout(state, meta);
+        updateReadout(state);
         simulationControls?.update(state, meta);
       },
     });
@@ -3528,14 +3752,20 @@ function createAnimatedApp(root = document, options = {}) {
       sensorController,
       measurementRecorder,
     });
+    simulationControls?.update(loop.getState(), loop.getDiagnostics());
     return runtime;
   }
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
     if (destroyed) return;
 
-    if (["parameters-change", "experimental-change"].includes(meta.reason)) {
+    if (meta.reason === "mode-change") {
       mountRuntime(snapshot);
+    } else if (meta.reason === "mode-cleared") {
+      destroyRuntime({ clearHost: true });
+      clearReadout();
+    } else if (["parameters-change", "experimental-change"].includes(meta.reason)) {
+      if (snapshot.mode) mountRuntime(snapshot);
     } else if (meta.reason === "playback-speed-change" && runtime) {
       runtime.loop.setPlaybackSpeed(snapshot.playbackSpeed);
     } else if (meta.reason === "measurements-recorded") {
@@ -3544,19 +3774,23 @@ function createAnimatedApp(root = document, options = {}) {
       host.setAttribute("data-measurement-count", "0");
       runtime.measurementRecorder.reset();
       runtime.loop.reset(snapshot.parameters);
+      clearReadout();
     }
   });
 
+  const modeSelector = bindModeSelector(root, appState);
   const measurementExport = bindMeasurementExport(root, appState, options.exportOptions);
-
   simulationControls = bindSimulationControls(root, {
     appState,
     getLoop: () => runtime?.loop,
     manualStepDuration: options.manualStepDuration,
     keyboardTarget: options.keyboardTarget,
   });
-  mountRuntime(appState.getSnapshot());
   const parameterControls = bindParameterControls(root, appState);
+
+  const initialSnapshot = appState.getSnapshot();
+  clearReadout();
+  if (initialSnapshot.mode) mountRuntime(initialSnapshot);
 
   return Object.freeze({
     appState,
@@ -3567,8 +3801,9 @@ function createAnimatedApp(root = document, options = {}) {
       simulationControls?.destroy();
       measurementExport.destroy();
       parameterControls.destroy();
+      modeSelector.destroy();
       unsubscribe();
-      destroyRuntime();
+      destroyRuntime({ clearHost: true });
       if (!options.appState) appState.destroy();
       return true;
     },

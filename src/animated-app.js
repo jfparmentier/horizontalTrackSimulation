@@ -2,6 +2,7 @@ import { computeApparatusLayout } from "./apparatus-geometry.js";
 import { createApparatusAnimator } from "./apparatus-animation.js";
 import { mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
+import { bindModeSelector } from "./mode-selector.js";
 import { bindParameterControls } from "./parameter-controls.js";
 import { createMassSelector } from "./mass-selector.js";
 import { bindSimulationControls } from "./simulation-controls.js";
@@ -28,10 +29,9 @@ function getRequiredElement(root, selector) {
   return element;
 }
 
-
 /**
- * Monte l'application animée et relie tous les paramètres à un état central
- * unique. Toute modification physique reconstruit et réinitialise le montage.
+ * Monte l'application animée. Le moteur physique n'est créé qu'après le choix
+ * explicite d'un mode sur l'écran d'accueil.
  */
 export function createAnimatedApp(root = document, options = {}) {
   const host = getRequiredElement(root, "#apparatus-host");
@@ -42,6 +42,7 @@ export function createAnimatedApp(root = document, options = {}) {
   const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
 
   const appState = options.appState ?? createAppState({
+    mode: options.mode ?? null,
     parameters: options.parameters,
     sensorCount: options.sensorCount,
     playbackSpeed: options.playbackSpeed,
@@ -50,6 +51,17 @@ export function createAnimatedApp(root = document, options = {}) {
   let simulationControls = null;
   let phaseChangeEvent = null;
   let destroyed = false;
+
+  function clearReadout() {
+    timeValue.textContent = "0.00 s";
+    phaseChangeEvent = null;
+    for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
+      item.classList.toggle("readout-item--pending", true);
+      item.setAttribute("aria-disabled", "true");
+    }
+    s2StopTimeValue.textContent = "";
+    s2ContactVelocityValue.textContent = "";
+  }
 
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
@@ -70,7 +82,7 @@ export function createAnimatedApp(root = document, options = {}) {
     s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
   }
 
-  function destroyRuntime() {
+  function destroyRuntime({ clearHost = false } = {}) {
     if (runtime) {
       runtime.massSelector?.destroy();
       runtime.sensorController?.destroy();
@@ -78,11 +90,13 @@ export function createAnimatedApp(root = document, options = {}) {
       runtime.loop.destroy();
       runtime = null;
     }
+    if (clearHost) host.innerHTML = "";
   }
 
   function mountRuntime(snapshot) {
+    if (!snapshot.mode) return null;
     destroyRuntime();
-    phaseChangeEvent = null;
+    clearReadout();
     const sensorCount = snapshot.experimental.sensorCount;
     const layout = computeApparatusLayout({
       ...snapshot.parameters,
@@ -99,7 +113,14 @@ export function createAnimatedApp(root = document, options = {}) {
         appState.updateParameters({ m2: value });
       },
     });
-    const measurementRecorder = createMeasurementRecorder(layout, snapshot.parameters);
+    const measurementRecorder = createMeasurementRecorder(
+      layout,
+      snapshot.parameters,
+      {
+        noiseStdDev: snapshot.experimental.measurementNoiseStdDev,
+        random: options.random ?? Math.random,
+      },
+    );
     const sensorController = createSensorController(svg, layout, {
       onCrossings(crossings) {
         const measurements = measurementRecorder.recordCrossings(crossings);
@@ -109,6 +130,7 @@ export function createAnimatedApp(root = document, options = {}) {
       },
     });
     host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
+    host.setAttribute("data-simulation-mode", snapshot.mode);
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
       physicsStep: options.physicsStep ?? 0.002,
@@ -123,7 +145,7 @@ export function createAnimatedApp(root = document, options = {}) {
         animator.render(state, previousState, meta);
         sensorController.render(state, previousState, meta);
         appState.setSimulationState(state);
-        updateReadout(state, meta);
+        updateReadout(state);
         simulationControls?.update(state, meta);
       },
     });
@@ -137,14 +159,20 @@ export function createAnimatedApp(root = document, options = {}) {
       sensorController,
       measurementRecorder,
     });
+    simulationControls?.update(loop.getState(), loop.getDiagnostics());
     return runtime;
   }
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
     if (destroyed) return;
 
-    if (["parameters-change", "experimental-change"].includes(meta.reason)) {
+    if (meta.reason === "mode-change") {
       mountRuntime(snapshot);
+    } else if (meta.reason === "mode-cleared") {
+      destroyRuntime({ clearHost: true });
+      clearReadout();
+    } else if (["parameters-change", "experimental-change"].includes(meta.reason)) {
+      if (snapshot.mode) mountRuntime(snapshot);
     } else if (meta.reason === "playback-speed-change" && runtime) {
       runtime.loop.setPlaybackSpeed(snapshot.playbackSpeed);
     } else if (meta.reason === "measurements-recorded") {
@@ -153,19 +181,23 @@ export function createAnimatedApp(root = document, options = {}) {
       host.setAttribute("data-measurement-count", "0");
       runtime.measurementRecorder.reset();
       runtime.loop.reset(snapshot.parameters);
+      clearReadout();
     }
   });
 
+  const modeSelector = bindModeSelector(root, appState);
   const measurementExport = bindMeasurementExport(root, appState, options.exportOptions);
-
   simulationControls = bindSimulationControls(root, {
     appState,
     getLoop: () => runtime?.loop,
     manualStepDuration: options.manualStepDuration,
     keyboardTarget: options.keyboardTarget,
   });
-  mountRuntime(appState.getSnapshot());
   const parameterControls = bindParameterControls(root, appState);
+
+  const initialSnapshot = appState.getSnapshot();
+  clearReadout();
+  if (initialSnapshot.mode) mountRuntime(initialSnapshot);
 
   return Object.freeze({
     appState,
@@ -176,8 +208,9 @@ export function createAnimatedApp(root = document, options = {}) {
       simulationControls?.destroy();
       measurementExport.destroy();
       parameterControls.destroy();
+      modeSelector.destroy();
       unsubscribe();
-      destroyRuntime();
+      destroyRuntime({ clearHost: true });
       if (!options.appState) appState.destroy();
       return true;
     },

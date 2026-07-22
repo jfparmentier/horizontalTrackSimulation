@@ -7,8 +7,6 @@ import { bindParameterControls } from "../src/parameter-controls.js";
 class FakeElement {
   constructor(value = "") {
     this.value = value;
-    this.checked = false;
-    this.textContent = "";
     this.attributes = new Map();
     this.listeners = new Map();
   }
@@ -29,11 +27,7 @@ class FakeElement {
 }
 
 function createRoot() {
-  const ids = [
-    "parameter-error",
-    "friction-range", "friction-number",
-    "playback-speed-range", "playback-speed-number",
-  ];
+  const ids = ["playback-speed-range", "playback-speed-number"];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
   return {
     elements,
@@ -45,56 +39,38 @@ function createRoot() {
   };
 }
 
-test("les contrôles numériques sont initialisés depuis l'état central", () => {
-  const store = createAppState({
-    parameters: { m2: 0.5, friction: 0.08 },
-    playbackSpeed: 0.8,
-  });
+test("la vitesse de lecture est initialisée depuis l'état central", () => {
+  const store = createAppState({ playbackSpeed: 0.8 });
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  assert.equal(elements.get("#friction-range").value, "0.08");
-  assert.equal(elements.get("#friction-number").value, "0.08");
+  assert.equal(elements.get("#playback-speed-range").value, "0.8");
   assert.equal(elements.get("#playback-speed-number").value, "0.8");
-  assert.equal(store.getSnapshot().parameters.m2, 0.5);
 });
 
-test("le curseur de frottement met à jour l'état central", () => {
+test("le curseur de vitesse de lecture met à jour l'état central", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  const range = elements.get("#friction-range");
-  range.value = "0.04";
+  const range = elements.get("#playback-speed-range");
+  range.value = "0.6";
   range.dispatch("input");
 
-  assert.equal(store.getSnapshot().parameters.friction, 0.04);
-  assert.equal(elements.get("#friction-number").value, "0.04");
-});
-
-test("la vitesse de lecture reste reliée à l'état central", () => {
-  const store = createAppState();
-  const { root, elements } = createRoot();
-  bindParameterControls(root, store);
-
-  const speed = elements.get("#playback-speed-number");
-  speed.value = "0.6";
-  speed.dispatch("change");
-
   assert.equal(store.getSnapshot().playbackSpeed, 0.6);
+  assert.equal(elements.get("#playback-speed-number").value, "0.6");
 });
 
-test("une saisie de frottement invalide est annulée et signalée", () => {
+test("une vitesse de lecture invalide est annulée et signalée", () => {
   const store = createAppState();
   const { root, elements } = createRoot();
   bindParameterControls(root, store);
 
-  const input = elements.get("#friction-number");
-  input.value = "0.8";
+  const input = elements.get("#playback-speed-number");
+  input.value = "2";
   input.dispatch("change");
 
-  assert.equal(store.getSnapshot().parameters.friction, 0);
-  assert.equal(input.value, "0");
-  assert.match(elements.get("#parameter-error").textContent, /friction/i);
+  assert.equal(store.getSnapshot().playbackSpeed, 1);
+  assert.equal(input.value, "1");
   assert.equal(input.attributes.get("aria-invalid"), "true");
 });

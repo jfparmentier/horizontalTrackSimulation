@@ -6,6 +6,46 @@ import {
 
 const MEASUREMENT_EPSILON = 1e-10;
 
+function validateNoiseStdDev(value) {
+  const normalized = Number(value ?? 0);
+  if (!Number.isFinite(normalized) || normalized < 0) {
+    throw new RangeError("noiseStdDev doit être un nombre positif ou nul.");
+  }
+  return normalized;
+}
+
+function validateRandom(random) {
+  if (typeof random !== "function") {
+    throw new TypeError("random doit être une fonction.");
+  }
+  return random;
+}
+
+/** Produit un écart normal centré réduit par la transformation de Box-Muller. */
+export function sampleStandardNormal(random = Math.random) {
+  const source = validateRandom(random);
+  const first = Number(source());
+  const second = Number(source());
+  if (
+    !Number.isFinite(first) || first < 0 || first >= 1
+    || !Number.isFinite(second) || second < 0 || second >= 1
+  ) {
+    throw new RangeError("random doit produire des valeurs appartenant à [0, 1[.");
+  }
+  const u1 = Math.max(first, Number.MIN_VALUE);
+  return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * second);
+}
+
+export function addVelocityMeasurementNoise(velocity, noiseStdDev = 0, random = Math.random) {
+  const exactVelocity = Number(velocity);
+  if (!Number.isFinite(exactVelocity) || exactVelocity < 0) {
+    throw new RangeError("La vitesse exacte doit être positive ou nulle.");
+  }
+  const sigma = validateNoiseStdDev(noiseStdDev);
+  if (sigma === 0) return exactVelocity;
+  return Math.max(0, exactVelocity + sigma * sampleStandardNormal(random));
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -158,7 +198,12 @@ export function computeKinematicStateAtPosition(parameters, targetPosition) {
  * correspondent au déplacement de S1 lorsque son bord gauche franchit le
  * faisceau. Cette convention garantit la cohérence entre x, t et v.
  */
-export function createMeasurement(layout, crossing, parameters = layout?.parameters) {
+export function createMeasurement(
+  layout,
+  crossing,
+  parameters = layout?.parameters,
+  options = {},
+) {
   assertLayout(layout);
   if (!crossing || !Number.isInteger(crossing.id)) {
     throw new TypeError("Le franchissement doit posséder un identifiant entier.");
@@ -181,7 +226,11 @@ export function createMeasurement(layout, crossing, parameters = layout?.paramet
     position: kinematics.position,
     mobilePosition: kinematics.position,
     time: kinematics.time,
-    velocity: kinematics.velocity,
+    velocity: addVelocityMeasurementNoise(
+      kinematics.velocity,
+      options.noiseStdDev ?? 0,
+      options.random ?? Math.random,
+    ),
     acceleration: kinematics.acceleration,
     phase: kinematics.phase,
   });
@@ -190,9 +239,15 @@ export function createMeasurement(layout, crossing, parameters = layout?.paramet
 /**
  * Enregistre chaque capteur au plus une fois au cours d'une expérience.
  */
-export function createMeasurementRecorder(layout, parameters = layout?.parameters) {
+export function createMeasurementRecorder(
+  layout,
+  parameters = layout?.parameters,
+  options = {},
+) {
   assertLayout(layout);
   const validatedParameters = validateParameters(parameters);
+  const noiseStdDev = validateNoiseStdDev(options.noiseStdDev ?? 0);
+  const random = validateRandom(options.random ?? Math.random);
   const recordedSensorIds = new Set();
   let destroyed = false;
 
@@ -211,7 +266,10 @@ export function createMeasurementRecorder(layout, parameters = layout?.parameter
     const measurements = [];
     for (const crossing of crossings) {
       if (recordedSensorIds.has(crossing.id)) continue;
-      const measurement = createMeasurement(layout, crossing, validatedParameters);
+      const measurement = createMeasurement(layout, crossing, validatedParameters, {
+        noiseStdDev,
+        random,
+      });
       if (!measurement) continue;
       recordedSensorIds.add(crossing.id);
       measurements.push(measurement);

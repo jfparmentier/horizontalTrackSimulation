@@ -1,9 +1,6 @@
-const PHYSICAL_CONTROLS = Object.freeze([
-  Object.freeze({ key: "friction", range: "#friction-range", number: "#friction-number" }),
-]);
-
-const OTHER_CONTROLS = Object.freeze({
-  playbackSpeed: Object.freeze({ range: "#playback-speed-range", number: "#playback-speed-number" }),
+const PLAYBACK_CONTROLS = Object.freeze({
+  range: "#playback-speed-range",
+  number: "#playback-speed-number",
 });
 
 function getRequiredElement(root, selector) {
@@ -26,7 +23,7 @@ function setInvalid(pair, invalid) {
   pair.number.setAttribute("aria-invalid", value);
 }
 
-/** Relie les champs de paramètres numériques à l'état central. */
+/** Relie uniquement la vitesse de lecture à l'état central. */
 export function bindParameterControls(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
@@ -35,19 +32,9 @@ export function bindParameterControls(root, appState) {
     throw new TypeError("Un état central valide est requis.");
   }
 
-  const errorElement = getRequiredElement(root, "#parameter-error");
-  const physicalPairs = new Map(
-    PHYSICAL_CONTROLS.map((definition) => [
-      definition.key,
-      {
-        range: getRequiredElement(root, definition.range),
-        number: getRequiredElement(root, definition.number),
-      },
-    ]),
-  );
   const playbackPair = {
-    range: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.range),
-    number: getRequiredElement(root, OTHER_CONTROLS.playbackSpeed.number),
+    range: getRequiredElement(root, PLAYBACK_CONTROLS.range),
+    number: getRequiredElement(root, PLAYBACK_CONTROLS.number),
   };
   const listeners = [];
 
@@ -56,69 +43,29 @@ export function bindParameterControls(root, appState) {
     listeners.push(() => element.removeEventListener?.(eventName, callback));
   }
 
-  function clearError() {
-    errorElement.textContent = "";
-    for (const pair of [...physicalPairs.values(), playbackPair]) {
-      setInvalid(pair, false);
-    }
-  }
-
-  function showError(error, pair) {
-    errorElement.textContent = error instanceof Error
-      ? error.message
-      : String(error);
-    if (pair) setInvalid(pair, true);
-  }
-
   function sync(snapshot = appState.getSnapshot()) {
-    for (const [key, pair] of physicalPairs) {
-      setPairValue(pair, snapshot.parameters[key]);
-      setInvalid(pair, false);
-    }
     setPairValue(playbackPair, snapshot.playbackSpeed);
+    setInvalid(playbackPair, false);
   }
 
-  function commitPhysical(key, rawValue, pair) {
+  function commit(rawValue) {
     try {
-      clearError();
-      appState.updateParameters({ [key]: Number(rawValue) });
+      setInvalid(playbackPair, false);
+      appState.setPlaybackSpeed(Number(rawValue));
       sync();
-    } catch (error) {
+    } catch {
       sync();
-      showError(error, pair);
+      setInvalid(playbackPair, true);
     }
-  }
-
-  for (const [key, pair] of physicalPairs) {
-    listen(pair.range, "input", () => {
-      pair.number.value = pair.range.value;
-      commitPhysical(key, pair.range.value, pair);
-    });
-    listen(pair.number, "change", () => {
-      pair.range.value = pair.number.value;
-      commitPhysical(key, pair.number.value, pair);
-    });
   }
 
   listen(playbackPair.range, "input", () => {
     playbackPair.number.value = playbackPair.range.value;
-    try {
-      clearError();
-      appState.setPlaybackSpeed(Number(playbackPair.range.value));
-    } catch (error) {
-      sync();
-      showError(error, playbackPair);
-    }
+    commit(playbackPair.range.value);
   });
   listen(playbackPair.number, "change", () => {
     playbackPair.range.value = playbackPair.number.value;
-    try {
-      clearError();
-      appState.setPlaybackSpeed(Number(playbackPair.number.value));
-    } catch (error) {
-      sync();
-      showError(error, playbackPair);
-    }
+    commit(playbackPair.number.value);
   });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {

@@ -1,5 +1,5 @@
 /**
- * Constantes physiques et limites retenues pour la première version.
+ * Constantes physiques et paramètres fixes de la simulation.
  */
 
 export const GRAVITY = Object.freeze({
@@ -17,6 +17,35 @@ export const FIXED_SENSOR_COUNT = FIXED_SENSOR_POSITIONS.length;
 export const FIXED_MOBILE_LENGTH = 0.2;
 export const AVAILABLE_HANGING_MASSES = Object.freeze([0.2, 0.5, 1.0, 2.0]);
 
+export const SIMULATION_MODE_IDS = Object.freeze({
+  ideal: "ideal",
+  friction: "friction",
+});
+
+/**
+ * Le coefficient du second mode est volontairement absent de l'interface :
+ * il constitue la grandeur à déterminer expérimentalement par les élèves.
+ * Le bruit est appliqué uniquement aux vitesses mesurées par les capteurs.
+ */
+export const SIMULATION_MODES = Object.freeze({
+  [SIMULATION_MODE_IDS.ideal]: Object.freeze({
+    id: SIMULATION_MODE_IDS.ideal,
+    label: "Cas idéal",
+    shortLabel: "Idéal",
+    friction: 0,
+    measurementNoiseStdDev: 0,
+    measurementsAreNoisy: false,
+  }),
+  [SIMULATION_MODE_IDS.friction]: Object.freeze({
+    id: SIMULATION_MODE_IDS.friction,
+    label: "Cas avec frottement",
+    shortLabel: "Frottement",
+    friction: 0.058,
+    measurementNoiseStdDev: 0.02,
+    measurementsAreNoisy: true,
+  }),
+});
+
 export const PARAMETER_LIMITS = Object.freeze({
   m1: Object.freeze({ min: 0.1, max: 2.0, unit: "kg" }),
   m2: Object.freeze({ min: 0.1, max: 2.0, step: 0.1, unit: "kg" }),
@@ -30,7 +59,7 @@ export const DEFAULT_PARAMETERS = Object.freeze({
   m2: 0.2,
   dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
-  friction: 0.0,
+  friction: SIMULATION_MODES[SIMULATION_MODE_IDS.ideal].friction,
   gravityMode: "earth",
 });
 

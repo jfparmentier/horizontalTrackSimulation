@@ -10,7 +10,7 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
   assert.equal(state.parameters.m1, 1);
   assert.equal(state.parameters.trackLength, 2);
   assert.equal(state.parameters.gravityMode, "earth");
-  assert.equal(state.experimental.sensorCount, 9);
+  assert.equal(state.experimental.sensorCount, 11);
   assert.equal(state.playbackSpeed, 1);
   assert.equal(state.simulation.position, 0);
   assert.equal(state.display.showMeasurements, false);
@@ -50,12 +50,12 @@ test("modifier un paramètre physique réinitialise l'expérience", () => {
   assert.equal(updated.revision, 1);
 });
 
-test("le nombre de capteurs reste fixé à neuf", () => {
-  const store = createAppState({ sensorCount: 12 });
+test("le nombre de capteurs reste fixé à onze", () => {
+  const store = createAppState({ sensorCount: 9 });
 
-  assert.equal(store.getSnapshot().experimental.sensorCount, 9);
-  assert.throws(() => store.updateExperimental({ sensorCount: 12 }), /fixé à 9/i);
-  assert.equal(store.getSnapshot().experimental.sensorCount, 9);
+  assert.equal(store.getSnapshot().experimental.sensorCount, 11);
+  assert.throws(() => store.updateExperimental({ sensorCount: 9 }), /fixé à 11/i);
+  assert.equal(store.getSnapshot().experimental.sensorCount, 11);
 });
 
 test("modifier la vitesse de lecture ne réinitialise pas la simulation", () => {
@@ -200,4 +200,52 @@ test("la masse de S1 et la hauteur de chute restent fixes", () => {
   assert.equal(store.getSnapshot().parameters.dropHeight, 0.6);
   assert.throws(() => store.updateParameters({ m1: 0.8 }), /fixée à 1 kg/i);
   assert.throws(() => store.updateParameters({ dropHeight: 0.8 }), /fixée à 0.6 m/i);
+});
+
+test("aucun mode n'est sélectionné au démarrage", () => {
+  const store = createAppState();
+  const snapshot = store.getSnapshot();
+
+  assert.equal(snapshot.mode, null);
+  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
+});
+
+test("le choix du mode idéal impose mu = 0 et des mesures parfaites", () => {
+  const store = createAppState();
+  const snapshot = store.selectMode("ideal");
+
+  assert.equal(snapshot.mode, "ideal");
+  assert.equal(snapshot.parameters.friction, 0);
+  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
+});
+
+test("le choix du mode avec frottement impose mu = 0,058 et le bruit des mesures", () => {
+  const store = createAppState();
+  const snapshot = store.selectMode("friction");
+
+  assert.equal(snapshot.mode, "friction");
+  assert.equal(snapshot.parameters.friction, 0.058);
+  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.02);
+  assert.throws(
+    () => store.updateParameters({ friction: 0.03 }),
+    /imposé par le mode/i,
+  );
+});
+
+test("revenir à l'accueil efface le mode et réinitialise l'expérience", () => {
+  const store = createAppState({ mode: "friction" });
+  store.setSimulationState({
+    ...store.getSnapshot().simulation,
+    time: 0.4,
+    position: 0.1,
+    velocity: 0.3,
+    hangingDisplacement: 0.1,
+    status: "paused",
+  });
+
+  const snapshot = store.clearMode();
+
+  assert.equal(snapshot.mode, null);
+  assert.equal(snapshot.simulation.time, 0);
+  assert.equal(snapshot.measurements.length, 0);
 });

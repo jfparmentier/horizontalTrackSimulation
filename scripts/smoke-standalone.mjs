@@ -9,6 +9,7 @@ class FakeElement {
   constructor(id = "") {
     this.id = id;
     this.disabled = false;
+    this.hidden = false;
     this.textContent = "";
     this.value = "";
     this.checked = false;
@@ -93,7 +94,7 @@ class FakeHost extends FakeElement {
   }
   set innerHTML(value) {
     this._innerHTML = String(value);
-    this.svg = new FakeSvg();
+    this.svg = this._innerHTML.trim() ? new FakeSvg() : null;
   }
   querySelector(selector) {
     return selector === "#apparatus-svg" ? this.svg : null;
@@ -102,11 +103,11 @@ class FakeHost extends FakeElement {
 
 const elements = new Map();
 for (const id of [
+  "mode-selection", "simulation-screen", "mode-ideal-button", "mode-friction-button",
+  "mode-home-button", "active-mode-label", "active-mode-detail",
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
   "time-value", "s2-stop-time-item", "s2-stop-time-value",
   "s2-contact-velocity-item", "s2-contact-velocity-value",
-  "parameter-error",
-  "friction-range", "friction-number",
   "playback-speed-range", "playback-speed-number",
 ]) {
   elements.set(`#${id}`, new FakeElement(id));
@@ -174,7 +175,22 @@ context.globalThis = context;
 const bundle = fs.readFileSync(path.join(root, "dist-standalone.js"), "utf8");
 vm.runInContext(bundle, context, { filename: "dist-standalone.js" });
 
-if (!host.svg) throw new Error("Le SVG n'a pas été monté.");
+if (host.svg) throw new Error("Le SVG ne doit pas être monté avant le choix du mode.");
+if (elements.get("#mode-selection").hidden) {
+  throw new Error("L'écran de sélection du mode devrait être visible au démarrage.");
+}
+if (!elements.get("#simulation-screen").hidden) {
+  throw new Error("La simulation devrait être masquée avant le choix du mode.");
+}
+
+elements.get("#mode-ideal-button").dispatch("click");
+if (!host.svg) throw new Error("Le SVG n'a pas été monté après le choix du mode idéal.");
+if (!elements.get("#mode-selection").hidden || elements.get("#simulation-screen").hidden) {
+  throw new Error("Le choix du mode n'a pas ouvert la simulation.");
+}
+if (elements.get("#active-mode-label").textContent !== "Cas idéal") {
+  throw new Error("Le mode actif n'est pas affiché.");
+}
 if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
   throw new Error("Le fil n'a pas reçu son tracé initial.");
 }
@@ -239,16 +255,18 @@ for (let index = 0; index < 100 && elements.get("#download-data-button").disable
 if (elements.get("#download-data-button").disabled) {
   throw new Error("La simulation autonome n'a pas atteint son état terminal.");
 }
-if (
-  elements.get("#s2-stop-time-item").attributes.get("aria-disabled") !== "false"
-  || elements.get("#s2-contact-velocity-item").attributes.get("aria-disabled") !== "false"
-) {
-  throw new Error("Les résultats de la phase 1 ne sont pas activés au début de la phase 2.");
+
+elements.get("#mode-home-button").dispatch("click");
+if (host.svg || elements.get("#mode-selection").hidden || !elements.get("#simulation-screen").hidden) {
+  throw new Error("Le retour au choix du mode n'a pas réinitialisé l'interface.");
 }
-if (!/ s$/.test(elements.get("#s2-stop-time-value").textContent)) {
-  throw new Error("La durée de chute n'est pas affichée avec son unité.");
+
+elements.get("#mode-friction-button").dispatch("click");
+if (!host.svg || elements.get("#active-mode-label").textContent !== "Cas avec frottement") {
+  throw new Error("Le second mode n'a pas été ouvert correctement.");
 }
-if (!/ m\/s$/.test(elements.get("#s2-contact-velocity-value").textContent)) {
-  throw new Error("La vitesse d'impact n'est pas affichée avec son unité.");
+if (host.attributes.get("data-simulation-mode") !== "friction") {
+  throw new Error("Le mode avec frottement n'est pas transmis au montage.");
 }
+
 console.log("Smoke test autonome réussi.");

@@ -4,6 +4,7 @@ import {
   FIXED_M1,
   FIXED_SENSOR_COUNT,
   FIXED_TRACK_LENGTH,
+  SIMULATION_MODES,
 } from "./constants.js";
 import { SENSOR_COUNT_LIMITS } from "./apparatus-geometry.js";
 import { PLAYBACK_SPEED_LIMITS } from "./time-loop.js";
@@ -16,6 +17,7 @@ import {
 
 export const DEFAULT_EXPERIMENTAL_SETTINGS = Object.freeze({
   sensorCount: SENSOR_COUNT_LIMITS.default,
+  measurementNoiseStdDev: 0,
 });
 
 export const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
@@ -25,16 +27,13 @@ export const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
 
 export const DEFAULT_PLAYBACK_SPEED = 1;
 
-function freezeArray(items = []) {
-  return Object.freeze([...items]);
-}
-
 function freezeRecordArray(items = []) {
   return Object.freeze(items.map((item) => Object.freeze({ ...item })));
 }
 
 function freezeSnapshot(snapshot) {
   return Object.freeze({
+    mode: snapshot.mode,
     parameters: snapshot.parameters,
     experimental: Object.freeze({ ...snapshot.experimental }),
     playbackSpeed: snapshot.playbackSpeed,
@@ -44,6 +43,14 @@ function freezeSnapshot(snapshot) {
     continuousData: freezeRecordArray(snapshot.continuousData),
     revision: snapshot.revision,
   });
+}
+
+function validateModeId(value, { allowNull = true } = {}) {
+  if (value === null && allowNull) return null;
+  if (typeof value !== "string" || !Object.hasOwn(SIMULATION_MODES, value)) {
+    throw new PhysicsParameterError(`Mode de simulation inconnu : ${String(value)}.`);
+  }
+  return value;
 }
 
 function validateSensorCount(value) {
@@ -134,23 +141,35 @@ function sameParameters(left, right) {
     .every((key) => left[key] === right[key]);
 }
 
+function createExperimentalSettings(modeId) {
+  const mode = modeId ? SIMULATION_MODES[modeId] : null;
+  return Object.freeze({
+    sensorCount: FIXED_SENSOR_COUNT,
+    measurementNoiseStdDev: mode?.measurementNoiseStdDev ?? 0,
+  });
+}
+
 /**
  * État central de l'application. Il constitue la source unique de vérité pour
- * les paramètres, l'état physique courant et les réglages d'affichage futurs.
+ * le mode, les paramètres, l'état physique et les mesures de l'expérience.
  */
 export function createAppState(initial = {}) {
   if (initial === null || typeof initial !== "object") {
     throw new TypeError("La configuration initiale doit être un objet.");
   }
 
+  const mode = validateModeId(initial.mode ?? null);
+  const modeDefinition = mode ? SIMULATION_MODES[mode] : null;
   const parameters = validateParameters({
     ...DEFAULT_PARAMETERS,
     ...(initial.parameters ?? {}),
     m1: FIXED_M1,
     dropHeight: FIXED_DROP_HEIGHT,
     trackLength: FIXED_TRACK_LENGTH,
+    friction: modeDefinition?.friction
+      ?? initial.parameters?.friction
+      ?? DEFAULT_PARAMETERS.friction,
   });
-  const sensorCount = FIXED_SENSOR_COUNT;
   const playbackSpeed = validatePlaybackSpeed(
     initial.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
   );
@@ -159,8 +178,9 @@ export function createAppState(initial = {}) {
     : createInitialState(parameters);
 
   let snapshot = freezeSnapshot({
+    mode,
     parameters,
-    experimental: { sensorCount },
+    experimental: createExperimentalSettings(mode),
     playbackSpeed,
     simulation,
     display: {
@@ -209,6 +229,53 @@ export function createAppState(initial = {}) {
     return () => listeners.delete(listener);
   }
 
+  function selectMode(modeId) {
+    assertUsable();
+    const normalizedMode = validateModeId(modeId, { allowNull: false });
+    const definition = SIMULATION_MODES[normalizedMode];
+    const nextParameters = validateParameters({
+      ...snapshot.parameters,
+      m1: FIXED_M1,
+      dropHeight: FIXED_DROP_HEIGHT,
+      trackLength: FIXED_TRACK_LENGTH,
+      friction: definition.friction,
+    });
+
+    return replace({
+      ...snapshot,
+      mode: normalizedMode,
+      parameters: nextParameters,
+      experimental: createExperimentalSettings(normalizedMode),
+      simulation: createInitialState(nextParameters),
+      measurements: [],
+      continuousData: [],
+      revision: snapshot.revision + 1,
+    }, "mode-change", {
+      previousMode: snapshot.mode,
+      mode: normalizedMode,
+    });
+  }
+
+  function clearMode() {
+    assertUsable();
+    if (snapshot.mode === null) return snapshot;
+    const nextParameters = validateParameters({
+      ...snapshot.parameters,
+      friction: DEFAULT_PARAMETERS.friction,
+    });
+
+    return replace({
+      ...snapshot,
+      mode: null,
+      parameters: nextParameters,
+      experimental: createExperimentalSettings(null),
+      simulation: createInitialState(nextParameters),
+      measurements: [],
+      continuousData: [],
+      revision: snapshot.revision + 1,
+    }, "mode-cleared", { previousMode: snapshot.mode });
+  }
+
   function updateParameters(partial) {
     assertUsable();
     if (partial === null || typeof partial !== "object") {
@@ -233,12 +300,25 @@ export function createAppState(initial = {}) {
       }
     }
 
+    if (
+      snapshot.mode
+      && Object.hasOwn(partial, "friction")
+      && Number(partial.friction) !== SIMULATION_MODES[snapshot.mode].friction
+    ) {
+      throw new PhysicsParameterError(
+        "Le coefficient de frottement est imposé par le mode de simulation.",
+      );
+    }
+
     const nextParameters = validateParameters({
       ...snapshot.parameters,
       ...partial,
       m1: FIXED_M1,
       dropHeight: FIXED_DROP_HEIGHT,
       trackLength: FIXED_TRACK_LENGTH,
+      friction: snapshot.mode
+        ? SIMULATION_MODES[snapshot.mode].friction
+        : Number(partial.friction ?? snapshot.parameters.friction),
     });
     if (sameParameters(snapshot.parameters, nextParameters)) {
       return snapshot;
@@ -266,6 +346,11 @@ export function createAppState(initial = {}) {
     ) {
       throw new PhysicsParameterError(
         `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
+      );
+    }
+    if (Object.hasOwn(partial, "measurementNoiseStdDev")) {
+      throw new PhysicsParameterError(
+        "Le bruit des mesures est imposé par le mode de simulation.",
       );
     }
 
@@ -364,6 +449,8 @@ export function createAppState(initial = {}) {
   return Object.freeze({
     getSnapshot,
     subscribe,
+    selectMode,
+    clearMode,
     updateParameters,
     updateExperimental,
     setPlaybackSpeed,

@@ -9,7 +9,7 @@ const manifests = [
     key: "constants",
     file: "src/constants.js",
     dependencies: [],
-    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "FIXED_SENSOR_POSITIONS", "FIXED_MOBILE_LENGTH", "AVAILABLE_HANGING_MASSES", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
+    exports: ["GRAVITY", "FIXED_TRACK_LENGTH", "FIXED_M1", "FIXED_DROP_HEIGHT", "FIXED_SENSOR_COUNT", "FIXED_SENSOR_POSITIONS", "FIXED_MOBILE_LENGTH", "AVAILABLE_HANGING_MASSES", "SIMULATION_MODE_IDS", "SIMULATION_MODES", "PARAMETER_LIMITS", "DEFAULT_PARAMETERS", "NUMERICAL_EPSILON"],
   },
   {
     key: "physics",
@@ -78,7 +78,7 @@ const manifests = [
     key: "appState",
     file: "src/app-state.js",
     dependencies: [
-      ["constants", ["DEFAULT_PARAMETERS", "FIXED_DROP_HEIGHT", "FIXED_M1", "FIXED_SENSOR_COUNT", "FIXED_TRACK_LENGTH"]],
+      ["constants", ["DEFAULT_PARAMETERS", "FIXED_DROP_HEIGHT", "FIXED_M1", "FIXED_SENSOR_COUNT", "FIXED_TRACK_LENGTH", "SIMULATION_MODES"]],
       ["geometry", ["SENSOR_COUNT_LIMITS"]],
       ["timeLoop", ["PLAYBACK_SPEED_LIMITS"]],
       ["physics", ["PhysicsParameterError", "createInitialState", "validateParameters", "validateSimulationState"]],
@@ -87,6 +87,12 @@ const manifests = [
       "DEFAULT_EXPERIMENTAL_SETTINGS", "DEFAULT_DISPLAY_SETTINGS",
       "DEFAULT_PLAYBACK_SPEED", "createAppState",
     ],
+  },
+  {
+    key: "modeSelector",
+    file: "src/mode-selector.js",
+    dependencies: [["constants", ["SIMULATION_MODES"]]],
+    exports: ["bindModeSelector"],
   },
   {
     key: "parameterControls",
@@ -121,6 +127,7 @@ const manifests = [
       ]],
     ],
     exports: [
+      "sampleStandardNormal", "addVelocityMeasurementNoise",
       "computeSensorTriggerPosition", "computeKinematicStateAtPosition",
       "createMeasurement", "createMeasurementRecorder",
     ],
@@ -141,6 +148,7 @@ const manifests = [
       ["animation", ["createApparatusAnimator"]],
       ["view", ["mountStaticApparatus"]],
       ["appState", ["createAppState"]],
+      ["modeSelector", ["bindModeSelector"]],
       ["parameterControls", ["bindParameterControls"]],
       ["massSelector", ["createMassSelector"]],
       ["simulationControls", ["bindSimulationControls"]],
@@ -181,20 +189,63 @@ ${css}
 </head>
 <body>
   <main class="page-shell">
-    <div class="simulation-layout">
-      <aside class="parameter-panel" aria-labelledby="parameters-title">
-        <h2 id="parameters-title">Paramètres</h2>
-        <div class="parameter-list">
-          <div class="parameter-control">
-            <label for="friction-range">Coefficient de frottement</label>
-            <input id="friction-range" type="range" min="0" max="0.2" step="0.005" value="0">
-            <span class="number-with-unit"><input id="friction-number" type="number" min="0" max="0.2" step="0.005" value="0"><span>—</span></span>
+    <section id="mode-selection" class="mode-selection" aria-labelledby="mode-selection-title">
+      <div class="mode-selection-panel">
+        <p class="mode-selection-eyebrow">Simulation du banc horizontal</p>
+        <h1 id="mode-selection-title">Choisir un mode d’exploration</h1>
+        <p class="mode-selection-intro">Sélectionnez le niveau de modélisation avant de lancer l’expérience.</p>
+
+        <div class="mode-card-grid">
+          <button id="mode-ideal-button" class="mode-card mode-card--ideal" type="button">
+            <span class="mode-card-illustration" aria-hidden="true">
+              <svg viewBox="0 0 220 118" focusable="false">
+                <path class="mode-ground" d="M18 87 H202" />
+                <rect class="mode-cart" x="42" y="52" width="54" height="34" rx="9" />
+                <circle class="mode-wheel" cx="55" cy="91" r="7" />
+                <circle class="mode-wheel" cx="84" cy="91" r="7" />
+                <path class="mode-motion-line" d="M108 68 H179" />
+                <path class="mode-motion-line" d="M158 57 L180 68 L158 79" />
+              </svg>
+            </span>
+            <span class="mode-card-title">Cas idéal</span>
+            <span class="mode-card-summary">Sans frottement</span>
+            <span class="mode-card-description">Les capteurs fournissent des mesures parfaites pour identifier les deux phases du mouvement.</span>
+          </button>
+
+          <button id="mode-friction-button" class="mode-card mode-card--friction" type="button">
+            <span class="mode-card-illustration" aria-hidden="true">
+              <svg viewBox="0 0 220 118" focusable="false">
+                <path class="mode-rough-ground" d="M18 87 L28 79 L38 87 L48 79 L58 87 L68 79 L78 87 L88 79 L98 87 L108 79 L118 87 L128 79 L138 87 L148 79 L158 87 L168 79 L178 87 L188 79 L202 87" />
+                <rect class="mode-cart" x="42" y="52" width="54" height="34" rx="9" />
+                <circle class="mode-wheel" cx="55" cy="91" r="7" />
+                <circle class="mode-wheel" cx="84" cy="91" r="7" />
+                <circle class="mode-noise-dot" cx="129" cy="57" r="4" />
+                <circle class="mode-noise-dot" cx="146" cy="69" r="4" />
+                <circle class="mode-noise-dot" cx="164" cy="51" r="4" />
+                <circle class="mode-noise-dot" cx="181" cy="72" r="4" />
+              </svg>
+            </span>
+            <span class="mode-card-title">Cas avec frottement</span>
+            <span class="mode-card-summary">Frottement inconnu · mesures bruitées</span>
+            <span class="mode-card-description">Répétez les expériences et exploitez les mesures pour estimer le coefficient de frottement.</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="simulation-screen" class="simulation-screen" aria-label="Simulation" hidden aria-hidden="true">
+      <section class="apparatus-card" aria-label="Montage expérimental animé">
+        <div class="mode-toolbar">
+          <button id="mode-home-button" class="mode-home-button" type="button" aria-label="Revenir au choix du mode" title="Revenir au choix du mode">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.2 12 4l9 7.2M5.5 10.5V20h5v-5.5h3V20h5v-9.5" />
+            </svg>
+          </button>
+          <div class="active-mode-copy">
+            <strong id="active-mode-label"></strong>
+            <span id="active-mode-detail"></span>
           </div>
         </div>
-        <p id="parameter-error" class="parameter-error" role="alert" aria-live="polite"></p>
-      </aside>
-
-      <section class="apparatus-card" aria-label="Montage expérimental animé">
         <div id="apparatus-host" class="apparatus-host"></div>
         <div class="animation-controls" aria-label="Commandes de la simulation">
           <div class="main-control-buttons">
@@ -222,7 +273,7 @@ ${css}
           </div>
         </div>
       </section>
-    </div>
+    </section>
   </main>
   <script>
 ${bundle}

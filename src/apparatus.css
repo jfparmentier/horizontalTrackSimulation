@@ -747,3 +747,260 @@ h1 {
   stroke: #30a95f;
   opacity: 1;
 }
+
+/* Écran de choix du mode, inspiré des écrans d'accueil à grandes cartes. */
+[hidden] {
+  display: none !important;
+}
+
+.mode-selection {
+  display: grid;
+  min-height: calc(100vh - 68px);
+  place-items: center;
+  padding: 22px 0;
+}
+
+.mode-selection-panel {
+  width: min(1040px, 100%);
+  padding: clamp(24px, 4vw, 46px);
+  border: 1px solid rgba(53, 107, 136, 0.2);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 28px 85px rgba(35, 88, 117, 0.16);
+  text-align: center;
+}
+
+.mode-selection-eyebrow {
+  margin: 0 0 7px;
+  color: #287aa4;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.mode-selection-panel h1 {
+  margin: 0;
+  color: #153247;
+  font-size: clamp(1.7rem, 4vw, 2.7rem);
+  line-height: 1.08;
+}
+
+.mode-selection-intro {
+  max-width: 620px;
+  margin: 12px auto 30px;
+  color: #557386;
+  font-size: 1rem;
+}
+
+.mode-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 30px);
+}
+
+.mode-card {
+  display: grid;
+  min-height: 390px;
+  grid-template-rows: 150px auto auto 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 24px;
+  border: 3px solid transparent;
+  border-radius: 26px;
+  color: #153247;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.mode-card:hover {
+  transform: translateY(-4px);
+}
+
+.mode-card:active {
+  transform: translateY(-1px);
+}
+
+.mode-card:focus-visible {
+  outline: 4px solid #145f88;
+  outline-offset: 4px;
+}
+
+.mode-card--ideal {
+  border-color: #70c7d7;
+  background: linear-gradient(155deg, #e8fbff, #cceff5);
+  box-shadow: 0 15px 36px rgba(27, 135, 157, 0.16);
+}
+
+.mode-card--ideal:hover {
+  border-color: #2195ad;
+  box-shadow: 0 22px 46px rgba(27, 135, 157, 0.24);
+}
+
+.mode-card--friction {
+  border-color: #efb46e;
+  background: linear-gradient(155deg, #fff7e8, #ffe3bd);
+  box-shadow: 0 15px 36px rgba(184, 103, 25, 0.16);
+}
+
+.mode-card--friction:hover {
+  border-color: #d77927;
+  box-shadow: 0 22px 46px rgba(184, 103, 25, 0.24);
+}
+
+.mode-card-illustration {
+  display: grid;
+  width: 100%;
+  height: 150px;
+  place-items: center;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.mode-card-illustration svg {
+  width: min(260px, 95%);
+  height: 132px;
+  overflow: visible;
+}
+
+.mode-ground,
+.mode-rough-ground {
+  fill: none;
+  stroke: #537382;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-cart {
+  fill: #4ba7cf;
+  stroke: #176995;
+  stroke-width: 4;
+}
+
+.mode-wheel {
+  fill: #405c6c;
+}
+
+.mode-motion-line {
+  fill: none;
+  stroke: #2a9b68;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mode-noise-dot {
+  fill: #d96a32;
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.mode-card-title {
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+  font-weight: 900;
+}
+
+.mode-card-summary {
+  color: #345b70;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.mode-card-description {
+  align-self: stretch;
+  color: #4e6d7e;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.simulation-screen {
+  width: 100%;
+}
+
+.mode-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 9px 15px;
+  border-bottom: 1px solid #d7e8f0;
+  background: #f8fcfe;
+}
+
+.mode-home-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  padding: 8px;
+  place-items: center;
+  border: 1px solid #8fb8ce;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #286682;
+  cursor: pointer;
+}
+
+.mode-home-button:hover {
+  border-color: #4d92b3;
+  background: #eef8fc;
+}
+
+.mode-home-button:focus-visible {
+  outline: 3px solid #1d789f;
+  outline-offset: 2px;
+}
+
+.mode-home-button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.active-mode-copy {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.active-mode-copy strong {
+  color: #173f55;
+  font-size: 0.96rem;
+}
+
+.active-mode-copy span {
+  color: #627f8f;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+/* La simulation occupe maintenant toute la largeur : le menu latéral a disparu. */
+.simulation-layout {
+  display: block;
+}
+
+@media (max-width: 760px) {
+  .mode-selection {
+    min-height: auto;
+  }
+
+  .mode-selection-panel {
+    padding: 22px 16px;
+    border-radius: 22px;
+  }
+
+  .mode-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-card {
+    min-height: 340px;
+  }
+}

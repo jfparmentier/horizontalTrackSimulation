@@ -95,3 +95,30 @@ test("les résultats de la phase 1 sont toujours visibles mais initialement gris
   assert.match(html, /<dt>Durée de chute<\/dt><dd id="s2-stop-time-value"><\/dd>/);
   assert.match(html, /<dt>Vitesse d’impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
 });
+
+test("le menu latéral de paramètres a disparu", () => {
+  assert.doesNotMatch(html, /class="parameter-panel"/);
+  assert.doesNotMatch(html, /id="friction-range"|id="friction-number"/);
+  assert.doesNotMatch(html, /<h2[^>]*>Paramètres<\/h2>/);
+});
+
+test("l'écran initial propose deux grandes cartes de mode", () => {
+  assert.match(html, /id="mode-selection"/);
+  assert.match(html, /id="mode-ideal-button"[^>]+class="mode-card mode-card--ideal"/);
+  assert.match(html, /id="mode-friction-button"[^>]+class="mode-card mode-card--friction"/);
+  assert.match(html, />Cas idéal</);
+  assert.match(html, />Cas avec frottement</);
+  assert.match(html, /mesures parfaites/i);
+  assert.match(html, /mesures bruitées/i);
+});
+
+test("la simulation est initialement masquée jusqu'au choix du mode", () => {
+  assert.match(html, /id="simulation-screen"[^>]+hidden[^>]+aria-hidden="true"/);
+  assert.match(html, /id="mode-home-button"[^>]+aria-label="Revenir au choix du mode"/);
+});
+
+test("la valeur inconnue du coefficient de frottement n'est pas révélée dans l'interface", () => {
+  const visibleMarkup = html.slice(0, html.indexOf("<script>"));
+  assert.doesNotMatch(visibleMarkup, /0[.,]058/);
+  assert.match(visibleMarkup, /Frottement inconnu/);
+});
