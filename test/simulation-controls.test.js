@@ -122,7 +122,8 @@ test("les commandes sont initialisées dans l'état prêt", () => {
   assert.equal(elements.get("#pause-button").disabled, true);
   assert.equal(elements.get("#step-button").disabled, false);
   assert.equal(elements.get("#reset-button").disabled, true);
-  assert.equal(elements.get("#start-button").textContent, "Démarrer");
+  assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Démarrer");
+  assert.equal(elements.get("#start-button").dataset.actionState, "start");
 });
 
 test("démarrer, mettre en pause et reprendre actualisent les boutons", () => {
@@ -142,7 +143,8 @@ test("démarrer, mettre en pause et reprendre actualisent les boutons", () => {
   elements.get("#pause-button").dispatch("click");
   loop.step(0.01);
   controls.update(loop.getState(), loop.getDiagnostics());
-  assert.equal(elements.get("#start-button").textContent, "Reprendre");
+  assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Reprendre");
+  assert.equal(elements.get("#start-button").dataset.actionState, "resume");
   assert.equal(elements.get("#start-button").disabled, false);
 });
 
@@ -159,7 +161,8 @@ test("le bouton pas à pas utilise une durée physique déterministe", () => {
   elements.get("#step-button").dispatch("click");
 
   assert.deepEqual(loop.calls.at(-1), ["step", DEFAULT_MANUAL_STEP_DURATION]);
-  assert.equal(elements.get("#start-button").textContent, "Reprendre");
+  assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Reprendre");
+  assert.equal(elements.get("#start-button").dataset.actionState, "resume");
   assert.equal(elements.get("#reset-button").disabled, false);
 });
 

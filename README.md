@@ -1,171 +1,182 @@
 # Simulation du glissement d’un mobile sur un banc horizontal
 
-Page web pédagogique autonome reproduisant le mouvement d’un mobile horizontal entraîné par une masse suspendue. La simulation permet d’étudier l’évolution de la vitesse en fonction de la position, puis d’exporter les mesures de onze capteurs virtuels au format CSV.
+Simulation pédagogique autonome reproduisant le mouvement d’un mobile `S1` entraîné par une masse suspendue `S2`, puis poursuivant son déplacement après l’arrivée de `S2` sur son support.
 
-Le fichier `index.html` fonctionne directement hors ligne, sans serveur, sans installation et sans ressource externe.
+Le projet vise à permettre l’étude expérimentale de l’évolution de la vitesse en fonction de la position, à l’aide de onze capteurs virtuels et d’un export des mesures au format CSV.
 
-## Modes de simulation
+## Aperçu
 
-Au démarrage, l’utilisateur choisit l’un des deux modes proposés par un écran d’accueil à grandes cartes.
+La simulation représente deux phases successives :
 
-### Cas idéal
+1. **Phase 1 — chute de la masse suspendue** : `S2` descend et entraîne `S1` par l’intermédiaire d’un fil passant sur une poulie.
+2. **Phase 2 — mouvement après impact** : `S2` atteint son support, le fil se détend et `S1` poursuit son mouvement sous l’effet éventuel des frottements.
 
-- coefficient de frottement : `μ = 0` ;
-- mesures de vitesse exactes ;
-- objectif : identifier les deux phases du mouvement et comprendre les relations générales entre masse, accélération et vitesse.
+Le fichier `index.html` est entièrement autonome : il peut être ouvert directement dans un navigateur, sans serveur, sans installation et sans connexion réseau.
 
-### Cas avec frottement
+## Fonctionnalités principales
 
-- coefficient interne : `μ = 0.058` ;
-- valeur volontairement non affichée dans l’interface ;
-- vitesses mesurées perturbées par un bruit normal centré d’écart-type `0.02 m/s` ;
-- objectif : répéter les expériences, réduire l’incertitude par traitement statistique et estimer le coefficient de frottement.
-
-Un bouton d’accueil permet de revenir à l’écran de choix du mode.
-
-## Fonctionnalités
-
-- animation SVG synchronisée du mobile, de la masse suspendue et du fil ;
-- sélection de la masse suspendue par glisser-déposer ;
-- masses disponibles : `0.2 kg`, `0.5 kg`, `1 kg` et `2 kg` ;
+- animation SVG synchronisée de `S1`, `S2`, de la poulie et du fil ;
+- sélection de la masse suspendue par glisser-déposer directement dans le SVG ;
 - moteur physique à pas temporel fixe ;
-- localisation exacte du changement de phase ;
-- déclenchement des capteurs lorsque le bord gauche du mobile traverse leur faisceau ;
-- onze capteurs aux positions `0.12`, `0.24`, `0.36`, `0.48`, `0.60`, `0.80`, `1.00`, `1.20`, `1.40`, `1.60` et `1.80 m` ;
-- affichage de la durée de chute et de la vitesse d’impact au début de la phase 2 ;
-- export CSV à la fin de l’expérience ;
-- commandes au clavier et au pointeur ;
-- fonctionnement hors ligne.
+- traitement exact du changement de phase ;
+- détection des capteurs lorsque le bord gauche de `S1` traverse leur faisceau ;
+- onze capteurs placés aux positions `0.12 m`, `0.24 m`, `0.36 m`, `0.48 m`, `0.60 m`, puis `0.80 m`, `1.00 m`, `1.20 m`, `1.40 m`, `1.60 m` et `1.80 m` ;
+- passage direct des capteurs au vert lors du franchissement ;
+- commandes par icônes pour démarrer/reprendre, mettre en pause, avancer pas à pas et réinitialiser ;
+- panneau des commandes et des résultats intégré dans la zone centrale basse du montage ;
+- vitesse de lecture réglable de `0.1×` à `1.0×` ;
+- affichage du temps avec deux décimales ;
+- affichage de la **Durée de chute** et de la **Vitesse d’impact** dès le début de la phase 2 ;
+- téléchargement des mesures au format CSV lorsque la simulation est terminée ;
+- fonctionnement hors ligne, sans bibliothèque externe.
 
-## Utilisation
+## Démarrage rapide
 
-1. Ouvrir `index.html` dans un navigateur récent.
-2. Choisir **Cas idéal** ou **Cas avec frottement**.
-3. Faire glisser une masse sur la masse suspendue actuelle.
-4. Lancer la simulation avec **Démarrer**.
-5. Utiliser **Réinitialiser** pour répéter l’expérience avec une nouvelle réalisation du bruit dans le second mode.
-6. Lorsque la simulation est terminée, télécharger les mesures avec l’icône d’export.
+### Utilisation directe
 
-## Paramètres fixes
+1. Télécharger ou extraire les fichiers du projet.
+2. Ouvrir `index.html` dans un navigateur récent.
+3. Choisir le mode **Cas idéal** ou **Cas avec frottement**.
+4. Faire glisser l’une des masses disponibles (`0.2 kg`, `0.5 kg`, `1 kg` ou `2 kg`) sur la masse suspendue.
+5. Utiliser l’icône de lecture pour démarrer la simulation.
+6. À la fin de l’expérience, utiliser l’icône de téléchargement pour exporter les mesures.
+
+Aucune installation de Node.js n’est nécessaire pour cette utilisation.
+
+### Serveur local de développement
+
+```bash
+npm run serve
+```
+
+Ouvrir ensuite la page indiquée par le serveur, généralement `http://localhost:8000`.
+
+## Paramètres
+
+### Paramètres réglables
+
+| Paramètre | Plage | Pas | Valeur initiale |
+|---|---:|---:|---:|
+| Masse suspendue `m2` | `0.2 kg`, `0.5 kg`, `1.0 kg` ou `2.0 kg` | sélection SVG | `0.2 kg` |
+| Vitesse de lecture | `0.1×` à `1.0×` | `0.1×` | `1.0×` |
+
+### Modes de simulation
+
+| Mode | Coefficient de frottement | Mesures des capteurs |
+|---|---:|---|
+| Cas idéal | `μ = 0` | parfaites |
+| Cas avec frottement | `μ = 0.058` | bruit gaussien d’écart-type `0.1 m·s⁻¹` |
+
+Dans le second mode, la valeur de `μ` n’est pas affichée dans l’interface : elle constitue la grandeur à estimer expérimentalement.
+
+### Paramètres fixes
 
 | Paramètre | Valeur |
 |---|---:|
-| Masse du mobile | `1.0 kg` |
-| Longueur du mobile | `0.2 m` |
+| Masse de `S1` | `1.0 kg` |
+| Longueur physique de `S1` | `0.2 m` |
 | Hauteur de chute | `0.6 m` |
 | Longueur du banc | `2.0 m` |
 | Nombre de capteurs | `11` |
 | Gravité | `9.81 m·s⁻²` |
-| Position initiale | `x₀ = 0` |
-| Vitesse initiale | `v₀ = 0` |
+| Position initiale | `x0 = 0` |
+| Vitesse initiale | `v0 = 0` |
 
-Le mobile s’arrête lorsque son bord droit atteint l’extrémité du banc. Son bord gauche ne dépasse donc pas `1.8 m`.
-
-## Paramètres manipulables
-
-| Paramètre | Valeurs |
-|---|---|
-| Masse suspendue | `0.2`, `0.5`, `1.0` ou `2.0 kg` |
-| Vitesse de lecture | `0.1×` à `1.0×` |
-| Mode physique | idéal ou avec frottement |
-
-Le coefficient de frottement et le niveau de bruit ne sont pas modifiables depuis l’interface : ils sont imposés par le mode choisi.
+`S1` s’arrête lorsque son bord droit atteint l’extrémité du banc. Son bord gauche ne peut donc pas dépasser `1.8 m`.
 
 ## Modèle physique
 
-Le fil est supposé sans masse et inextensible. La poulie est idéale et le banc est horizontal.
+Le fil est supposé inextensible et sans masse. La poulie est idéale et le banc est horizontal.
 
 ### Phase 1
 
-Tant que la masse suspendue descend :
+Tant que `S2` descend, l’accélération commune des deux masses est :
 
 ```text
-a₁ = (m₂g − μm₁g) / (m₁ + m₂)
+a1 = (m2·g − μ·m1·g) / (m1 + m2)
 ```
 
-Si la force motrice est insuffisante, le système reste immobile.
+Si la force motrice n’est pas suffisante pour vaincre le frottement, l’accélération est nulle et le système reste bloqué.
 
 ### Phase 2
 
-Lorsque la masse suspendue atteint son support, le fil se détend :
+Lorsque `S2` atteint son support, `S1` n’est plus entraîné par le fil :
 
 ```text
-a₂ = −μg
+a2 = −μ·g
 ```
 
-Dans le cas idéal, la vitesse reste constante. Dans le cas avec frottement, elle décroît jusqu’à l’arrêt ou jusqu’à la fin du banc.
+Sans frottement, la vitesse de `S1` reste constante. Avec frottement, elle diminue jusqu’à l’arrêt ou jusqu’à l’extrémité du banc.
 
 ### Intégration temporelle
 
-Pour chaque intervalle à accélération constante :
+Pour une accélération constante sur un pas de durée `Δt`, le moteur utilise les relations cinématiques exactes :
 
 ```text
-x(t + Δt) = x(t) + v(t)Δt + 1/2 aΔt²
-v(t + Δt) = v(t) + aΔt
+x(t + Δt) = x(t) + v(t)·Δt + 1/2·a·Δt²
+v(t + Δt) = v(t) + a·Δt
 ```
 
-Les événements physiques sont localisés à leur instant exact, y compris lorsqu’ils surviennent entre deux images de l’animation.
+Les événements physiques — changement de phase, arrêt par frottement et fin du banc — sont localisés à leur instant exact, y compris lorsqu’ils surviennent entre deux images de l’animation.
 
-## Mesures bruitées
+## Mesures et export CSV
 
-Dans le mode avec frottement, seule la vitesse fournie par les capteurs est perturbée :
+Une mesure est enregistrée une seule fois pour chaque capteur, au moment exact où le bord gauche de `S1` traverse son faisceau.
 
-```text
-v_mesurée = max(0, v_théorique + ε)
-ε ~ N(0, 0.02²)
-```
-
-La position du capteur et l’instant de déclenchement restent exacts. Une nouvelle réalisation indépendante du bruit est générée à chaque répétition de l’expérience.
-
-## Export CSV
-
-Le fichier exporté contient quatre colonnes :
+Le fichier `mesures-capteurs.csv` contient exactement quatre colonnes :
 
 ```csv
 "Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"
 1,0.12,0.123456,0.654321
 ```
 
-Les nombres utilisent un point décimal et sont limités à six décimales. Le bouton d’export reste désactivé tant que la simulation n’est pas terminée.
+Les mesures sont :
+
+- triées par numéro de capteur ;
+- exprimées dans le même repère que la règle SVG ;
+- écrites avec un point décimal ;
+- limitées à six décimales ;
+- précédées d’une marque UTF-8 afin de faciliter l’ouverture dans les tableurs.
+
+Le bouton d’export reste désactivé tant que la simulation n’est pas terminée.
 
 ## Commandes clavier
 
 | Touche | Action |
 |---|---|
-| `Espace` | démarrer, reprendre ou mettre en pause |
-| `Flèche droite` | avancer de `0.05 s` |
-| `Début` / `Home` | réinitialiser l’expérience |
-| `Entrée` ou `Espace` sur une masse | sélectionner cette masse |
+| `Espace` | Démarrer, reprendre ou mettre en pause |
+| `Flèche droite` | Avancer de `0.05 s` |
+| `Début` / `Home` | Réinitialiser l’expérience |
+
+Les raccourcis sont ignorés lorsqu’un champ de saisie ou un bouton possède le focus.
 
 ## Structure du projet
 
 ```text
 .
-├── index.html                    # page autonome utilisable directement
-├── dist-standalone.js            # bundle JavaScript autonome
-├── package.json
+├── index.html                    # Version autonome utilisable directement
+├── dist-standalone.js            # JavaScript assemblé pour la version autonome
+├── package.json                  # Scripts et métadonnées du projet
 ├── scripts/
-│   ├── build-standalone.mjs
-│   └── smoke-standalone.mjs
+│   ├── build-standalone.mjs      # Construction du fichier HTML autonome
+│   └── smoke-standalone.mjs      # Vérification minimale du fichier construit
 ├── src/
-│   ├── animated-app.js           # orchestration générale
-│   ├── app-state.js              # état central et sélection du mode
-│   ├── mode-selector.js          # écran de choix du mode
-│   ├── apparatus-animation.js
-│   ├── apparatus-geometry.js
-│   ├── apparatus-view.js
-│   ├── apparatus.css
-│   ├── constants.js
-│   ├── mass-selector.js
-│   ├── measurement-recorder.js   # mesures exactes ou bruitées
-│   ├── measurement-export.js
-│   ├── parameter-controls.js     # vitesse de lecture
-│   ├── physics.js
-│   ├── sensor-controller.js
-│   ├── simulation-controls.js
-│   ├── time-loop.js
-│   └── transitions.js
-└── test/
+│   ├── animated-app.js           # Initialisation générale de l’application
+│   ├── app-state.js              # État central et immuable
+│   ├── apparatus-animation.js    # Mise à jour de l’animation SVG
+│   ├── apparatus-geometry.js     # Géométrie et conversions mètres–pixels
+│   ├── apparatus-view.js         # Construction du SVG
+│   ├── constants.js              # Constantes physiques et paramètres fixes
+│   ├── measurement-export.js     # Génération et téléchargement du CSV
+│   ├── measurement-recorder.js   # Calcul des mesures aux capteurs
+│   ├── mass-selector.js          # Glisser-déposer et sélection clavier des masses
+│   ├── parameter-controls.js     # Liaison des paramètres numériques à l’état central
+│   ├── physics.js                # Fonctions physiques élémentaires
+│   ├── sensor-controller.js      # Détection et affichage des capteurs
+│   ├── simulation-controls.js    # Commandes et raccourcis clavier
+│   ├── time-loop.js              # Boucle temporelle à pas fixe
+│   └── transitions.js            # Gestion exacte des événements physiques
+└── test/                         # Tests unitaires et tests d’intégration
 ```
 
 ## Développement
@@ -173,51 +184,88 @@ Les nombres utilisent un point décimal et sont limités à six décimales. Le b
 ### Prérequis
 
 - Node.js `18` ou version ultérieure ;
-- npm.
+- npm, fourni avec Node.js.
 
-Aucune dépendance npm externe n’est utilisée.
+Le projet n’utilise aucune dépendance npm externe.
 
-### Commandes
+### Installation
+
+```bash
+npm install
+```
+
+Cette commande initialise l’environnement npm. Aucun paquet tiers n’est téléchargé dans l’état actuel du projet.
+
+### Scripts disponibles
 
 ```bash
 npm test
+```
+
+Exécute l’ensemble des tests avec le module natif `node:test`.
+
+```bash
 npm run build
+```
+
+Reconstruit `index.html` à partir des modules présents dans `src/`.
+
+```bash
 npm run smoke
+```
+
+Effectue un test minimal du fichier HTML autonome construit.
+
+```bash
 npm run serve
 ```
 
-- `npm test` exécute les tests unitaires et d’intégration ;
-- `npm run build` reconstruit `index.html` et `dist-standalone.js` ;
-- `npm run smoke` vérifie le fonctionnement minimal du bundle autonome ;
-- `npm run serve` lance un serveur local sur le port `8000`.
+Démarre un serveur HTTP local sur le port `8000`.
 
-Avant toute livraison :
+### Vérification avant modification
 
 ```bash
-npm run build
 npm test
+npm run build
 npm run smoke
 ```
 
+Toute modification du moteur physique, de la géométrie SVG ou de l’enregistrement des mesures devrait être accompagnée d’un test reproduisant le comportement attendu.
+
 ## Accessibilité
 
-- cartes de mode utilisables au clavier ;
-- sélection des masses à la souris, au tactile et au clavier ;
-- descriptions accessibles du SVG ;
-- états `disabled` et `aria-disabled` cohérents ;
-- raccourcis déclarés avec `aria-keyshortcuts` ;
-- icônes accompagnées d’un nom accessible.
+L’interface comprend notamment :
+
+- des libellés explicites pour les paramètres et les commandes ;
+- une sélection des masses utilisable au pointeur, à la souris, au tactile et au clavier (`Entrée` ou `Espace`) ;
+- des états `disabled` et `aria-disabled` cohérents ;
+- des raccourcis clavier déclarés avec `aria-keyshortcuts` ;
+- une description accessible du montage SVG ;
+- une icône de téléchargement accompagnée d’un nom accessible ;
+- des changements d’état des capteurs qui ne reposent pas uniquement sur une animation transitoire.
 
 ## Limites du modèle
+
+Cette version repose sur un modèle volontairement simplifié :
 
 - fil sans masse et inextensible ;
 - poulie sans inertie ni frottement ;
 - banc parfaitement horizontal ;
-- frottement cinétique constant ;
-- absence de frottement statique distinct ;
+- coefficient de frottement constant ;
 - absence de résistance de l’air ;
-- bruit appliqué uniquement à la vitesse des capteurs.
+- masse suspendue et mobile partageant la même vitesse durant la phase 1 ;
+- absence d’incertitude et de bruit expérimental dans les mesures exportées.
+
+## Contribution
+
+Pour proposer une modification :
+
+1. créer une branche dédiée ;
+2. conserver la séparation entre modèle physique, état, rendu et interface ;
+3. ajouter ou mettre à jour les tests concernés ;
+4. exécuter `npm test`, `npm run build` et `npm run smoke` ;
+5. décrire clairement le comportement modifié et sa justification scientifique.
 
 ## Licence
 
-Aucun fichier de licence n’est fourni. Une licence explicite doit être ajoutée avant toute diffusion publique ou réutilisation par des tiers.
+Aucun fichier de licence n’est fourni dans cette version. Une licence explicite doit être ajoutée avant toute diffusion publique ou réutilisation par des tiers.

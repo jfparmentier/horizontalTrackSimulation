@@ -79,7 +79,7 @@ test("le choix avec frottement configure mu = 0,058 et des mesures bruitées", (
 
   assert.equal(snapshot.mode, "friction");
   assert.equal(snapshot.parameters.friction, 0.058);
-  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.02);
+  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.1);
   assert.match(elements.get("#active-mode-detail").textContent, /mesures bruitées/i);
 });
 

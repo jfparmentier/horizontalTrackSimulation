@@ -41,7 +41,7 @@ export const SIMULATION_MODES = Object.freeze({
     label: "Cas avec frottement",
     shortLabel: "Frottement",
     friction: 0.058,
-    measurementNoiseStdDev: 0.02,
+    measurementNoiseStdDev: 0.1,
     measurementsAreNoisy: true,
   }),
 });

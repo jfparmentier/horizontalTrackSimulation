@@ -46,7 +46,7 @@ const SIMULATION_MODES = Object.freeze({
     label: "Cas avec frottement",
     shortLabel: "Frottement",
     friction: 0.058,
-    measurementNoiseStdDev: 0.02,
+    measurementNoiseStdDev: 0.1,
     measurementsAreNoisy: true,
   }),
 });
@@ -2759,7 +2759,10 @@ function bindSimulationControls(root, configuration = {}) {
     stepButton.disabled = running || terminal;
     resetButton.disabled = initial && !running;
 
-    startButton.textContent = initial ? "Démarrer" : "Reprendre";
+    const startLabel = initial ? "Démarrer" : "Reprendre";
+    startButton.setAttribute("aria-label", startLabel);
+    startButton.setAttribute("title", startLabel);
+    startButton.dataset.actionState = initial ? "start" : "resume";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
     return Object.freeze({ running, terminal, initial });

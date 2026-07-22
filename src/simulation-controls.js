@@ -93,7 +93,10 @@ export function bindSimulationControls(root, configuration = {}) {
     stepButton.disabled = running || terminal;
     resetButton.disabled = initial && !running;
 
-    startButton.textContent = initial ? "Démarrer" : "Reprendre";
+    const startLabel = initial ? "Démarrer" : "Reprendre";
+    startButton.setAttribute("aria-label", startLabel);
+    startButton.setAttribute("title", startLabel);
+    startButton.dataset.actionState = initial ? "start" : "resume";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
     return Object.freeze({ running, terminal, initial });

@@ -225,7 +225,7 @@ test("le choix du mode avec frottement impose mu = 0,058 et le bruit des mesures
 
   assert.equal(snapshot.mode, "friction");
   assert.equal(snapshot.parameters.friction, 0.058);
-  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.02);
+  assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.1);
   assert.throws(
     () => store.updateParameters({ friction: 0.03 }),
     /imposé par le mode/i,

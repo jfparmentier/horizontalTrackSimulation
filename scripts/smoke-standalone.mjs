@@ -226,8 +226,8 @@ elements.get("#step-button").dispatch("click");
 if (elements.get("#time-value").textContent === "0.00 s") {
   throw new Error("Le bouton pas à pas n'a pas fait progresser la simulation.");
 }
-if (elements.get("#start-button").textContent !== "Reprendre") {
-  throw new Error("Le libellé de reprise n'a pas été actualisé.");
+if (elements.get("#start-button").attributes.get("aria-label") !== "Reprendre") {
+  throw new Error("Le libellé accessible de reprise n'a pas été actualisé.");
 }
 const firstSensorState = host.svg.nodes.get("#sensor-1").attributes.get("data-sensor-state");
 if (!firstSensorState) {

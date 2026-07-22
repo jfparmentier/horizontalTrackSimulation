@@ -246,30 +246,41 @@ ${css}
             <span id="active-mode-detail"></span>
           </div>
         </div>
-        <div id="apparatus-host" class="apparatus-host"></div>
-        <div class="animation-controls" aria-label="Commandes de la simulation">
-          <div class="main-control-buttons">
-            <button id="start-button" class="control-button control-button--primary" type="button">Démarrer</button>
-            <button id="pause-button" class="control-button" type="button">Pause</button>
-            <button id="step-button" class="control-button" type="button">Pas à pas</button>
-            <button id="reset-button" class="control-button" type="button">Réinitialiser</button>
-            <div class="playback-control">
-              <label for="playback-speed-range">Vitesse de lecture</label>
-              <input id="playback-speed-range" type="range" min="0.1" max="1" step="0.1" value="1">
-              <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.1" max="1" step="0.1" value="1" aria-label="Valeur de la vitesse de lecture"><span>×</span></span>
+        <div class="apparatus-stage">
+          <div id="apparatus-host" class="apparatus-host"></div>
+          <div class="animation-controls" aria-label="Commandes et résultats de la simulation">
+            <div class="main-control-buttons">
+              <button id="start-button" class="control-button control-button--primary" type="button" aria-label="Démarrer" title="Démarrer">
+                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z" /></svg>
+              </button>
+              <button id="pause-button" class="control-button" type="button" aria-label="Pause" title="Pause">
+                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
+              </button>
+              <button id="step-button" class="control-button" type="button" aria-label="Pas à pas" title="Pas à pas">
+                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5v14l10-7zM17 5h2v14h-2z" /></svg>
+              </button>
+              <button id="reset-button" class="control-button" type="button" aria-label="Réinitialiser" title="Réinitialiser">
+                <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9A8 8 0 1 1 6 17.5M4.5 9V4.5M4.5 9H9" /></svg>
+              </button>
+              <div class="playback-control">
+                <label class="visually-hidden" for="playback-speed-range">Vitesse de lecture</label>
+                <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
+                <input id="playback-speed-range" type="range" min="0.1" max="1" step="0.1" value="1" aria-label="Vitesse de lecture">
+                <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.1" max="1" step="0.1" value="1" aria-label="Valeur de la vitesse de lecture"><span>×</span></span>
+              </div>
             </div>
-          </div>
-          <div class="readout-actions">
-            <dl class="animation-readout">
-              <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
-              <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
-              <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
-            </dl>
-            <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
-              <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
-              </svg>
-            </button>
+            <div class="readout-actions">
+              <dl class="animation-readout">
+                <div class="readout-item"><dt>Temps</dt><dd id="time-value">0.00 s</dd></div>
+                <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
+                <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
+              </dl>
+              <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
+                <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -68,6 +68,21 @@ test("le curseur de vitesse de lecture est à droite des boutons de pilotage", (
 });
 
 
+
+test("les commandes et résultats sont superposés dans la zone centrale basse du SVG", () => {
+  assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls"/);
+  assert.match(html, /\.apparatus-stage \{[\s\S]*?position: relative/);
+  assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: 20%[\s\S]*?bottom: 1\.5%[\s\S]*?left: 39\.5%/);
+});
+
+test("les quatre commandes principales utilisent uniquement des icônes visibles", () => {
+  const controls = html.match(/<div class="main-control-buttons">([\s\S]*?)<div class="playback-control">/)?.[1] ?? "";
+  for (const id of ["start-button", "pause-button", "step-button", "reset-button"]) {
+    assert.match(controls, new RegExp(`id="${id}"[^>]+aria-label="[^"]+"[\\s\\S]*?<svg`));
+  }
+  assert.doesNotMatch(controls, />\s*(Démarrer|Pause|Pas à pas|Réinitialiser)\s*</);
+});
+
 test("la vitesse de lecture est limitée à 1×", () => {
   assert.match(html, /id="playback-speed-range"[^>]+max="1"/);
   assert.match(html, /id="playback-speed-number"[^>]+max="1"/);
