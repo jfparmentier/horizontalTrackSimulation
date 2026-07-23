@@ -157,7 +157,7 @@ const manifests = [
       ["measurementExport", ["bindMeasurementExport"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
-    exports: ["createAnimatedApp"],
+    exports: ["IMPACT_SENSOR_ID", "getImpactSensorMeasurement", "createAnimatedApp"],
   },
 ];
 

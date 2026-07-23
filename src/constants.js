@@ -59,7 +59,7 @@ export const PARAMETER_LIMITS = Object.freeze({
 
 export const DEFAULT_PARAMETERS = Object.freeze({
   m1: FIXED_M1,
-  m2: 0.2,
+  m2: 0.5,
   dropHeight: FIXED_DROP_HEIGHT,
   trackLength: FIXED_TRACK_LENGTH,
   friction: SIMULATION_MODES[SIMULATION_MODE_IDS.ideal].friction,

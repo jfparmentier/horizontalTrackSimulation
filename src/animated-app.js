@@ -21,6 +21,16 @@ const VELOCITY_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+export const IMPACT_SENSOR_ID = 5;
+
+/** Retourne la mesure du capteur placé à la fin de la chute, si elle existe. */
+export function getImpactSensorMeasurement(measurements = []) {
+  if (!Array.isArray(measurements)) {
+    throw new TypeError("measurements doit être un tableau.");
+  }
+  return measurements.find((measurement) => measurement?.sensorId === IMPACT_SENSOR_ID) ?? null;
+}
+
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -49,12 +59,10 @@ export function createAnimatedApp(root = document, options = {}) {
   });
   let runtime = null;
   let simulationControls = null;
-  let phaseChangeEvent = null;
   let destroyed = false;
 
   function clearReadout() {
     timeValue.textContent = "0.00 s";
-    phaseChangeEvent = null;
     for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
       item.classList.toggle("readout-item--pending", true);
       item.setAttribute("aria-disabled", "true");
@@ -66,20 +74,23 @@ export function createAnimatedApp(root = document, options = {}) {
   function updateReadout(state) {
     timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
 
-    const phaseTwoStarted = Boolean(phaseChangeEvent);
+    const impactMeasurement = getImpactSensorMeasurement(
+      appState.getSnapshot().measurements,
+    );
+    const measurementAvailable = Boolean(impactMeasurement);
     for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
-      item.classList.toggle("readout-item--pending", !phaseTwoStarted);
-      item.setAttribute("aria-disabled", String(!phaseTwoStarted));
+      item.classList.toggle("readout-item--pending", !measurementAvailable);
+      item.setAttribute("aria-disabled", String(!measurementAvailable));
     }
 
-    if (!phaseTwoStarted) {
+    if (!measurementAvailable) {
       s2StopTimeValue.textContent = "";
       s2ContactVelocityValue.textContent = "";
       return;
     }
 
-    s2StopTimeValue.textContent = `${TIME_FORMAT.format(phaseChangeEvent.time)} s`;
-    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(phaseChangeEvent.velocity)} m/s`;
+    s2StopTimeValue.textContent = `${TIME_FORMAT.format(impactMeasurement.time)} s`;
+    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(impactMeasurement.velocity)} m/s`;
   }
 
   function destroyRuntime({ clearHost = false } = {}) {
@@ -138,10 +149,6 @@ export function createAnimatedApp(root = document, options = {}) {
       playbackSpeed: snapshot.playbackSpeed,
       requestFrame: options.requestFrame,
       cancelFrame: options.cancelFrame,
-      onEvents(events) {
-        const transition = events.find((event) => event.type === "phase-change");
-        if (transition) phaseChangeEvent = transition;
-      },
       onRender(state, previousState, meta) {
         animator.render(state, previousState, meta);
         sensorController.render(state, previousState, meta);
@@ -178,6 +185,7 @@ export function createAnimatedApp(root = document, options = {}) {
       runtime.loop.setPlaybackSpeed(snapshot.playbackSpeed);
     } else if (meta.reason === "measurements-recorded") {
       host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
+      updateReadout(snapshot.simulation);
     } else if (meta.reason === "experiment-reset" && runtime) {
       host.setAttribute("data-measurement-count", "0");
       runtime.measurementRecorder.reset();

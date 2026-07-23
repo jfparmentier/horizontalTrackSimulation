@@ -70,7 +70,7 @@ class FakeSvg extends FakeElement {
         new FakeElement(`sensor-${index + 1}`),
       ]),
     ]);
-    this.massChoices = [0.5, 1, 2].map((value) => {
+    this.massChoices = [0.2, 1, 2].map((value) => {
       const element = new FakeElement(`mass-choice-${value}`);
       element.dataset.massValue = String(value);
       element.dataset.originX = "0";
@@ -194,8 +194,8 @@ if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
 if (elements.get("#time-value").textContent !== "0.00 s") {
   throw new Error("L'affichage initial du temps est incorrect.");
 }
-if (!host._innerHTML.includes(">0.2 kg</text>")) {
-  throw new Error("La masse suspendue initiale de 0.2 kg n'est pas affichée.");
+if (!host._innerHTML.includes(">0.5 kg</text>")) {
+  throw new Error("La masse suspendue initiale de 0.5 kg n'est pas affichée.");
 }
 if (elements.get("#download-data-button").disabled !== true) {
   throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
@@ -216,8 +216,8 @@ host.svg.massChoices[0].dispatch("keydown", { key: "Enter" });
 if (!host._innerHTML.includes("11 capteurs")) {
   throw new Error("Le montage n'a pas été reconstruit après remplacement de la masse.");
 }
-if (!host._innerHTML.includes(">0.5 kg</text>")) {
-  throw new Error("La sélection accessible de la masse de 0.5 kg a échoué.");
+if (!host._innerHTML.includes(">0.2 kg</text>")) {
+  throw new Error("La sélection accessible de la masse de 0.2 kg a échoué.");
 }
 elements.get("#step-button").dispatch("click");
 if (elements.get("#time-value").textContent === "0.00 s") {

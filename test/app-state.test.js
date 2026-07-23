@@ -8,6 +8,7 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
   const state = store.getSnapshot();
 
   assert.equal(state.parameters.m1, 1);
+  assert.equal(state.parameters.m2, 0.5);
   assert.equal(state.parameters.trackLength, 2);
   assert.equal(state.parameters.gravityMode, "earth");
   assert.equal(state.experimental.sensorCount, 11);

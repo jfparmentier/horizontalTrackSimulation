@@ -26,7 +26,7 @@ Le fichier `index.html` est entièrement autonome : il peut être ouvert directe
 - panneau des commandes et des résultats intégré dans la zone centrale basse du montage ;
 - vitesse de lecture réglable de `0.2×` à `1.0×`, par pas de `0.2×` ;
 - affichage du temps avec deux décimales ;
-- affichage de la **Durée de chute** et de la **Vitesse d’impact** dès le début de la phase 2 ;
+- affichage de la **Durée de chute** et de la **Vitesse d’impact** à partir des mesures du capteur n° 5, placé à `0.60 m` ; les bruits temporel et de vitesse du mode avec frottement sont donc pris en compte ;
 - téléchargement des mesures au format CSV lorsque la simulation est terminée ;
 - fonctionnement hors ligne, sans bibliothèque externe.
 
@@ -57,7 +57,7 @@ Ouvrir ensuite la page indiquée par le serveur, généralement `http://localhos
 
 | Paramètre | Plage | Pas | Valeur initiale |
 |---|---:|---:|---:|
-| Masse suspendue `m2` | `0.2 kg`, `0.5 kg`, `1.0 kg` ou `2.0 kg` | sélection SVG | `0.2 kg` |
+| Masse suspendue `m2` | `0.2 kg`, `0.5 kg`, `1.0 kg` ou `2.0 kg` | sélection SVG | `0.5 kg` |
 | Vitesse de lecture | `0.2×` à `1.0×` | `0.2×` | `1.0×` |
 
 ### Modes de simulation
