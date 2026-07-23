@@ -207,8 +207,8 @@ test("le bouton ouvre le tableau uniquement après la fin de la simulation", () 
   assert.equal(overlay.attributes.get("aria-hidden"), "false");
   assert.equal(showButton.attributes.get("aria-expanded"), "true");
   assert.equal(closeButton.focused, true);
-  assert.match(tableBody.innerHTML, /<td>1<\/td><td>0,222222<\/td><td>0,512<\/td><td>0,8<\/td>/);
-  assert.match(tableBody.innerHTML, /<td>2<\/td><td>0,444444<\/td><td>0,812346<\/td><td>1,234568<\/td>/);
+  assert.match(tableBody.innerHTML, /<td data-label="Numéro du capteur">1<\/td><td data-label="Position \(m\)">0,222222<\/td><td data-label="Instant de déclenchement \(s\)">0,512<\/td><td data-label="Vitesse mesurée \(m\/s\)">0,8<\/td>/);
+  assert.match(tableBody.innerHTML, /<td data-label="Numéro du capteur">2<\/td><td data-label="Position \(m\)">0,444444<\/td><td data-label="Instant de déclenchement \(s\)">0,812346<\/td><td data-label="Vitesse mesurée \(m\/s\)">1,234568<\/td>/);
 
   downloadButton.click();
   assert.equal(exported.length, 1);

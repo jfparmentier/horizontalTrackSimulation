@@ -37,6 +37,8 @@ const MESSAGES = Object.freeze({
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
     "readout.impactVelocity": "V impact",
+    "mass.mobileTitle": "Masse suspendue S2",
+    "mass.select": "Sélectionner la masse de {mass} kilogramme",
 
     "measurements.show": "Afficher le tableau des mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
@@ -96,6 +98,8 @@ const MESSAGES = Object.freeze({
     "readout.time": "Time",
     "readout.fallDuration": "Fall duration",
     "readout.impactVelocity": "Impact speed",
+    "mass.mobileTitle": "Suspended mass S2",
+    "mass.select": "Select the {mass} kilogram mass",
 
     "measurements.show": "Show the measurement table",
     "measurements.eyebrow": "Experimental results",

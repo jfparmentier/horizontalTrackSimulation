@@ -42,6 +42,8 @@ const MESSAGES = Object.freeze({
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
     "readout.impactVelocity": "V impact",
+    "mass.mobileTitle": "Masse suspendue S2",
+    "mass.select": "Sélectionner la masse de {mass} kilogramme",
 
     "measurements.show": "Afficher le tableau des mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
@@ -101,6 +103,8 @@ const MESSAGES = Object.freeze({
     "readout.time": "Time",
     "readout.fallDuration": "Fall duration",
     "readout.impactVelocity": "Impact speed",
+    "mass.mobileTitle": "Suspended mass S2",
+    "mass.select": "Select the {mass} kilogram mass",
 
     "measurements.show": "Show the measurement table",
     "measurements.eyebrow": "Experimental results",
@@ -2807,6 +2811,7 @@ return Object.freeze({ bindParameterControls });
 modules.massSelector = (() => {
 
 const MASS_EPSILON = 1e-9;
+const TAP_MOVEMENT_THRESHOLD_PX = 8;
 
 function asFiniteNumber(value, name) {
   const normalized = Number(value);
@@ -2868,8 +2873,8 @@ function getMassValue(element) {
 
 /**
  * Relie les masses dessinées dans le SVG au paramètre m2. Une masse est
- * déplacée au pointeur vers S2 ; au clavier, Entrée ou Espace effectue le même
- * remplacement. Le changement de paramètre reconstruit ensuite le montage,
+ * déplacée au pointeur vers S2 ; un appui bref la sélectionne directement et,
+ * au clavier, Entrée ou Espace effectue le même remplacement. Le changement de paramètre reconstruit ensuite le montage,
  * ce qui remet automatiquement l'ancienne masse sur le support de rangement.
  */
 function createMassSelector(svg, options = {}) {
@@ -2936,6 +2941,7 @@ function createMassSelector(svg, options = {}) {
       originY: asFiniteNumber(element.dataset?.originY ?? 0, "data-origin-y"),
       originTransform: element.getAttribute?.("transform")
         ?? `translate(${element.dataset?.originX ?? 0} ${element.dataset?.originY ?? 0})`,
+      moved: false,
     };
 
     element.classList?.add("mass-choice--dragging");
@@ -2946,9 +2952,14 @@ function createMassSelector(svg, options = {}) {
 
   function moveDrag(event) {
     if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
+    const clientDx = (Number(event.clientX) || 0) - active.startClientX;
+    const clientDy = (Number(event.clientY) || 0) - active.startClientY;
+    if (Math.hypot(clientDx, clientDy) >= TAP_MOVEMENT_THRESHOLD_PX) {
+      active.moved = true;
+    }
     const scale = getSvgScale(svg);
-    const dx = ((Number(event.clientX) || 0) - active.startClientX) * scale.x;
-    const dy = ((Number(event.clientY) || 0) - active.startClientY) * scale.y;
+    const dx = clientDx * scale.x;
+    const dy = clientDy * scale.y;
 
     active.element.setAttribute?.(
       "transform",
@@ -2962,9 +2973,10 @@ function createMassSelector(svg, options = {}) {
     if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
     const selectedValue = active.value;
     const accepted = isOverTarget(event);
+    const tapped = !active.moved;
     restoreActive();
 
-    if (accepted && !sameMass(selectedValue, options.selectedMass)) {
+    if ((accepted || tapped) && !sameMass(selectedValue, options.selectedMass)) {
       options.onSelect(selectedValue);
     }
     event.preventDefault?.();
@@ -3008,6 +3020,246 @@ function createMassSelector(svg, options = {}) {
 }
 
 return Object.freeze({ isPointInsideRect, createMassSelector });
+})();
+
+modules.mobileMassSelector = (() => {
+
+const MASS_EPSILON = 1e-9;
+
+function getRequiredElement(root, selector) {
+  const element = root.querySelector(selector);
+  if (!element) {
+    throw new Error(`Élément de sélection mobile de masse introuvable : ${selector}`);
+  }
+  return element;
+}
+
+function normalizeMass(value) {
+  const normalized = Number(value);
+  if (!Number.isFinite(normalized) || normalized <= 0) {
+    throw new TypeError("La masse sélectionnée doit être un nombre strictement positif.");
+  }
+  return normalized;
+}
+
+function sameMass(left, right) {
+  return Math.abs(Number(left) - Number(right)) <= MASS_EPSILON;
+}
+
+/**
+ * Relie la rangée de boutons tactiles à la masse suspendue. Cette commande est
+ * masquée sur grand écran par CSS et complète le glisser-déposer SVG sur les
+ * écrans étroits.
+ */
+function bindMobileMassSelector(root, appState, i18n) {
+  if (!root || typeof root.querySelector !== "function") {
+    throw new TypeError("Une racine DOM interrogeable est requise.");
+  }
+  if (
+    !appState
+    || typeof appState.getSnapshot !== "function"
+    || typeof appState.updateParameters !== "function"
+    || typeof appState.subscribe !== "function"
+  ) {
+    throw new TypeError("Un état central prenant en charge les paramètres est requis.");
+  }
+  if (!i18n || typeof i18n.t !== "function" || typeof i18n.subscribe !== "function") {
+    throw new TypeError("Un gestionnaire de langue valide est requis.");
+  }
+
+  const selector = getRequiredElement(root, "#mobile-mass-selector");
+  const buttons = Array.from(
+    selector.querySelectorAll?.("[data-mobile-mass-value]") ?? [],
+  );
+  if (buttons.length === 0) {
+    throw new Error("Aucun bouton tactile de masse n'est disponible.");
+  }
+
+  const listeners = [];
+  let destroyed = false;
+
+  function listen(element, name, callback) {
+    element.addEventListener?.(name, callback);
+    listeners.push(() => element.removeEventListener?.(name, callback));
+  }
+
+  function localizeButton(button) {
+    const mass = button.getAttribute?.("data-mobile-mass-value")
+      ?? button.dataset?.mobileMassValue;
+    const label = i18n.t("mass.select", { mass });
+    button.setAttribute?.("aria-label", label);
+    button.setAttribute?.("title", label);
+  }
+
+  function sync(snapshot = appState.getSnapshot()) {
+    const selectedMass = snapshot.parameters.m2;
+    for (const button of buttons) {
+      const value = normalizeMass(
+        button.getAttribute?.("data-mobile-mass-value")
+          ?? button.dataset?.mobileMassValue,
+      );
+      const selected = sameMass(value, selectedMass);
+      button.classList?.toggle("mobile-mass-button--selected", selected);
+      button.setAttribute?.("aria-pressed", String(selected));
+    }
+    selector.setAttribute?.("data-selected-mass", String(selectedMass));
+    return selectedMass;
+  }
+
+  function localize() {
+    for (const button of buttons) localizeButton(button);
+    return i18n.getLocale?.();
+  }
+
+  for (const button of buttons) {
+    listen(button, "click", () => {
+      if (destroyed) return;
+      const value = normalizeMass(
+        button.getAttribute?.("data-mobile-mass-value")
+          ?? button.dataset?.mobileMassValue,
+      );
+      if (!sameMass(value, appState.getSnapshot().parameters.m2)) {
+        appState.updateParameters({ m2: value });
+      }
+    });
+  }
+
+  const unsubscribeState = appState.subscribe((snapshot, meta) => {
+    if (["mode-change", "parameters-change", "experiment-reset", "subscription"].includes(meta.reason)) {
+      sync(snapshot);
+    }
+  }, { emitCurrent: true });
+  const unsubscribeLanguage = i18n.subscribe(localize);
+  localize();
+
+  return Object.freeze({
+    sync,
+    localize,
+    getButtonCount: () => buttons.length,
+    destroy() {
+      if (destroyed) return false;
+      destroyed = true;
+      listeners.splice(0).forEach((remove) => remove());
+      unsubscribeState();
+      unsubscribeLanguage();
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ bindMobileMassSelector });
+})();
+
+modules.responsiveApparatus = (() => {
+
+const APPARATUS_VIEWPORTS = Object.freeze({
+  desktop: Object.freeze({
+    id: "desktop",
+    viewBox: "0 0 1200 620",
+  }),
+  mobilePortrait: Object.freeze({
+    id: "mobile-portrait",
+    viewBox: "70 60 1100 535",
+  }),
+  shortLandscape: Object.freeze({
+    id: "short-landscape",
+    viewBox: "45 55 1120 545",
+  }),
+});
+
+function normalizeViewportSize(viewport = {}) {
+  const width = Number(viewport.width);
+  const height = Number(viewport.height);
+  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+    throw new TypeError("La largeur et la hauteur de la fenêtre doivent être strictement positives.");
+  }
+  return Object.freeze({ width, height });
+}
+
+/** Sélectionne le cadrage visuel sans modifier la géométrie physique du montage. */
+function selectApparatusViewport(viewport) {
+  const { width, height } = normalizeViewportSize(viewport);
+  if (height <= 500 && width > height && width <= 1000) {
+    return APPARATUS_VIEWPORTS.shortLandscape;
+  }
+  if (width <= 760 && height >= width) {
+    return APPARATUS_VIEWPORTS.mobilePortrait;
+  }
+  return APPARATUS_VIEWPORTS.desktop;
+}
+
+function applyApparatusViewport(svg, viewport) {
+  if (!svg || typeof svg.setAttribute !== "function") {
+    throw new TypeError("Un élément SVG modifiable est requis.");
+  }
+  const selected = selectApparatusViewport(viewport);
+  svg.setAttribute("viewBox", selected.viewBox);
+  svg.setAttribute("data-responsive-layout", selected.id);
+  return selected;
+}
+
+/**
+ * Met à jour le cadrage du SVG lors des changements de taille ou d'orientation.
+ * Les coordonnées du montage restent inchangées ; seule la fenêtre SVG évolue.
+ */
+function createResponsiveApparatusViewport(svg, options = {}) {
+  const windowRef = options.windowRef ?? globalThis.window;
+  if (!windowRef || typeof windowRef.addEventListener !== "function") {
+    return Object.freeze({
+      update: () => applyApparatusViewport(svg, { width: 1200, height: 620 }),
+      destroy: () => false,
+    });
+  }
+
+  let destroyed = false;
+  let frameId = null;
+
+  function readViewport() {
+    const visualViewport = windowRef.visualViewport;
+    return Object.freeze({
+      width: Number(visualViewport?.width ?? windowRef.innerWidth),
+      height: Number(visualViewport?.height ?? windowRef.innerHeight),
+    });
+  }
+
+  function update() {
+    if (destroyed) return null;
+    frameId = null;
+    return applyApparatusViewport(svg, readViewport());
+  }
+
+  function scheduleUpdate() {
+    if (destroyed || frameId !== null) return;
+    if (typeof windowRef.requestAnimationFrame === "function") {
+      frameId = windowRef.requestAnimationFrame(update);
+    } else {
+      update();
+    }
+  }
+
+  windowRef.addEventListener("resize", scheduleUpdate);
+  windowRef.addEventListener("orientationchange", scheduleUpdate);
+  windowRef.visualViewport?.addEventListener?.("resize", scheduleUpdate);
+  update();
+
+  return Object.freeze({
+    update,
+    destroy() {
+      if (destroyed) return false;
+      destroyed = true;
+      windowRef.removeEventListener?.("resize", scheduleUpdate);
+      windowRef.removeEventListener?.("orientationchange", scheduleUpdate);
+      windowRef.visualViewport?.removeEventListener?.("resize", scheduleUpdate);
+      if (frameId !== null && typeof windowRef.cancelAnimationFrame === "function") {
+        windowRef.cancelAnimationFrame(frameId);
+      }
+      frameId = null;
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ APPARATUS_VIEWPORTS, selectApparatusViewport, applyApparatusViewport, createResponsiveApparatusViewport });
 })();
 
 modules.simulationControls = (() => {
@@ -3842,6 +4094,14 @@ function resolveTranslator(options = {}) {
 
 const CSV_NUMBER_PRECISION = 6;
 
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -3987,8 +4247,9 @@ function renderMeasurementRows(tableBody, measurements, i18n) {
     return rows;
   }
 
+  const labels = CSV_HEADER_KEYS.map((key) => escapeHtmlAttribute(i18n.t(key)));
   tableBody.innerHTML = rows
-    .map((row) => `<tr>${row.map((value) => `<td>${value}</td>`).join("")}</tr>`)
+    .map((row) => `<tr>${row.map((value, index) => `<td data-label="${labels[index]}">${value}</td>`).join("")}</tr>`)
     .join("");
   return rows;
 }
@@ -4131,6 +4392,8 @@ const { bindLanguageSelector } = modules.languageSelector;
 const { bindModeSelector } = modules.modeSelector;
 const { bindParameterControls } = modules.parameterControls;
 const { createMassSelector } = modules.massSelector;
+const { bindMobileMassSelector } = modules.mobileMassSelector;
+const { createResponsiveApparatusViewport } = modules.responsiveApparatus;
 const { bindSimulationControls } = modules.simulationControls;
 const { createSensorController } = modules.sensorController;
 const { createMeasurementRecorder } = modules.measurementRecorder;
@@ -4222,6 +4485,7 @@ function createAnimatedApp(root = document, options = {}) {
   function destroyRuntime({ clearHost = false } = {}) {
     if (runtime) {
       runtime.massSelector?.destroy();
+      runtime.responsiveViewport?.destroy();
       runtime.sensorController?.destroy();
       runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
@@ -4245,6 +4509,9 @@ function createAnimatedApp(root = document, options = {}) {
       i18n,
     });
     const animator = createApparatusAnimator(svg, layout);
+    const responsiveViewport = createResponsiveApparatusViewport(svg, {
+      windowRef: options.windowRef ?? root.defaultView ?? globalThis.window,
+    });
     const massSelector = createMassSelector(svg, {
       selectedMass: snapshot.parameters.m2,
       onSelect(value) {
@@ -4291,6 +4558,7 @@ function createAnimatedApp(root = document, options = {}) {
       svg,
       animator,
       massSelector,
+      responsiveViewport,
       sensorController,
       measurementRecorder,
     });
@@ -4322,6 +4590,7 @@ function createAnimatedApp(root = document, options = {}) {
   });
 
   const modeSelector = bindModeSelector(root, appState);
+  const mobileMassSelector = bindMobileMassSelector(root, appState, i18n);
   const measurementResults = bindMeasurementResults(root, appState, {
     ...options.exportOptions,
     i18n,
@@ -4359,6 +4628,7 @@ function createAnimatedApp(root = document, options = {}) {
       measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
+      mobileMassSelector.destroy();
       languageSelector.destroy();
       unsubscribeLanguage();
       unsubscribe();

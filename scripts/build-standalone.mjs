@@ -122,6 +122,18 @@ const manifests = [
     exports: ["isPointInsideRect", "createMassSelector"],
   },
   {
+    key: "mobileMassSelector",
+    file: "src/mobile-mass-selector.js",
+    dependencies: [],
+    exports: ["bindMobileMassSelector"],
+  },
+  {
+    key: "responsiveApparatus",
+    file: "src/responsive-apparatus.js",
+    dependencies: [],
+    exports: ["APPARATUS_VIEWPORTS", "selectApparatusViewport", "applyApparatusViewport", "createResponsiveApparatusViewport"],
+  },
+  {
     key: "simulationControls",
     file: "src/simulation-controls.js",
     dependencies: [["i18n", ["createI18n"]]],
@@ -168,6 +180,8 @@ const manifests = [
       ["modeSelector", ["bindModeSelector"]],
       ["parameterControls", ["bindParameterControls"]],
       ["massSelector", ["createMassSelector"]],
+      ["mobileMassSelector", ["bindMobileMassSelector"]],
+      ["responsiveApparatus", ["createResponsiveApparatusViewport"]],
       ["simulationControls", ["bindSimulationControls"]],
       ["sensorController", ["createSensorController"]],
       ["measurementRecorder", ["createMeasurementRecorder"]],
@@ -288,6 +302,15 @@ ${css}
               <path d="M3 11.2 12 4l9 7.2M5.5 10.5V20h5v-5.5h3V20h5v-9.5" />
             </svg>
           </button>
+          <fieldset id="mobile-mass-selector" class="mobile-mass-selector">
+            <legend data-i18n="mass.mobileTitle">Masse suspendue S2</legend>
+            <div class="mobile-mass-buttons">
+              <button class="mobile-mass-button mobile-mass-button--0-2" type="button" data-mobile-mass-value="0.2" aria-pressed="false"><span>0.2 kg</span></button>
+              <button class="mobile-mass-button mobile-mass-button--0-5" type="button" data-mobile-mass-value="0.5" aria-pressed="true"><span>0.5 kg</span></button>
+              <button class="mobile-mass-button mobile-mass-button--1" type="button" data-mobile-mass-value="1" aria-pressed="false"><span>1 kg</span></button>
+              <button class="mobile-mass-button mobile-mass-button--2" type="button" data-mobile-mass-value="2" aria-pressed="false"><span>2 kg</span></button>
+            </div>
+          </fieldset>
           <div class="animation-controls" aria-label="Commandes et résultats de la simulation" data-i18n-aria-label="controls.group">
             <div class="main-control-buttons">
               <button id="start-button" class="control-button control-button--primary" type="button" aria-label="Démarrer" title="Démarrer">

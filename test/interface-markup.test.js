@@ -227,3 +227,26 @@ test("la largeur maximale de la simulation sur ordinateur reste fixée à 1440 p
   assert.match(html, /--desktop-apparatus-width: 1440px/);
   assert.match(html, /\.page-shell \{[\s\S]*?max-width: calc\(var\(--desktop-apparatus-width\) \+ 32px\)/);
 });
+
+test("la disposition mobile propose quatre grands boutons de masse", () => {
+  const selector = html.match(/<fieldset id="mobile-mass-selector"[\s\S]*?<\/fieldset>/)?.[0] ?? "";
+  assert.match(selector, /data-i18n="mass\.mobileTitle"/);
+  assert.equal((selector.match(/data-mobile-mass-value=/g) ?? []).length, 4);
+  assert.match(html, /\.mobile-mass-selector \{[\s\S]*?display: none;/);
+  assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.mobile-mass-selector \{[\s\S]*?display: block;/);
+  assert.match(html, /\.mobile-mass-button \{[\s\S]*?min-height: 56px;/);
+});
+
+test("les téléphones disposent de cadrages SVG portrait et paysage", () => {
+  assert.match(html, /mobile-portrait/);
+  assert.match(html, /70 60 1100 535/);
+  assert.match(html, /short-landscape/);
+  assert.match(html, /45 55 1120 545/);
+  assert.match(html, /@media \(orientation: landscape\) and \(max-height: 500px\) and \(max-width: 1000px\)/);
+});
+
+test("le tableau devient une liste de fiches sans défilement horizontal sur petit écran", () => {
+  assert.match(html, /data-label=/);
+  assert.match(html, /@media \(max-width: 560px\) \{[\s\S]*?\.measurement-table thead \{[\s\S]*?display: none;/);
+  assert.match(html, /\.measurement-table tbody td::before \{[\s\S]*?content: attr\(data-label\)/);
+});

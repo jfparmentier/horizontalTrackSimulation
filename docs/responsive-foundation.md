@@ -82,12 +82,8 @@ The raw measurements are stored in [`responsive-foundation-results.json`](./resp
 - Desktop apparatus geometry and event behavior remain unchanged.
 - The desktop content width was restored to its original `1440 px` maximum after responsive validation.
 
-## Remaining Mobile Work
+## Follow-up Stage
 
-The structural responsive stage does not complete the full smartphone roadmap. The next stages should address:
+The dedicated mobile-interface stage is now implemented and documented in [`mobile-interface.md`](./mobile-interface.md). It adds portrait and short-landscape compositions, direct tap selection, large mobile mass buttons, and a card-based narrow-screen measurement presentation.
 
-- a dedicated mobile apparatus composition with larger experimental objects;
-- tap-to-select as an alternative to mass drag and drop;
-- short-landscape and orientation-specific refinements;
-- more compact measurement-table headers or an alternative narrow-screen presentation;
-- enlarged-text and real-device testing.
+Remaining validation work is limited to enlarged-text checks and testing on a broader set of physical devices and mobile browsers.

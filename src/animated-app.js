@@ -7,6 +7,8 @@ import { bindLanguageSelector } from "./language-selector.js";
 import { bindModeSelector } from "./mode-selector.js";
 import { bindParameterControls } from "./parameter-controls.js";
 import { createMassSelector } from "./mass-selector.js";
+import { bindMobileMassSelector } from "./mobile-mass-selector.js";
+import { createResponsiveApparatusViewport } from "./responsive-apparatus.js";
 import { bindSimulationControls } from "./simulation-controls.js";
 import { createSensorController } from "./sensor-controller.js";
 import { createMeasurementRecorder } from "./measurement-recorder.js";
@@ -99,6 +101,7 @@ export function createAnimatedApp(root = document, options = {}) {
   function destroyRuntime({ clearHost = false } = {}) {
     if (runtime) {
       runtime.massSelector?.destroy();
+      runtime.responsiveViewport?.destroy();
       runtime.sensorController?.destroy();
       runtime.measurementRecorder?.destroy();
       runtime.loop.destroy();
@@ -122,6 +125,9 @@ export function createAnimatedApp(root = document, options = {}) {
       i18n,
     });
     const animator = createApparatusAnimator(svg, layout);
+    const responsiveViewport = createResponsiveApparatusViewport(svg, {
+      windowRef: options.windowRef ?? root.defaultView ?? globalThis.window,
+    });
     const massSelector = createMassSelector(svg, {
       selectedMass: snapshot.parameters.m2,
       onSelect(value) {
@@ -168,6 +174,7 @@ export function createAnimatedApp(root = document, options = {}) {
       svg,
       animator,
       massSelector,
+      responsiveViewport,
       sensorController,
       measurementRecorder,
     });
@@ -199,6 +206,7 @@ export function createAnimatedApp(root = document, options = {}) {
   });
 
   const modeSelector = bindModeSelector(root, appState);
+  const mobileMassSelector = bindMobileMassSelector(root, appState, i18n);
   const measurementResults = bindMeasurementResults(root, appState, {
     ...options.exportOptions,
     i18n,
@@ -236,6 +244,7 @@ export function createAnimatedApp(root = document, options = {}) {
       measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
+      mobileMassSelector.destroy();
       languageSelector.destroy();
       unsubscribeLanguage();
       unsubscribe();

@@ -12,7 +12,7 @@ The application is intended for classroom investigation of accelerated motion, m
 
 - Two pedagogical modes: ideal and frictional.
 - Animated SVG apparatus with a cart, pulley, string, suspended mass, and speed sensors.
-- Four selectable suspended masses placed by drag and drop.
+- Four selectable suspended masses available by tap, click, keyboard, or drag and drop.
 - Exact event handling for sensor crossings, impact, phase transition, stopping, and track end.
 - Perfect measurements in ideal mode.
 - Gaussian measurement noise in friction mode.
@@ -27,7 +27,7 @@ The application is intended for classroom investigation of accelerated motion, m
 2. Open [`index.html`](./index.html) in a recent browser.
 3. Select the interface language on the landing page. French is selected by default.
 4. Choose an exploration mode.
-5. Drag one of the available masses to the suspended-mass position.
+5. Select a suspended mass by tapping or clicking it. Drag and drop remains available on larger screens.
 6. Start the simulation with the play control.
 7. When the experiment ends, open the measurement table and optionally download the CSV file.
 
@@ -35,20 +35,22 @@ The default suspended mass is `0.5 kg`.
 
 ## Mobile Compatibility
 
-The responsive foundation is implemented and documented in [`docs/responsive-foundation.md`](./docs/responsive-foundation.md). The original baseline remains available in [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
+The dedicated mobile interface is implemented and documented in [`docs/mobile-interface.md`](./docs/mobile-interface.md). The responsive foundation and original audit remain available in [`docs/responsive-foundation.md`](./docs/responsive-foundation.md) and [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
 
 Current responsive behavior includes:
 
-- a fluid apparatus with no forced `900 px` mobile width;
-- the original `1440 px` maximum simulation width on desktop;
-- no page-level or apparatus-level horizontal scrolling from `320 px` upward;
-- controls moved below the apparatus at widths up to `760 px`;
-- a two-row control layout on narrow portrait screens;
-- `44 × 44 px` primary command and dialog targets;
-- safe-area-aware spacing and dynamic viewport units;
-- automatic scrolling to the top when entering or leaving a simulation mode.
+- a fluid apparatus with no forced mobile width or page-level horizontal scrolling;
+- the original `1440 px` maximum simulation width and apparatus composition on desktop;
+- a tighter SVG viewport on portrait phones, preserving the physical coordinate system while enlarging the useful scene;
+- a dedicated four-button suspended-mass selector on narrow and short-landscape screens;
+- direct tap or click selection in addition to drag and drop and keyboard selection;
+- readouts placed before the commands on portrait phones;
+- a two-column composition on short landscape screens, with the apparatus on the left and controls on the right;
+- a card-based measurement presentation below `560 px`, without horizontal table scrolling;
+- safe-area-aware spacing, dynamic viewport units, and `44 × 44 px` or larger primary targets;
+- automatic SVG recropping after viewport resizing or orientation changes.
 
-This is the structural responsive stage. A later mobile-interface stage will refine the apparatus composition, add tap-to-select mass interaction, improve short-landscape layouts, and further optimize the measurement table.
+The desktop interface is intentionally unchanged: its full SVG mass rack, overlaid controls, and historical `1200 × 620` SVG viewBox remain active on wide screens.
 
 ## Languages and Number Formatting
 
@@ -94,13 +96,13 @@ Four suspended masses are available:
 - `1 kg`;
 - `2 kg`.
 
-Each mass has a distinct color. Drag a mass from the rack to the suspended position. The previously selected mass automatically returns to its original place. The empty dashed placeholder continues to display its mass value in gray.
+Each mass has a distinct color. On desktop, click a mass or drag it from the rack to the suspended position. On smartphones, use the larger mass buttons displayed directly below or beside the apparatus. The previously selected mass automatically returns to its original place. The empty dashed desktop placeholder continues to display its mass value in gray.
 
 Keyboard users can focus a mass and press `Enter` or `Space` to select it.
 
 ### Animation Controls
 
-On wide screens, the controls are overlaid in the lower-left area of the apparatus. At widths up to `760 px`, they move into a responsive panel below the SVG:
+On wide screens, the controls are overlaid in the lower-left area of the apparatus. In portrait at widths up to `760 px`, the readouts, mass selector, and controls form a vertical interface below the SVG. On short landscape screens, the apparatus and command area are arranged in two columns:
 
 - play or resume;
 - pause;
@@ -250,7 +252,7 @@ Global shortcuts are ignored while an input or button has focus.
 ├── dist-standalone.js             # Generated JavaScript bundle
 ├── package.json                   # Project metadata and npm scripts
 ├── README.md                      # Project documentation
-├── docs/                          # Preview, mobile audit, responsive report, measurements, and screenshots
+├── docs/                          # Preview, mobile audit, responsive stages, measurements, and screenshots
 ├── LICENSE                        # CC BY 4.0 license and attribution
 ├── scripts/
 │   ├── build-standalone.mjs       # Generates index.html and the bundle
@@ -265,11 +267,13 @@ Global shortcuts are ignored while an input or button has focus.
 │   ├── constants.js               # Fixed parameters and simulation modes
 │   ├── i18n.js                    # Translations and locale-aware formatting
 │   ├── language-selector.js       # Landing-page language selector
-│   ├── mass-selector.js           # Drag-and-drop mass selection
+│   ├── mass-selector.js           # SVG tap, keyboard, and drag-and-drop selection
+│   ├── mobile-mass-selector.js    # Large touch-oriented mass buttons
 │   ├── measurement-export.js      # Measurement dialog and CSV export
 │   ├── measurement-recorder.js    # Sensor values and measurement noise
 │   ├── mode-selector.js           # Mode-selection screen
 │   ├── parameter-controls.js      # Playback-speed setting
+│   ├── responsive-apparatus.js    # Portrait and short-landscape SVG viewport
 │   ├── physics.js                 # Core physical functions
 │   ├── sensor-controller.js       # Sensor-crossing detection and display
 │   ├── simulation-controls.js     # Controls and keyboard shortcuts
@@ -354,7 +358,7 @@ The automated suite covers:
 - fixed-step timing behavior;
 - SVG geometry and animation;
 - sensor positions and crossings;
-- drag-and-drop and keyboard mass selection;
+- tap, click, drag-and-drop, keyboard, and mobile-button mass selection;
 - noisy time and speed measurements;
 - central state transitions;
 - mode selection;

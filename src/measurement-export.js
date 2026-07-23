@@ -18,6 +18,14 @@ function resolveTranslator(options = {}) {
 
 const CSV_NUMBER_PRECISION = 6;
 
+function escapeHtmlAttribute(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
@@ -163,8 +171,9 @@ function renderMeasurementRows(tableBody, measurements, i18n) {
     return rows;
   }
 
+  const labels = CSV_HEADER_KEYS.map((key) => escapeHtmlAttribute(i18n.t(key)));
   tableBody.innerHTML = rows
-    .map((row) => `<tr>${row.map((value) => `<td>${value}</td>`).join("")}</tr>`)
+    .map((row) => `<tr>${row.map((value, index) => `<td data-label="${labels[index]}">${value}</td>`).join("")}</tr>`)
     .join("");
   return rows;
 }

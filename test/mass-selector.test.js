@@ -91,6 +91,17 @@ test("une masse relâchée hors de S2 revient à sa place", () => {
   assert.equal(choices[1].getAttribute("transform"), "translate(150 450)");
 });
 
+test("un appui bref sélectionne directement une masse", () => {
+  const { svg, choices } = createSvg();
+  const selections = [];
+  createMassSelector(svg, { selectedMass: 0.2, onSelect: (value) => selections.push(value) });
+
+  choices[0].dispatch("pointerdown", { pointerId: 4, button: 0, clientX: 60, clientY: 470 });
+  svg.dispatch("pointerup", { pointerId: 4, clientX: 60, clientY: 470 });
+
+  assert.deepEqual(selections, [0.5]);
+});
+
 test("Entrée et Espace permettent une sélection accessible", () => {
   const { svg, choices } = createSvg();
   const selections = [];

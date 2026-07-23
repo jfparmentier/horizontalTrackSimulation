@@ -1,0 +1,236 @@
+{
+  "profiles": [
+    {
+      "profile": "small-phone-portrait",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "document": {
+        "width": 320,
+        "height": 568
+      },
+      "horizontalOverflow": false,
+      "responsiveLayout": "mobile-portrait",
+      "viewBox": "70 60 1100 535",
+      "apparatus": {
+        "x": 8,
+        "y": 12,
+        "width": 304,
+        "height": 485.44,
+        "bottom": 497.44,
+        "right": 312
+      },
+      "svg": {
+        "x": 9,
+        "y": 13,
+        "width": 302,
+        "height": 146.88,
+        "bottom": 159.88,
+        "right": 311
+      },
+      "mobileMassSelectorDisplay": "block",
+      "mobileMassSelector": {
+        "x": 9,
+        "y": 159.88,
+        "width": 302,
+        "height": 99,
+        "bottom": 258.88,
+        "right": 311
+      },
+      "svgMassRackDisplay": "none",
+      "controls": {
+        "x": 9,
+        "y": 258.88,
+        "width": 302,
+        "height": 237.56,
+        "bottom": 496.44,
+        "right": 311
+      },
+      "tapSelection": {
+        "selectedMass": "1",
+        "ariaPressed": "true",
+        "suspendedMassVisible": true
+      }
+    },
+    {
+      "profile": "phone-portrait",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "document": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "responsiveLayout": "mobile-portrait",
+      "viewBox": "70 60 1100 535",
+      "apparatus": {
+        "x": 8,
+        "y": 12,
+        "width": 374,
+        "height": 519.48,
+        "bottom": 531.48,
+        "right": 382
+      },
+      "svg": {
+        "x": 9,
+        "y": 13,
+        "width": 372,
+        "height": 180.92,
+        "bottom": 193.92,
+        "right": 381
+      },
+      "mobileMassSelectorDisplay": "block",
+      "mobileMassSelector": {
+        "x": 9,
+        "y": 193.92,
+        "width": 372,
+        "height": 99,
+        "bottom": 292.92,
+        "right": 381
+      },
+      "svgMassRackDisplay": "none",
+      "controls": {
+        "x": 9,
+        "y": 292.92,
+        "width": 372,
+        "height": 237.56,
+        "bottom": 530.48,
+        "right": 381
+      },
+      "tapSelection": {
+        "selectedMass": "1",
+        "ariaPressed": "true",
+        "suspendedMassVisible": true
+      }
+    },
+    {
+      "profile": "phone-landscape",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "document": {
+        "width": 844,
+        "height": 390
+      },
+      "horizontalOverflow": false,
+      "responsiveLayout": "short-landscape",
+      "viewBox": "45 55 1120 545",
+      "apparatus": {
+        "x": 4,
+        "y": 4,
+        "width": 836,
+        "height": 284.56,
+        "bottom": 288.56,
+        "right": 840
+      },
+      "svg": {
+        "x": 5,
+        "y": 28.59,
+        "width": 483.73,
+        "height": 235.38,
+        "bottom": 263.97,
+        "right": 488.73
+      },
+      "mobileMassSelectorDisplay": "block",
+      "mobileMassSelector": {
+        "x": 488.73,
+        "y": 5,
+        "width": 350.27,
+        "height": 84,
+        "bottom": 89,
+        "right": 839
+      },
+      "svgMassRackDisplay": "none",
+      "controls": {
+        "x": 488.73,
+        "y": 89,
+        "width": 350.27,
+        "height": 198.56,
+        "bottom": 287.56,
+        "right": 839
+      },
+      "tapSelection": {
+        "selectedMass": "1",
+        "ariaPressed": "true",
+        "suspendedMassVisible": true
+      }
+    },
+    {
+      "profile": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "document": {
+        "width": 1440,
+        "height": 900
+      },
+      "horizontalOverflow": false,
+      "responsiveLayout": "desktop",
+      "viewBox": "0 0 1200 620",
+      "apparatus": {
+        "x": 16,
+        "y": 28,
+        "width": 1408,
+        "height": 728.42,
+        "bottom": 756.42,
+        "right": 1424
+      },
+      "svg": {
+        "x": 17,
+        "y": 29,
+        "width": 1406,
+        "height": 726.42,
+        "bottom": 755.42,
+        "right": 1423
+      },
+      "mobileMassSelectorDisplay": "none",
+      "mobileMassSelector": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "bottom": 0,
+        "right": 0
+      },
+      "svgMassRackDisplay": "inline",
+      "controls": {
+        "x": 66.2,
+        "y": 597.47,
+        "width": 430,
+        "height": 118,
+        "bottom": 715.47,
+        "right": 496.2
+      }
+    }
+  ],
+  "measurementTable": {
+    "dialogWidth": 378,
+    "scrollClientWidth": 376,
+    "scrollWidth": 376,
+    "horizontalOverflow": false,
+    "cardCount": 11,
+    "firstRow": [
+      {
+        "label": "Numéro du capteur",
+        "value": "1"
+      },
+      {
+        "label": "Position (m)",
+        "value": "0,12"
+      },
+      {
+        "label": "Instant de déclenchement (s)",
+        "value": "0,270914"
+      },
+      {
+        "label": "Vitesse mesurée (m/s)",
+        "value": "0,885889"
+      }
+    ]
+  }
+}

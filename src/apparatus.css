@@ -1516,3 +1516,350 @@ summary {
     align-self: end;
   }
 }
+
+/* Mobile-interface stage: dedicated portrait/landscape composition and direct mass selection. */
+.apparatus-svg[data-responsive-layout="mobile-portrait"] {
+  aspect-ratio: 1100 / 535;
+}
+
+.apparatus-svg[data-responsive-layout="short-landscape"] {
+  aspect-ratio: 1120 / 545;
+}
+
+.mobile-mass-selector {
+  display: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.mobile-mass-selector legend {
+  width: 100%;
+  padding: 0;
+  color: #496c7f;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mobile-mass-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.mobile-mass-button {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 56px;
+  padding: 6px 4px;
+  place-items: center;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+  touch-action: manipulation;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.mobile-mass-button:hover {
+  transform: translateY(-1px);
+}
+
+.mobile-mass-button:active {
+  transform: translateY(1px);
+}
+
+.mobile-mass-button:focus-visible {
+  outline: 3px solid rgba(23, 95, 134, 0.38);
+  outline-offset: 2px;
+}
+
+.mobile-mass-button--selected {
+  border-color: #153247;
+  box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px rgba(21, 50, 71, 0.42);
+}
+
+.mobile-mass-button--0-2 {
+  background: linear-gradient(180deg, #ffbf69, #e57a22);
+}
+
+.mobile-mass-button--0-5 {
+  background: linear-gradient(180deg, #83dfaa, #2e9b61);
+}
+
+.mobile-mass-button--1 {
+  background: linear-gradient(180deg, #b7a7ff, #6853c5);
+}
+
+.mobile-mass-button--2 {
+  background: linear-gradient(180deg, #ff9797, #d84b56);
+}
+
+@media (max-width: 760px) {
+  .apparatus-stage {
+    grid-template-areas:
+      "apparatus"
+      "masses"
+      "controls";
+  }
+
+  .apparatus-host {
+    grid-area: apparatus;
+  }
+
+  .mobile-mass-selector {
+    display: block;
+    grid-area: masses;
+    padding: 10px 12px 12px;
+    border-top: 1px solid #d7e8f0;
+    background: #f2f9fc;
+  }
+
+  .animation-controls {
+    grid-area: controls;
+  }
+
+  /* The larger HTML controls replace the miniature rack in the SVG on phones. */
+  #layer-mass-rack {
+    display: none;
+  }
+
+  .readout-actions {
+    order: -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .measurement-table-overlay {
+    place-items: stretch;
+    padding:
+      max(6px, var(--safe-area-top))
+      max(6px, var(--safe-area-right))
+      max(6px, var(--safe-area-bottom))
+      max(6px, var(--safe-area-left));
+  }
+
+  .measurement-table-dialog {
+    width: 100%;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 14px;
+  }
+
+  .measurement-table-header {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .measurement-table-eyebrow {
+    display: none;
+  }
+
+  .measurement-table-header h2 {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .measurement-table-scroll {
+    padding: 8px;
+  }
+
+  .measurement-table {
+    display: block;
+    margin-top: 0;
+  }
+
+  .measurement-table thead {
+    display: none;
+  }
+
+  .measurement-table tbody {
+    display: grid;
+    gap: 8px;
+  }
+
+  .measurement-table tbody tr {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid #bfd5e0;
+    border-radius: 11px;
+    background: #ffffff;
+  }
+
+  .measurement-table tbody td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 0;
+    border-bottom: 1px solid #e1ebf0;
+    background: transparent !important;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .measurement-table tbody td::before {
+    content: attr(data-label);
+    color: #537386;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .measurement-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .measurement-table-empty {
+    display: block !important;
+    padding: 24px 12px !important;
+    text-align: center !important;
+  }
+
+  .measurement-table-empty::before {
+    content: none !important;
+  }
+}
+
+/* A two-column composition keeps the whole simulation usable on short phones in landscape. */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  .page-shell {
+    padding:
+      calc(4px + var(--safe-area-top))
+      max(4px, var(--safe-area-right))
+      calc(4px + var(--safe-area-bottom))
+      max(4px, var(--safe-area-left));
+  }
+
+  .apparatus-card {
+    border-radius: 12px;
+  }
+
+  .apparatus-stage {
+    display: grid;
+    grid-template-areas:
+      "apparatus masses"
+      "apparatus controls";
+    grid-template-columns: minmax(0, 1fr) minmax(286px, 42%);
+    grid-template-rows: auto 1fr;
+    align-items: stretch;
+  }
+
+  .apparatus-host {
+    display: grid;
+    min-height: 0;
+    align-items: center;
+  }
+
+  .mobile-mass-selector {
+    display: block;
+    padding: 8px 10px 9px;
+    border-top: 0;
+    border-left: 1px solid #d7e8f0;
+  }
+
+  .mobile-mass-buttons {
+    gap: 6px;
+    margin-top: 5px;
+  }
+
+  .mobile-mass-button {
+    min-height: 48px;
+    border-radius: 9px;
+    font-size: 0.7rem;
+  }
+
+  .animation-controls {
+    position: static;
+    width: 100%;
+    max-width: none;
+    gap: 7px;
+    padding: 8px 10px;
+    border-top: 1px solid #d7e8f0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid #d7e8f0;
+    border-radius: 0;
+    background: #f8fcfe;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .main-control-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 44px);
+    justify-content: center;
+  }
+
+  .playback-control {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 7px 0 0;
+    border-top: 1px solid #d0e2eb;
+    border-left: 0;
+  }
+
+  .readout-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .animation-readout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .readout-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 4px 7px;
+  }
+
+  .readout-item dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .mode-home-button {
+    top: 8px;
+    right: auto;
+    left: 8px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  .apparatus-host {
+    grid-area: apparatus;
+  }
+
+  .mobile-mass-selector {
+    grid-area: masses;
+  }
+
+  .animation-controls {
+    grid-area: controls;
+  }
+
+  #layer-mass-rack {
+    display: none;
+  }
+}

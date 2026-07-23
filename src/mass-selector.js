@@ -1,4 +1,5 @@
 const MASS_EPSILON = 1e-9;
+const TAP_MOVEMENT_THRESHOLD_PX = 8;
 
 function asFiniteNumber(value, name) {
   const normalized = Number(value);
@@ -60,8 +61,8 @@ function getMassValue(element) {
 
 /**
  * Relie les masses dessinées dans le SVG au paramètre m2. Une masse est
- * déplacée au pointeur vers S2 ; au clavier, Entrée ou Espace effectue le même
- * remplacement. Le changement de paramètre reconstruit ensuite le montage,
+ * déplacée au pointeur vers S2 ; un appui bref la sélectionne directement et,
+ * au clavier, Entrée ou Espace effectue le même remplacement. Le changement de paramètre reconstruit ensuite le montage,
  * ce qui remet automatiquement l'ancienne masse sur le support de rangement.
  */
 export function createMassSelector(svg, options = {}) {
@@ -128,6 +129,7 @@ export function createMassSelector(svg, options = {}) {
       originY: asFiniteNumber(element.dataset?.originY ?? 0, "data-origin-y"),
       originTransform: element.getAttribute?.("transform")
         ?? `translate(${element.dataset?.originX ?? 0} ${element.dataset?.originY ?? 0})`,
+      moved: false,
     };
 
     element.classList?.add("mass-choice--dragging");
@@ -138,9 +140,14 @@ export function createMassSelector(svg, options = {}) {
 
   function moveDrag(event) {
     if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
+    const clientDx = (Number(event.clientX) || 0) - active.startClientX;
+    const clientDy = (Number(event.clientY) || 0) - active.startClientY;
+    if (Math.hypot(clientDx, clientDy) >= TAP_MOVEMENT_THRESHOLD_PX) {
+      active.moved = true;
+    }
     const scale = getSvgScale(svg);
-    const dx = ((Number(event.clientX) || 0) - active.startClientX) * scale.x;
-    const dy = ((Number(event.clientY) || 0) - active.startClientY) * scale.y;
+    const dx = clientDx * scale.x;
+    const dy = clientDy * scale.y;
 
     active.element.setAttribute?.(
       "transform",
@@ -154,9 +161,10 @@ export function createMassSelector(svg, options = {}) {
     if (!active || (event.pointerId !== undefined && event.pointerId !== active.pointerId)) return;
     const selectedValue = active.value;
     const accepted = isOverTarget(event);
+    const tapped = !active.moved;
     restoreActive();
 
-    if (accepted && !sameMass(selectedValue, options.selectedMass)) {
+    if ((accepted || tapped) && !sameMass(selectedValue, options.selectedMass)) {
       options.onSelect(selectedValue);
     }
     event.preventDefault?.();

@@ -105,6 +105,21 @@ class FakeHost extends FakeElement {
   }
 }
 
+class FakeMobileMassSelector extends FakeElement {
+  constructor() {
+    super("mobile-mass-selector");
+    this.buttons = [0.2, 0.5, 1, 2].map((value) => {
+      const button = new FakeElement(`mobile-mass-${value}`);
+      button.dataset.mobileMassValue = String(value);
+      button.setAttribute("data-mobile-mass-value", String(value));
+      return button;
+    });
+  }
+  querySelectorAll(selector) {
+    return selector === "[data-mobile-mass-value]" ? this.buttons : [];
+  }
+}
+
 const elements = new Map();
 for (const id of [
   "mode-selection", "simulation-screen", "mode-ideal-button", "mode-friction-button",
@@ -120,6 +135,8 @@ for (const id of [
 }
 const host = new FakeHost();
 elements.set("#apparatus-host", host);
+const mobileMassSelector = new FakeMobileMassSelector();
+elements.set("#mobile-mass-selector", mobileMassSelector);
 const documentListeners = new Map();
 const document = {
   documentElement: new FakeElement("html"),
@@ -274,7 +291,7 @@ elements.get("#show-data-button").dispatch("click");
 if (elements.get("#measurement-table-overlay").hidden) {
   throw new Error("Le tableau des mesures ne s'est pas affiché.");
 }
-if (!elements.get("#measurement-table-body").innerHTML.includes("<td>1</td>")) {
+if (!elements.get("#measurement-table-body").innerHTML.includes(">1</td>")) {
   throw new Error("Le tableau des mesures ne contient pas les données des capteurs.");
 }
 elements.get("#measurement-table-close-button").dispatch("click");
