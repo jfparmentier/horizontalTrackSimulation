@@ -63,6 +63,7 @@ test("le choix idéal ouvre la simulation et configure des mesures parfaites", (
   assert.equal(snapshot.mode, "ideal");
   assert.equal(snapshot.parameters.friction, 0);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
+  assert.equal(snapshot.experimental.timeMeasurementNoiseStdDev, 0);
   assert.equal(elements.get("#mode-selection").hidden, true);
   assert.equal(elements.get("#simulation-screen").hidden, false);
 });
@@ -78,6 +79,7 @@ test("le choix avec frottement configure mu = 0,058 et des mesures bruitées", (
   assert.equal(snapshot.mode, "friction");
   assert.equal(snapshot.parameters.friction, 0.058);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.1);
+  assert.equal(snapshot.experimental.timeMeasurementNoiseStdDev, 0.1);
 });
 
 test("le bouton d'accueil revient au choix du mode", () => {

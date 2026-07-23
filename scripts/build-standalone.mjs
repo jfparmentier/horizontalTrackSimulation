@@ -127,7 +127,7 @@ const manifests = [
       ]],
     ],
     exports: [
-      "sampleStandardNormal", "addVelocityMeasurementNoise",
+      "sampleStandardNormal", "addVelocityMeasurementNoise", "addTimeMeasurementNoise",
       "computeSensorTriggerPosition", "computeKinematicStateAtPosition",
       "createMeasurement", "createMeasurementRecorder",
     ],
@@ -227,7 +227,7 @@ ${css}
             </span>
             <span class="mode-card-title">Cas avec frottement</span>
             <span class="mode-card-summary">Frottement inconnu · mesures bruitées</span>
-            <span class="mode-card-description">Répétez les expériences et exploitez les mesures pour estimer le coefficient de frottement.</span>
+            <span class="mode-card-description">Répétez les expériences et exploitez les vitesses et instants bruités pour estimer le coefficient de frottement.</span>
           </button>
         </div>
       </div>

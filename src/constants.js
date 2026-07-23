@@ -25,7 +25,8 @@ export const SIMULATION_MODE_IDS = Object.freeze({
 /**
  * Le coefficient du second mode est volontairement absent de l'interface :
  * il constitue la grandeur à déterminer expérimentalement par les élèves.
- * Le bruit est appliqué uniquement aux vitesses mesurées par les capteurs.
+ * Dans le second mode, le bruit est appliqué aux vitesses mesurées et aux
+ * instants de déclenchement des capteurs.
  */
 export const SIMULATION_MODES = Object.freeze({
   [SIMULATION_MODE_IDS.ideal]: Object.freeze({
@@ -34,6 +35,7 @@ export const SIMULATION_MODES = Object.freeze({
     shortLabel: "Idéal",
     friction: 0,
     measurementNoiseStdDev: 0,
+    timeMeasurementNoiseStdDev: 0,
     measurementsAreNoisy: false,
   }),
   [SIMULATION_MODE_IDS.friction]: Object.freeze({
@@ -42,6 +44,7 @@ export const SIMULATION_MODES = Object.freeze({
     shortLabel: "Frottement",
     friction: 0.058,
     measurementNoiseStdDev: 0.1,
+    timeMeasurementNoiseStdDev: 0.1,
     measurementsAreNoisy: true,
   }),
 });

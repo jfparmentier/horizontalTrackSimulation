@@ -118,6 +118,7 @@ export function createAnimatedApp(root = document, options = {}) {
       snapshot.parameters,
       {
         noiseStdDev: snapshot.experimental.measurementNoiseStdDev,
+        timeNoiseStdDev: snapshot.experimental.timeMeasurementNoiseStdDev,
         random: options.random ?? Math.random,
       },
     );

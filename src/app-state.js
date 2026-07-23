@@ -18,6 +18,7 @@ import {
 export const DEFAULT_EXPERIMENTAL_SETTINGS = Object.freeze({
   sensorCount: SENSOR_COUNT_LIMITS.default,
   measurementNoiseStdDev: 0,
+  timeMeasurementNoiseStdDev: 0,
 });
 
 export const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
@@ -146,6 +147,7 @@ function createExperimentalSettings(modeId) {
   return Object.freeze({
     sensorCount: FIXED_SENSOR_COUNT,
     measurementNoiseStdDev: mode?.measurementNoiseStdDev ?? 0,
+    timeMeasurementNoiseStdDev: mode?.timeMeasurementNoiseStdDev ?? 0,
   });
 }
 
@@ -348,7 +350,10 @@ export function createAppState(initial = {}) {
         `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
       );
     }
-    if (Object.hasOwn(partial, "measurementNoiseStdDev")) {
+    if (
+      Object.hasOwn(partial, "measurementNoiseStdDev")
+      || Object.hasOwn(partial, "timeMeasurementNoiseStdDev")
+    ) {
       throw new PhysicsParameterError(
         "Le bruit des mesures est imposé par le mode de simulation.",
       );

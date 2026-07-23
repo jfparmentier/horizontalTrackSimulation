@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { computeApparatusLayout } from "../src/apparatus-geometry.js";
 import {
+  addTimeMeasurementNoise,
   addVelocityMeasurementNoise,
   computeSensorTriggerPosition,
   computeKinematicStateAtPosition,
@@ -167,6 +168,21 @@ test("le mode idéal ne modifie pas la vitesse théorique", () => {
   assert.equal(addVelocityMeasurementNoise(1.25, 0, () => 0.1), 1.25);
 });
 
+test("le mode idéal ne modifie pas l'instant théorique", () => {
+  assert.equal(addTimeMeasurementNoise(1.25, 0, () => 0.1), 1.25);
+});
+
+test("le bruit temporel est déterministe avec une source aléatoire injectée", () => {
+  const values = [0.5, 0.5];
+  const noisyTime = addTimeMeasurementNoise(1, 0.1, () => values.shift());
+  closeTo(noisyTime, 1 - 0.1 * Math.sqrt(-2 * Math.log(0.5)));
+});
+
+test("le bruit temporel ne peut pas produire un instant négatif", () => {
+  const values = [Number.MIN_VALUE, 0.5];
+  assert.equal(addTimeMeasurementNoise(0.01, 0.1, () => values.shift()), 0);
+});
+
 test("le bruit des vitesses est déterministe avec une source aléatoire injectée", () => {
   const values = [0.5, 0.5];
   const random = () => values.shift();
@@ -196,5 +212,27 @@ test("l'enregistreur bruité conserve la position et le temps mais perturbe la v
 
   closeTo(noisy.position, exact.position);
   closeTo(noisy.time, exact.time);
+  assert.notEqual(noisy.velocity, exact.velocity);
+});
+
+test("l'enregistreur bruité perturbe indépendamment le temps et la vitesse", () => {
+  const layout = computeApparatusLayout(PARAMETERS);
+  const sensor = layout.sensors[0];
+  const crossing = {
+    id: sensor.id,
+    position: sensor.position,
+    beamX: sensor.x,
+    triggerPosition: computeSensorTriggerPosition(layout, sensor),
+  };
+  const exact = createMeasurement(layout, crossing, PARAMETERS);
+  const values = [0.5, 0.5, 0.25, 0.5];
+  const noisy = createMeasurement(layout, crossing, PARAMETERS, {
+    timeNoiseStdDev: 0.1,
+    noiseStdDev: 0.1,
+    random: () => values.shift(),
+  });
+
+  closeTo(noisy.position, exact.position);
+  assert.notEqual(noisy.time, exact.time);
   assert.notEqual(noisy.velocity, exact.velocity);
 });

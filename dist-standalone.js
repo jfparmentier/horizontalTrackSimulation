@@ -30,7 +30,8 @@ const SIMULATION_MODE_IDS = Object.freeze({
 /**
  * Le coefficient du second mode est volontairement absent de l'interface :
  * il constitue la grandeur à déterminer expérimentalement par les élèves.
- * Le bruit est appliqué uniquement aux vitesses mesurées par les capteurs.
+ * Dans le second mode, le bruit est appliqué aux vitesses mesurées et aux
+ * instants de déclenchement des capteurs.
  */
 const SIMULATION_MODES = Object.freeze({
   [SIMULATION_MODE_IDS.ideal]: Object.freeze({
@@ -39,6 +40,7 @@ const SIMULATION_MODES = Object.freeze({
     shortLabel: "Idéal",
     friction: 0,
     measurementNoiseStdDev: 0,
+    timeMeasurementNoiseStdDev: 0,
     measurementsAreNoisy: false,
   }),
   [SIMULATION_MODE_IDS.friction]: Object.freeze({
@@ -47,6 +49,7 @@ const SIMULATION_MODES = Object.freeze({
     shortLabel: "Frottement",
     friction: 0.058,
     measurementNoiseStdDev: 0.1,
+    timeMeasurementNoiseStdDev: 0.1,
     measurementsAreNoisy: true,
   }),
 });
@@ -1837,6 +1840,7 @@ const { PhysicsParameterError, createInitialState, validateParameters, validateS
 const DEFAULT_EXPERIMENTAL_SETTINGS = Object.freeze({
   sensorCount: SENSOR_COUNT_LIMITS.default,
   measurementNoiseStdDev: 0,
+  timeMeasurementNoiseStdDev: 0,
 });
 
 const DEFAULT_DISPLAY_SETTINGS = Object.freeze({
@@ -1965,6 +1969,7 @@ function createExperimentalSettings(modeId) {
   return Object.freeze({
     sensorCount: FIXED_SENSOR_COUNT,
     measurementNoiseStdDev: mode?.measurementNoiseStdDev ?? 0,
+    timeMeasurementNoiseStdDev: mode?.timeMeasurementNoiseStdDev ?? 0,
   });
 }
 
@@ -2167,7 +2172,10 @@ function createAppState(initial = {}) {
         `Le nombre de capteurs est fixé à ${FIXED_SENSOR_COUNT}.`,
       );
     }
-    if (Object.hasOwn(partial, "measurementNoiseStdDev")) {
+    if (
+      Object.hasOwn(partial, "measurementNoiseStdDev")
+      || Object.hasOwn(partial, "timeMeasurementNoiseStdDev")
+    ) {
       throw new PhysicsParameterError(
         "Le bruit des mesures est imposé par le mode de simulation.",
       );
@@ -3154,6 +3162,17 @@ function addVelocityMeasurementNoise(velocity, noiseStdDev = 0, random = Math.ra
   return Math.max(0, exactVelocity + sigma * sampleStandardNormal(random));
 }
 
+/** Ajoute une incertitude normale à l'instant de déclenchement mesuré. */
+function addTimeMeasurementNoise(time, noiseStdDev = 0, random = Math.random) {
+  const exactTime = Number(time);
+  if (!Number.isFinite(exactTime) || exactTime < 0) {
+    throw new RangeError("L’instant exact doit être positif ou nul.");
+  }
+  const sigma = validateNoiseStdDev(noiseStdDev);
+  if (sigma === 0) return exactTime;
+  return Math.max(0, exactTime + sigma * sampleStandardNormal(random));
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -3333,7 +3352,11 @@ function createMeasurement(
     sensorId: sensor.id,
     position: kinematics.position,
     mobilePosition: kinematics.position,
-    time: kinematics.time,
+    time: addTimeMeasurementNoise(
+      kinematics.time,
+      options.timeNoiseStdDev ?? 0,
+      options.random ?? Math.random,
+    ),
     velocity: addVelocityMeasurementNoise(
       kinematics.velocity,
       options.noiseStdDev ?? 0,
@@ -3355,6 +3378,7 @@ function createMeasurementRecorder(
   assertLayout(layout);
   const validatedParameters = validateParameters(parameters);
   const noiseStdDev = validateNoiseStdDev(options.noiseStdDev ?? 0);
+  const timeNoiseStdDev = validateNoiseStdDev(options.timeNoiseStdDev ?? 0);
   const random = validateRandom(options.random ?? Math.random);
   const recordedSensorIds = new Set();
   let destroyed = false;
@@ -3376,6 +3400,7 @@ function createMeasurementRecorder(
       if (recordedSensorIds.has(crossing.id)) continue;
       const measurement = createMeasurement(layout, crossing, validatedParameters, {
         noiseStdDev,
+        timeNoiseStdDev,
         random,
       });
       if (!measurement) continue;
@@ -3413,7 +3438,7 @@ function createMeasurementRecorder(
   });
 }
 
-return Object.freeze({ sampleStandardNormal, addVelocityMeasurementNoise, computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
+return Object.freeze({ sampleStandardNormal, addVelocityMeasurementNoise, addTimeMeasurementNoise, computeSensorTriggerPosition, computeKinematicStateAtPosition, createMeasurement, createMeasurementRecorder });
 })();
 
 modules.measurementExport = (() => {
@@ -3701,6 +3726,7 @@ function createAnimatedApp(root = document, options = {}) {
       snapshot.parameters,
       {
         noiseStdDev: snapshot.experimental.measurementNoiseStdDev,
+        timeNoiseStdDev: snapshot.experimental.timeMeasurementNoiseStdDev,
         random: options.random ?? Math.random,
       },
     );

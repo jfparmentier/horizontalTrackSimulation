@@ -46,6 +46,17 @@ export function addVelocityMeasurementNoise(velocity, noiseStdDev = 0, random = 
   return Math.max(0, exactVelocity + sigma * sampleStandardNormal(random));
 }
 
+/** Ajoute une incertitude normale à l'instant de déclenchement mesuré. */
+export function addTimeMeasurementNoise(time, noiseStdDev = 0, random = Math.random) {
+  const exactTime = Number(time);
+  if (!Number.isFinite(exactTime) || exactTime < 0) {
+    throw new RangeError("L’instant exact doit être positif ou nul.");
+  }
+  const sigma = validateNoiseStdDev(noiseStdDev);
+  if (sigma === 0) return exactTime;
+  return Math.max(0, exactTime + sigma * sampleStandardNormal(random));
+}
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -225,7 +236,11 @@ export function createMeasurement(
     sensorId: sensor.id,
     position: kinematics.position,
     mobilePosition: kinematics.position,
-    time: kinematics.time,
+    time: addTimeMeasurementNoise(
+      kinematics.time,
+      options.timeNoiseStdDev ?? 0,
+      options.random ?? Math.random,
+    ),
     velocity: addVelocityMeasurementNoise(
       kinematics.velocity,
       options.noiseStdDev ?? 0,
@@ -247,6 +262,7 @@ export function createMeasurementRecorder(
   assertLayout(layout);
   const validatedParameters = validateParameters(parameters);
   const noiseStdDev = validateNoiseStdDev(options.noiseStdDev ?? 0);
+  const timeNoiseStdDev = validateNoiseStdDev(options.timeNoiseStdDev ?? 0);
   const random = validateRandom(options.random ?? Math.random);
   const recordedSensorIds = new Set();
   let destroyed = false;
@@ -268,6 +284,7 @@ export function createMeasurementRecorder(
       if (recordedSensorIds.has(crossing.id)) continue;
       const measurement = createMeasurement(layout, crossing, validatedParameters, {
         noiseStdDev,
+        timeNoiseStdDev,
         random,
       });
       if (!measurement) continue;

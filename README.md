@@ -65,7 +65,7 @@ Ouvrir ensuite la page indiquée par le serveur, généralement `http://localhos
 | Mode | Coefficient de frottement | Mesures des capteurs |
 |---|---:|---|
 | Cas idéal | `μ = 0` | parfaites |
-| Cas avec frottement | `μ = 0.058` | bruit gaussien d’écart-type `0.1 m·s⁻¹` |
+| Cas avec frottement | `μ = 0.058` | bruits gaussiens d’écart-type `0.1 m·s⁻¹` sur la vitesse et `0.1 s` sur l’instant de déclenchement |
 
 Dans le second mode, la valeur de `μ` n’est pas affichée dans l’interface : elle constitue la grandeur à estimer expérimentalement.
 
@@ -254,7 +254,8 @@ Cette version repose sur un modèle volontairement simplifié :
 - coefficient de frottement constant ;
 - absence de résistance de l’air ;
 - masse suspendue et mobile partageant la même vitesse durant la phase 1 ;
-- absence d’incertitude et de bruit expérimental dans les mesures exportées.
+- bruits de mesure modélisés par des lois normales indépendantes, sans dérive systématique ni corrélation entre capteurs ;
+- instants bruités bornés à `0 s` afin d’éviter une valeur temporelle négative.
 
 ## Contribution
 

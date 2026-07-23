@@ -11,6 +11,7 @@ test("l'état central contient les paramètres et réglages initiaux", () => {
   assert.equal(state.parameters.trackLength, 2);
   assert.equal(state.parameters.gravityMode, "earth");
   assert.equal(state.experimental.sensorCount, 11);
+  assert.equal(state.experimental.timeMeasurementNoiseStdDev, 0);
   assert.equal(state.playbackSpeed, 1);
   assert.equal(state.simulation.position, 0);
   assert.equal(state.display.showMeasurements, false);
@@ -55,6 +56,10 @@ test("le nombre de capteurs reste fixé à onze", () => {
 
   assert.equal(store.getSnapshot().experimental.sensorCount, 11);
   assert.throws(() => store.updateExperimental({ sensorCount: 9 }), /fixé à 11/i);
+  assert.throws(
+    () => store.updateExperimental({ timeMeasurementNoiseStdDev: 0.2 }),
+    /bruit des mesures/i,
+  );
   assert.equal(store.getSnapshot().experimental.sensorCount, 11);
 });
 
@@ -215,6 +220,7 @@ test("aucun mode n'est sélectionné au démarrage", () => {
 
   assert.equal(snapshot.mode, null);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
+  assert.equal(snapshot.experimental.timeMeasurementNoiseStdDev, 0);
 });
 
 test("le choix du mode idéal impose mu = 0 et des mesures parfaites", () => {
@@ -224,6 +230,7 @@ test("le choix du mode idéal impose mu = 0 et des mesures parfaites", () => {
   assert.equal(snapshot.mode, "ideal");
   assert.equal(snapshot.parameters.friction, 0);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
+  assert.equal(snapshot.experimental.timeMeasurementNoiseStdDev, 0);
 });
 
 test("le choix du mode avec frottement impose mu = 0,058 et le bruit des mesures", () => {
@@ -233,6 +240,7 @@ test("le choix du mode avec frottement impose mu = 0,058 et le bruit des mesures
   assert.equal(snapshot.mode, "friction");
   assert.equal(snapshot.parameters.friction, 0.058);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.1);
+  assert.equal(snapshot.experimental.timeMeasurementNoiseStdDev, 0.1);
   assert.throws(
     () => store.updateParameters({ friction: 0.03 }),
     /imposé par le mode/i,
