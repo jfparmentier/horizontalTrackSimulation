@@ -28,6 +28,8 @@ For very short landscape screens up to `760 px` wide and `360 px` high, the righ
 
 After a mode is selected, keyboard focus moves to the start button. Returning to the landing page restores focus to the mode card that opened the simulation. The hidden screen is also marked inert, in addition to being hidden and excluded from the accessibility tree.
 
+On phone layouts, the overlaid home button is hidden in portrait and landscape orientations. This prevents the control from covering the apparatus or interfering with browser-edge gestures; the control remains unchanged on larger-screen layouts.
+
 A keyboard-visible skip link provides direct access to the main content.
 
 ### Accessible simulation status

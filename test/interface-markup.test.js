@@ -154,6 +154,13 @@ test("le bouton d'accueil est superposé en haut à droite du SVG sans barre de 
   assert.match(html, /\.mode-home-button \{[\s\S]*?position: absolute;[\s\S]*?top: 18px;[\s\S]*?right: 18px;/);
 });
 
+test("le bouton d'accueil est masqué sur les téléphones en portrait et en paysage", () => {
+  assert.match(
+    html,
+    /@media \(max-width: 760px\),\s*\(orientation: landscape\) and \(max-height: 500px\) and \(max-width: 1000px\) \{[\s\S]*?\.mode-home-button \{\s*display: none;\s*\}/,
+  );
+});
+
 test("la valeur inconnue du coefficient de frottement n'est pas révélée dans l'interface", () => {
   const visibleMarkup = html.slice(0, html.indexOf("<script>"));
   assert.doesNotMatch(visibleMarkup, /0[.,]058/);

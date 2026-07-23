@@ -61,7 +61,7 @@ The landing page provides two language choices:
 - French, selected by default;
 - English.
 
-The language selector is available only before entering a simulation mode. Returning to the landing page with the home button makes the selector available again.
+The language selector is available only before entering a simulation mode. On larger screens, returning to the landing page with the home button makes the selector available again. The overlaid home button is intentionally hidden on phone layouts in both portrait and landscape orientations; reload the page to choose another language or simulation mode on those devices.
 
 The active language applies to:
 
@@ -112,7 +112,7 @@ On wide screens, the controls are overlaid in the lower-left area of the apparat
 - reset;
 - playback speed from `0.2×` to `1×` in `0.2×` increments.
 
-The home button in the upper-right corner of the SVG returns to the mode-selection screen.
+On larger screens, the home button in the upper-right corner of the SVG returns to the mode-selection screen. It is hidden on phone layouts in both portrait and landscape orientations to avoid overlap and conflicts with mobile browser gestures.
 
 ### Result Readouts
 

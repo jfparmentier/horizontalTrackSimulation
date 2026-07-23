@@ -1975,6 +1975,14 @@ summary {
   }
 }
 
+/* Phone layouts omit the overlaid home control, which can obstruct the apparatus or browser gestures. */
+@media (max-width: 760px),
+  (orientation: landscape) and (max-height: 500px) and (max-width: 1000px) {
+  .mode-home-button {
+    display: none;
+  }
+}
+
 /* Preserve operability in operating-system high-contrast modes. */
 @media (forced-colors: active) {
   button,
