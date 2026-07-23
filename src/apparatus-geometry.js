@@ -169,7 +169,7 @@ export function computeApparatusLayout(options = {}) {
     height: 28,
   });
   const massRackGap = 18;
-  const massRackStartX = 58;
+  const massRackStartX = 520;
   const massRackMassY = socle.y - mobileSize;
   const massChoices = Object.freeze(
     AVAILABLE_HANGING_MASSES.map((value, index) => Object.freeze({

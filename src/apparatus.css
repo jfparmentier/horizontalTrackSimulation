@@ -371,13 +371,14 @@ h1 {
 .animation-controls {
   position: absolute;
   z-index: 8;
-  right: 20%;
-  bottom: 1.5%;
-  left: 39.5%;
+  right: auto;
+  bottom: 5.5%;
+  left: 3.5%;
   display: flex;
+  width: 430px;
+  min-width: 0;
   flex-direction: column;
   gap: 8px;
-  min-width: 430px;
   padding: 10px 12px;
   border: 1px solid rgba(129, 166, 185, 0.75);
   border-radius: 14px;
@@ -395,30 +396,31 @@ h1 {
 .playback-control {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: 24px minmax(90px, 1fr) 58px;
+  grid-template-columns: 20px 76px 66px;
   align-items: center;
   gap: 7px;
-  min-width: 188px;
+  min-width: 178px;
   margin-left: 4px;
   padding-left: 10px;
   border-left: 1px solid #d0e2eb;
 }
 
 .playback-control input[type="range"] {
-  width: 100%;
-  min-width: 80px;
+  width: 76px;
+  min-width: 76px;
+  max-width: 76px;
   accent-color: #247da9;
 }
 
 .playback-control .playback-value {
   display: grid;
-  grid-template-columns: minmax(34px, 1fr) auto;
+  grid-template-columns: 54px auto;
   align-items: center;
   gap: 2px;
 }
 
 .playback-control .number-with-unit input[type="number"] {
-  width: 40px;
+  width: 54px;
   height: 32px;
   padding: 4px;
   text-align: center;
@@ -556,9 +558,8 @@ h1 {
 
 @media (max-width: 980px) {
   .animation-controls {
-    right: 17%;
-    left: 37%;
-    min-width: 420px;
+    left: 3.5%;
+    width: 430px;
   }
 }
 

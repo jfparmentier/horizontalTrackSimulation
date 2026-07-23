@@ -76,6 +76,13 @@ test("modifier la vitesse de lecture ne réinitialise pas la simulation", () => 
   assert.equal(updated.revision, 0);
 });
 
+test("la vitesse de lecture minimale est fixée à 0,2×", () => {
+  const store = createAppState();
+
+  assert.equal(store.setPlaybackSpeed(0.2).playbackSpeed, 0.2);
+  assert.throws(() => store.setPlaybackSpeed(0.1), /vitesse de lecture/i);
+});
+
 test("les valeurs invalides sont refusées sans altérer l'état", () => {
   const store = createAppState();
   const before = store.getSnapshot();

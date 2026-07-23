@@ -265,8 +265,8 @@ ${css}
               <div class="playback-control">
                 <label class="visually-hidden" for="playback-speed-range">Vitesse de lecture</label>
                 <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
-                <input id="playback-speed-range" type="range" min="0.1" max="1" step="0.1" value="1" aria-label="Vitesse de lecture">
-                <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.1" max="1" step="0.1" value="1" aria-label="Valeur de la vitesse de lecture"><span>×</span></span>
+                <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture">
+                <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.2" max="1" step="0.2" value="1" aria-label="Valeur de la vitesse de lecture"><span>×</span></span>
               </div>
             </div>
             <div class="readout-actions">

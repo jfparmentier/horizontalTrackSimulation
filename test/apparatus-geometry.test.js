@@ -202,6 +202,14 @@ test("un nombre de capteurs hors plage est refusé", () => {
   );
 });
 
+test("le support des masses est déplacé dans la zone centrale basse", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  assert.ok(layout.massRack.x > 490);
+  assert.ok(layout.massRack.x + layout.massRack.width < layout.socle.x);
+  assert.equal(layout.massRack.y, layout.socle.y);
+});
+
 test("les objets structurants du layout sont gelés", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 

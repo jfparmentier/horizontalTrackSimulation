@@ -69,10 +69,10 @@ test("le curseur de vitesse de lecture est à droite des boutons de pilotage", (
 
 
 
-test("les commandes et résultats sont superposés dans la zone centrale basse du SVG", () => {
+test("les commandes sont compactes, relevées et placées en bas à gauche du SVG", () => {
   assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls"/);
   assert.match(html, /\.apparatus-stage \{[\s\S]*?position: relative/);
-  assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: 20%[\s\S]*?bottom: 1\.5%[\s\S]*?left: 39\.5%/);
+  assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: auto[\s\S]*?bottom: 5\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: 430px/);
 });
 
 test("les quatre commandes principales utilisent uniquement des icônes visibles", () => {
@@ -83,10 +83,11 @@ test("les quatre commandes principales utilisent uniquement des icônes visibles
   assert.doesNotMatch(controls, />\s*(Démarrer|Pause|Pas à pas|Réinitialiser)\s*</);
 });
 
-test("la vitesse de lecture est limitée à 1×", () => {
-  assert.match(html, /id="playback-speed-range"[^>]+max="1"/);
-  assert.match(html, /id="playback-speed-number"[^>]+max="1"/);
-  assert.doesNotMatch(html, /id="playback-speed-range"[^>]+max="8"/);
+test("la vitesse de lecture varie de 0,2× à 1× par pas de 0,2×", () => {
+  assert.match(html, /id="playback-speed-range"[^>]+min="0.2"[^>]+max="1"[^>]+step="0.2"/);
+  assert.match(html, /id="playback-speed-number"[^>]+min="0.2"[^>]+max="1"[^>]+step="0.2"/);
+  assert.match(html, /\.playback-control input\[type="range"\] \{[\s\S]*?width: 76px/);
+  assert.match(html, /\.playback-control \.number-with-unit input\[type="number"\] \{[\s\S]*?width: 54px/);
 });
 
 

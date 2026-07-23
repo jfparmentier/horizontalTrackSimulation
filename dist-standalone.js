@@ -713,7 +713,7 @@ const TIME_LOOP_DEFAULTS = Object.freeze({
 });
 
 const PLAYBACK_SPEED_LIMITS = Object.freeze({
-  min: 0.1,
+  min: 0.2,
   max: 1,
 });
 
@@ -1329,7 +1329,7 @@ function computeApparatusLayout(options = {}) {
     height: 28,
   });
   const massRackGap = 18;
-  const massRackStartX = 58;
+  const massRackStartX = 520;
   const massRackMassY = socle.y - mobileSize;
   const massChoices = Object.freeze(
     AVAILABLE_HANGING_MASSES.map((value, index) => Object.freeze({
