@@ -97,6 +97,7 @@ function createFixture() {
     ["#pause-button", new FakeElement()],
     ["#step-button", new FakeElement()],
     ["#reset-button", new FakeElement()],
+    ["#simulation-announcer", new FakeElement("p")],
   ]);
   const keyboard = new FakeElement("div");
   const root = {
@@ -260,4 +261,27 @@ test("les libellés dynamiques des commandes suivent la langue choisie", async (
   loop.step(0.05);
   i18n.setLocale("fr");
   assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Reprendre");
+});
+
+
+test("une région d’état invisible annonce les étapes principales de la simulation", () => {
+  const loop = createFakeLoop();
+  const store = createAppState();
+  const { elements, keyboard, root } = createFixture();
+  const controls = bindSimulationControls(root, {
+    appState: store,
+    getLoop: () => loop,
+    keyboardTarget: keyboard,
+  });
+  const announcer = elements.get("#simulation-announcer");
+
+  assert.equal(announcer.textContent, "Simulation prête.");
+  elements.get("#start-button").dispatch("click");
+  assert.equal(announcer.textContent, "Simulation en cours.");
+  elements.get("#pause-button").dispatch("click");
+  assert.equal(announcer.textContent, "Simulation en pause.");
+
+  loop.setState({ status: "finished", time: 2, position: 1.8 });
+  controls.update(loop.getState(), loop.getDiagnostics());
+  assert.equal(announcer.textContent, "Simulation terminée.");
 });

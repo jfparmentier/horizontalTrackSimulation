@@ -10,9 +10,17 @@ class FakeElement {
     this.textContent = "";
     this.attributes = new Map();
     this.listeners = new Map();
+    this.focused = false;
+    this.inert = false;
   }
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
+  }
+  removeAttribute(name) {
+    this.attributes.delete(name);
+  }
+  focus() {
+    this.focused = true;
   }
   addEventListener(name, callback) {
     const callbacks = this.listeners.get(name) ?? new Set();
@@ -30,7 +38,7 @@ class FakeElement {
 function createRoot() {
   const ids = [
     "mode-selection", "simulation-screen", "mode-ideal-button",
-    "mode-friction-button", "mode-home-button",
+    "mode-friction-button", "mode-home-button", "start-button",
   ];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
   const scrollCalls = [];
@@ -114,4 +122,22 @@ test("le changement d’écran replace le viewport en haut de la page", () => {
     { top: 0, left: 0, behavior: "auto" },
     { top: 0, left: 0, behavior: "auto" },
   ]);
+});
+
+
+test("le focus et l'état inert suivent les changements d'écran", () => {
+  const store = createAppState();
+  const { root, elements } = createRoot();
+  bindModeSelector(root, store);
+
+  assert.equal(elements.get("#simulation-screen").inert, true);
+  elements.get("#mode-friction-button").dispatch("click");
+  assert.equal(elements.get("#start-button").focused, true);
+  assert.equal(elements.get("#mode-selection").inert, true);
+  assert.equal(elements.get("#simulation-screen").inert, false);
+
+  elements.get("#mode-home-button").dispatch("click");
+  assert.equal(elements.get("#mode-friction-button").focused, true);
+  assert.equal(elements.get("#mode-selection").inert, false);
+  assert.equal(elements.get("#simulation-screen").inert, true);
 });

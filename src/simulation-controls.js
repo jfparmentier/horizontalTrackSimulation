@@ -56,6 +56,7 @@ export function bindSimulationControls(root, configuration = {}) {
   const pauseButton = getRequiredElement(root, "#pause-button");
   const stepButton = getRequiredElement(root, "#step-button");
   const resetButton = getRequiredElement(root, "#reset-button");
+  const announcer = root.querySelector("#simulation-announcer");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
@@ -63,12 +64,32 @@ export function bindSimulationControls(root, configuration = {}) {
   const ownsI18n = !configuration.i18n;
   let lastState = configuration.appState.getSnapshot().simulation;
   let lastMeta = {};
+  let lastAnnouncementKey = null;
   let destroyed = false;
 
   startButton.setAttribute("aria-keyshortcuts", "Space");
   pauseButton.setAttribute("aria-keyshortcuts", "Space");
   stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
   resetButton.setAttribute("aria-keyshortcuts", "Home");
+
+
+  function getAnnouncementKey(state, running, terminal, initial) {
+    if (state.status === "blocked") return "controls.status.blocked";
+    if (terminal) return "controls.status.finished";
+    if (running) return "controls.status.running";
+    if (state.status === "paused") return "controls.status.paused";
+    if (initial) return "controls.status.ready";
+    return "controls.status.paused";
+  }
+
+  function announceState(state, running, terminal, initial, force = false) {
+    if (!announcer) return null;
+    const key = getAnnouncementKey(state, running, terminal, initial);
+    if (!force && key === lastAnnouncementKey) return key;
+    lastAnnouncementKey = key;
+    announcer.textContent = i18n.t(key);
+    return key;
+  }
 
   function localizedDuration() {
     return new Intl.NumberFormat(i18n.getLocale() === "fr" ? "fr-FR" : "en-US", {
@@ -88,6 +109,7 @@ export function bindSimulationControls(root, configuration = {}) {
     resetButton.setAttribute("aria-label", resetLabel);
     resetButton.setAttribute("title", resetLabel);
     const loop = getLoop();
+    lastAnnouncementKey = null;
     update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
     return i18n.getLocale();
   }
@@ -125,7 +147,8 @@ export function bindSimulationControls(root, configuration = {}) {
     startButton.dataset.actionState = initial ? "start" : "resume";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
-    return Object.freeze({ running, terminal, initial });
+    const announcementKey = announceState(state, running, terminal, initial);
+    return Object.freeze({ running, terminal, initial, announcementKey });
   }
 
   function start() {

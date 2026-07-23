@@ -35,7 +35,7 @@ The default suspended mass is `0.5 kg`.
 
 ## Mobile Compatibility
 
-The dedicated mobile interface is implemented and documented in [`docs/mobile-interface.md`](./docs/mobile-interface.md). The responsive foundation and original audit remain available in [`docs/responsive-foundation.md`](./docs/responsive-foundation.md) and [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
+The mobile robustness stage is documented in [`docs/mobile-robustness.md`](./docs/mobile-robustness.md). The dedicated mobile interface, responsive foundation, and original audit remain available in [`docs/mobile-interface.md`](./docs/mobile-interface.md), [`docs/responsive-foundation.md`](./docs/responsive-foundation.md), and [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
 
 Current responsive behavior includes:
 
@@ -48,7 +48,9 @@ Current responsive behavior includes:
 - a two-column composition on short landscape screens, with the apparatus on the left and controls on the right;
 - a card-based measurement presentation below `560 px`, without horizontal table scrolling;
 - safe-area-aware spacing, dynamic viewport units, and `44 × 44 px` or larger primary targets;
-- automatic SVG recropping after viewport resizing or orientation changes.
+- automatic SVG recropping after viewport resizing, page restoration, Visual Viewport changes, or orientation changes;
+- a compact two-column layout for very short landscape screens down to `568 × 320 px`;
+- focus transfer between the landing page and the simulation controls after mode changes.
 
 The desktop interface is intentionally unchanged: its full SVG mass rack, overlaid controls, and historical `1200 × 620` SVG viewBox remain active on wide screens.
 
@@ -327,13 +329,18 @@ Opening `index.html` directly with a `file://` URL is also supported.
 
 The application includes:
 
+- a keyboard-visible skip link to the main content;
 - keyboard-operable controls and mass selection;
+- focus transfer to the start control after entering a mode and back to the selected mode card on return;
 - accessible names for icon-only buttons;
 - translated SVG titles and descriptions;
+- a polite, visually hidden simulation-status region;
 - visible focus indicators;
+- a modal measurement dialog with focus trapping, `Escape` dismissal, background inertness, page-scroll locking, and focus restoration;
 - table-based access to every exported measurement;
-- color changes that are supplemented by structural and textual states;
-- support for reduced-motion preferences where applicable.
+- color changes supplemented by structural and textual states;
+- reduced-motion rules that remove decorative transitions without changing the physical simulation;
+- operating-system forced-color support.
 
 ## Scientific Scope and Limitations
 
@@ -363,7 +370,10 @@ The automated suite covers:
 - central state transitions;
 - mode selection;
 - bilingual localization and decimal formatting;
-- measurement table and CSV export;
+- measurement table, modal focus management, and CSV export;
+- focus restoration across mode transitions;
+- responsive recropping across portrait and landscape orientation changes;
+- reduced-motion and forced-color interface rules;
 - standalone bundle generation.
 
 ## Contributing

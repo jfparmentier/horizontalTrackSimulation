@@ -181,7 +181,8 @@ function renderMeasurementRows(tableBody, measurements, i18n) {
 /**
  * Active le bouton d'affichage uniquement lorsque l'expérience est terminée.
  * Le tableau apparaît au-dessus de la simulation et conserve un bouton de
- * téléchargement CSV dans son en-tête.
+ * téléchargement CSV dans son en-tête. Le dialogue piège le focus, rend le
+ * montage sous-jacent inerte et restitue le focus au bouton d'ouverture.
  */
 export function bindMeasurementResults(root, appState, options = {}) {
   if (!root || typeof root.querySelector !== "function") {
@@ -193,9 +194,13 @@ export function bindMeasurementResults(root, appState, options = {}) {
 
   const showButton = getRequiredElement(root, "#show-data-button");
   const overlay = getRequiredElement(root, "#measurement-table-overlay");
+  const dialog = root.querySelector(".measurement-table-dialog") ?? overlay;
   const tableBody = getRequiredElement(root, "#measurement-table-body");
   const closeButton = getRequiredElement(root, "#measurement-table-close-button");
   const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
+  const background = root.querySelector(".apparatus-card");
+  const documentRef = options.documentRef ?? root.ownerDocument ?? root;
+  const body = documentRef?.body ?? root.body ?? null;
   const keyboardTarget = options.keyboardTarget ?? root;
   const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
   const ownsI18n = !options.i18n;
@@ -203,18 +208,74 @@ export function bindMeasurementResults(root, appState, options = {}) {
     ?? ((measurements) => downloadMeasurementsCsv(measurements, { ...options, i18n }));
   let destroyed = false;
   let open = false;
+  let restoreFocusTarget = showButton;
+  let previousBackgroundAriaHidden = null;
+  let previousBackgroundInert = false;
 
-  function setOpen(nextOpen) {
-    open = Boolean(nextOpen);
-    overlay.hidden = !open;
-    overlay.setAttribute("aria-hidden", String(!open));
-    showButton.setAttribute("aria-expanded", String(open));
-    if (open && typeof closeButton.focus === "function") closeButton.focus();
-    return open;
+  function setBodyLocked(locked) {
+    body?.classList?.toggle?.("measurement-dialog-open", Boolean(locked));
   }
 
-  function close() {
-    return setOpen(false);
+  function setBackgroundInert(inert) {
+    if (!background) return;
+    if (inert) {
+      previousBackgroundAriaHidden = background.getAttribute?.("aria-hidden") ?? null;
+      previousBackgroundInert = Boolean(background.inert);
+      background.inert = true;
+      background.setAttribute?.("aria-hidden", "true");
+      return;
+    }
+
+    background.inert = previousBackgroundInert;
+    if (previousBackgroundAriaHidden === null) background.removeAttribute?.("aria-hidden");
+    else background.setAttribute?.("aria-hidden", previousBackgroundAriaHidden);
+  }
+
+  function getFocusableElements() {
+    const selector = [
+      "button:not([disabled])",
+      "[href]",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex=\"-1\"])",
+    ].join(",");
+    const queried = Array.from(dialog.querySelectorAll?.(selector) ?? [])
+      .filter((element) => !element.hidden && element.getAttribute?.("aria-hidden") !== "true");
+    const fallback = [downloadButton, closeButton].filter((element) => !element.disabled && !element.hidden);
+    return [...new Set(queried.length > 0 ? queried : fallback)];
+  }
+
+  function setOpen(nextOpen, configuration = {}) {
+    const shouldOpen = Boolean(nextOpen);
+    const restoreFocus = configuration.restoreFocus !== false;
+    if (shouldOpen === open) return open;
+
+    if (shouldOpen) {
+      restoreFocusTarget = documentRef?.activeElement?.focus ? documentRef.activeElement : showButton;
+      open = true;
+      overlay.hidden = false;
+      overlay.setAttribute("aria-hidden", "false");
+      showButton.setAttribute("aria-expanded", "true");
+      setBackgroundInert(true);
+      setBodyLocked(true);
+      closeButton.focus?.({ preventScroll: true });
+      return true;
+    }
+
+    open = false;
+    overlay.hidden = true;
+    overlay.setAttribute("aria-hidden", "true");
+    showButton.setAttribute("aria-expanded", "false");
+    setBackgroundInert(false);
+    setBodyLocked(false);
+    if (restoreFocus) restoreFocusTarget?.focus?.({ preventScroll: true });
+    restoreFocusTarget = showButton;
+    return false;
+  }
+
+  function close(configuration) {
+    return setOpen(false, configuration);
   }
 
   function openTable() {
@@ -262,11 +323,35 @@ export function bindMeasurementResults(root, appState, options = {}) {
   }
 
   function onKeyDown(event) {
-    if (open && event?.key === "Escape") {
+    if (!open) return;
+    event?.stopImmediatePropagation?.();
+
+    if (event?.key === "Escape") {
       event.preventDefault?.();
+      event.stopPropagation?.();
       close();
-      showButton.focus?.();
+      return;
     }
+
+    if (event?.key !== "Tab") return;
+    const focusable = getFocusableElements();
+    if (focusable.length === 0) {
+      event.preventDefault?.();
+      dialog.focus?.({ preventScroll: true });
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    const current = event.target ?? documentRef?.activeElement;
+    const outside = !focusable.includes(current);
+    const wrapsBackward = Boolean(event.shiftKey) && (current === first || outside);
+    const wrapsForward = !event.shiftKey && (current === last || outside);
+    if (!wrapsBackward && !wrapsForward) return;
+
+    event.preventDefault?.();
+    event.stopPropagation?.();
+    (wrapsBackward ? last : first)?.focus?.({ preventScroll: true });
   }
 
   showButton.addEventListener("click", onShowClick);
@@ -286,6 +371,7 @@ export function bindMeasurementResults(root, appState, options = {}) {
     isOpen: () => open,
     destroy() {
       if (destroyed) return false;
+      close({ restoreFocus: false });
       destroyed = true;
       showButton.removeEventListener?.("click", onShowClick);
       closeButton.removeEventListener?.("click", onCloseClick);

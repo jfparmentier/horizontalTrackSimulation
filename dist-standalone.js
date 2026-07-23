@@ -13,6 +13,7 @@ const MESSAGES = Object.freeze({
     "language.label": "Langue",
     "language.fr": "Français",
     "language.en": "Anglais",
+    "accessibility.skipToContent": "Aller au contenu principal",
 
     "mode.eyebrow": "Simulation du banc horizontal",
     "mode.title": "Choisir un mode d’exploration",
@@ -39,6 +40,11 @@ const MESSAGES = Object.freeze({
     "controls.reset": "Réinitialiser",
     "controls.playback": "Vitesse de lecture",
     "controls.playbackValue": "Valeur de la vitesse de lecture",
+    "controls.status.ready": "Simulation prête.",
+    "controls.status.running": "Simulation en cours.",
+    "controls.status.paused": "Simulation en pause.",
+    "controls.status.finished": "Simulation terminée.",
+    "controls.status.blocked": "Le système reste immobile : la force motrice est insuffisante.",
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
     "readout.impactVelocity": "V impact",
@@ -50,6 +56,7 @@ const MESSAGES = Object.freeze({
     "measurements.title": "Mesures des capteurs de vitesse",
     "measurements.download": "Télécharger les mesures au format CSV",
     "measurements.close": "Fermer le tableau",
+    "measurements.description": "Tableau des mesures enregistrées par les onze capteurs. Utilisez Tab pour parcourir les actions et Échap pour fermer.",
     "measurements.sensorNumber": "Numéro du capteur",
     "measurements.position": "Position (m)",
     "measurements.triggerTime": "Instant de déclenchement (s)",
@@ -74,6 +81,7 @@ const MESSAGES = Object.freeze({
     "language.label": "Language",
     "language.fr": "French",
     "language.en": "English",
+    "accessibility.skipToContent": "Skip to main content",
 
     "mode.eyebrow": "Horizontal track simulation",
     "mode.title": "Choose an exploration mode",
@@ -100,6 +108,11 @@ const MESSAGES = Object.freeze({
     "controls.reset": "Reset",
     "controls.playback": "Playback speed",
     "controls.playbackValue": "Playback speed value",
+    "controls.status.ready": "Simulation ready.",
+    "controls.status.running": "Simulation running.",
+    "controls.status.paused": "Simulation paused.",
+    "controls.status.finished": "Simulation complete.",
+    "controls.status.blocked": "The system remains at rest because the driving force is insufficient.",
     "readout.time": "Time",
     "readout.fallDuration": "Fall duration",
     "readout.impactVelocity": "Impact speed",
@@ -111,6 +124,7 @@ const MESSAGES = Object.freeze({
     "measurements.title": "Speed sensor measurements",
     "measurements.download": "Download measurements as CSV",
     "measurements.close": "Close the table",
+    "measurements.description": "Table of measurements recorded by the eleven sensors. Use Tab to move through the actions and Escape to close.",
     "measurements.sensorNumber": "Sensor number",
     "measurements.position": "Position (m)",
     "measurements.triggerTime": "Trigger time (s)",
@@ -2644,9 +2658,18 @@ function getRequiredElement(root, selector) {
   return element;
 }
 
+function setInert(element, inert) {
+  if (!element) return;
+  element.inert = Boolean(inert);
+  if (inert) element.setAttribute?.("inert", "");
+  else element.removeAttribute?.("inert");
+}
+
 /**
  * Relie l'écran d'accueil à l'état central et permet de revenir au choix du
- * mode depuis la simulation.
+ * mode depuis la simulation. Le focus suit le changement d'écran afin qu'une
+ * navigation au clavier ou avec un lecteur d'écran conserve un point d'ancrage
+ * explicite après chaque transition.
  */
 function bindModeSelector(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
@@ -2665,7 +2688,9 @@ function bindModeSelector(root, appState) {
   const idealButton = getRequiredElement(root, "#mode-ideal-button");
   const frictionButton = getRequiredElement(root, "#mode-friction-button");
   const homeButton = getRequiredElement(root, "#mode-home-button");
+  const startButton = root.querySelector("#start-button");
   const listeners = [];
+  let returnFocusTarget = idealButton;
 
   function listen(element, eventName, callback) {
     element.addEventListener(eventName, callback);
@@ -2678,6 +2703,8 @@ function bindModeSelector(root, appState) {
     simulationScreen.hidden = !hasMode;
     selectionScreen.setAttribute("aria-hidden", String(hasMode));
     simulationScreen.setAttribute("aria-hidden", String(!hasMode));
+    setInert(selectionScreen, hasMode);
+    setInert(simulationScreen, !hasMode);
   }
 
   function scrollViewportToTop() {
@@ -2687,17 +2714,22 @@ function bindModeSelector(root, appState) {
     }
   }
 
-  listen(idealButton, "click", () => {
-    appState.selectMode("ideal");
+  function enterMode(mode, sourceButton) {
+    returnFocusTarget = sourceButton;
+    appState.selectMode(mode);
     scrollViewportToTop();
-  });
-  listen(frictionButton, "click", () => {
-    appState.selectMode("friction");
-    scrollViewportToTop();
-  });
+    startButton?.focus?.({ preventScroll: true });
+  }
+
+  listen(idealButton, "click", () => enterMode("ideal", idealButton));
+  listen(frictionButton, "click", () => enterMode("friction", frictionButton));
   listen(homeButton, "click", () => {
+    const currentMode = appState.getSnapshot().mode;
+    if (currentMode === "friction") returnFocusTarget = frictionButton;
+    else if (currentMode === "ideal") returnFocusTarget = idealButton;
     appState.clearMode();
     scrollViewportToTop();
+    returnFocusTarget?.focus?.({ preventScroll: true });
   });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
@@ -3192,15 +3224,20 @@ function applyApparatusViewport(svg, viewport) {
   if (!svg || typeof svg.setAttribute !== "function") {
     throw new TypeError("Un élément SVG modifiable est requis.");
   }
-  const selected = selectApparatusViewport(viewport);
+  const normalized = normalizeViewportSize(viewport);
+  const selected = selectApparatusViewport(normalized);
   svg.setAttribute("viewBox", selected.viewBox);
   svg.setAttribute("data-responsive-layout", selected.id);
+  svg.setAttribute("data-viewport-width", String(Math.round(normalized.width)));
+  svg.setAttribute("data-viewport-height", String(Math.round(normalized.height)));
   return selected;
 }
 
 /**
  * Met à jour le cadrage du SVG lors des changements de taille ou d'orientation.
  * Les coordonnées du montage restent inchangées ; seule la fenêtre SVG évolue.
+ * Les événements de la fenêtre, du visual viewport et de Screen Orientation
+ * sont pris en charge pour couvrir les navigateurs mobiles les plus courants.
  */
 function createResponsiveApparatusViewport(svg, options = {}) {
   const windowRef = options.windowRef ?? globalThis.window;
@@ -3213,6 +3250,13 @@ function createResponsiveApparatusViewport(svg, options = {}) {
 
   let destroyed = false;
   let frameId = null;
+  const removeListeners = [];
+
+  function listen(target, eventName, callback) {
+    if (!target || typeof target.addEventListener !== "function") return;
+    target.addEventListener(eventName, callback);
+    removeListeners.push(() => target.removeEventListener?.(eventName, callback));
+  }
 
   function readViewport() {
     const visualViewport = windowRef.visualViewport;
@@ -3237,9 +3281,11 @@ function createResponsiveApparatusViewport(svg, options = {}) {
     }
   }
 
-  windowRef.addEventListener("resize", scheduleUpdate);
-  windowRef.addEventListener("orientationchange", scheduleUpdate);
-  windowRef.visualViewport?.addEventListener?.("resize", scheduleUpdate);
+  listen(windowRef, "resize", scheduleUpdate);
+  listen(windowRef, "orientationchange", scheduleUpdate);
+  listen(windowRef, "pageshow", scheduleUpdate);
+  listen(windowRef.visualViewport, "resize", scheduleUpdate);
+  listen(windowRef.screen?.orientation, "change", scheduleUpdate);
   update();
 
   return Object.freeze({
@@ -3247,9 +3293,7 @@ function createResponsiveApparatusViewport(svg, options = {}) {
     destroy() {
       if (destroyed) return false;
       destroyed = true;
-      windowRef.removeEventListener?.("resize", scheduleUpdate);
-      windowRef.removeEventListener?.("orientationchange", scheduleUpdate);
-      windowRef.visualViewport?.removeEventListener?.("resize", scheduleUpdate);
+      removeListeners.splice(0).forEach((remove) => remove());
       if (frameId !== null && typeof windowRef.cancelAnimationFrame === "function") {
         windowRef.cancelAnimationFrame(frameId);
       }
@@ -3320,6 +3364,7 @@ function bindSimulationControls(root, configuration = {}) {
   const pauseButton = getRequiredElement(root, "#pause-button");
   const stepButton = getRequiredElement(root, "#step-button");
   const resetButton = getRequiredElement(root, "#reset-button");
+  const announcer = root.querySelector("#simulation-announcer");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
@@ -3327,12 +3372,32 @@ function bindSimulationControls(root, configuration = {}) {
   const ownsI18n = !configuration.i18n;
   let lastState = configuration.appState.getSnapshot().simulation;
   let lastMeta = {};
+  let lastAnnouncementKey = null;
   let destroyed = false;
 
   startButton.setAttribute("aria-keyshortcuts", "Space");
   pauseButton.setAttribute("aria-keyshortcuts", "Space");
   stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
   resetButton.setAttribute("aria-keyshortcuts", "Home");
+
+
+  function getAnnouncementKey(state, running, terminal, initial) {
+    if (state.status === "blocked") return "controls.status.blocked";
+    if (terminal) return "controls.status.finished";
+    if (running) return "controls.status.running";
+    if (state.status === "paused") return "controls.status.paused";
+    if (initial) return "controls.status.ready";
+    return "controls.status.paused";
+  }
+
+  function announceState(state, running, terminal, initial, force = false) {
+    if (!announcer) return null;
+    const key = getAnnouncementKey(state, running, terminal, initial);
+    if (!force && key === lastAnnouncementKey) return key;
+    lastAnnouncementKey = key;
+    announcer.textContent = i18n.t(key);
+    return key;
+  }
 
   function localizedDuration() {
     return new Intl.NumberFormat(i18n.getLocale() === "fr" ? "fr-FR" : "en-US", {
@@ -3352,6 +3417,7 @@ function bindSimulationControls(root, configuration = {}) {
     resetButton.setAttribute("aria-label", resetLabel);
     resetButton.setAttribute("title", resetLabel);
     const loop = getLoop();
+    lastAnnouncementKey = null;
     update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
     return i18n.getLocale();
   }
@@ -3389,7 +3455,8 @@ function bindSimulationControls(root, configuration = {}) {
     startButton.dataset.actionState = initial ? "start" : "resume";
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
-    return Object.freeze({ running, terminal, initial });
+    const announcementKey = announceState(state, running, terminal, initial);
+    return Object.freeze({ running, terminal, initial, announcementKey });
   }
 
   function start() {
@@ -4257,7 +4324,8 @@ function renderMeasurementRows(tableBody, measurements, i18n) {
 /**
  * Active le bouton d'affichage uniquement lorsque l'expérience est terminée.
  * Le tableau apparaît au-dessus de la simulation et conserve un bouton de
- * téléchargement CSV dans son en-tête.
+ * téléchargement CSV dans son en-tête. Le dialogue piège le focus, rend le
+ * montage sous-jacent inerte et restitue le focus au bouton d'ouverture.
  */
 function bindMeasurementResults(root, appState, options = {}) {
   if (!root || typeof root.querySelector !== "function") {
@@ -4269,9 +4337,13 @@ function bindMeasurementResults(root, appState, options = {}) {
 
   const showButton = getRequiredElement(root, "#show-data-button");
   const overlay = getRequiredElement(root, "#measurement-table-overlay");
+  const dialog = root.querySelector(".measurement-table-dialog") ?? overlay;
   const tableBody = getRequiredElement(root, "#measurement-table-body");
   const closeButton = getRequiredElement(root, "#measurement-table-close-button");
   const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
+  const background = root.querySelector(".apparatus-card");
+  const documentRef = options.documentRef ?? root.ownerDocument ?? root;
+  const body = documentRef?.body ?? root.body ?? null;
   const keyboardTarget = options.keyboardTarget ?? root;
   const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
   const ownsI18n = !options.i18n;
@@ -4279,18 +4351,74 @@ function bindMeasurementResults(root, appState, options = {}) {
     ?? ((measurements) => downloadMeasurementsCsv(measurements, { ...options, i18n }));
   let destroyed = false;
   let open = false;
+  let restoreFocusTarget = showButton;
+  let previousBackgroundAriaHidden = null;
+  let previousBackgroundInert = false;
 
-  function setOpen(nextOpen) {
-    open = Boolean(nextOpen);
-    overlay.hidden = !open;
-    overlay.setAttribute("aria-hidden", String(!open));
-    showButton.setAttribute("aria-expanded", String(open));
-    if (open && typeof closeButton.focus === "function") closeButton.focus();
-    return open;
+  function setBodyLocked(locked) {
+    body?.classList?.toggle?.("measurement-dialog-open", Boolean(locked));
   }
 
-  function close() {
-    return setOpen(false);
+  function setBackgroundInert(inert) {
+    if (!background) return;
+    if (inert) {
+      previousBackgroundAriaHidden = background.getAttribute?.("aria-hidden") ?? null;
+      previousBackgroundInert = Boolean(background.inert);
+      background.inert = true;
+      background.setAttribute?.("aria-hidden", "true");
+      return;
+    }
+
+    background.inert = previousBackgroundInert;
+    if (previousBackgroundAriaHidden === null) background.removeAttribute?.("aria-hidden");
+    else background.setAttribute?.("aria-hidden", previousBackgroundAriaHidden);
+  }
+
+  function getFocusableElements() {
+    const selector = [
+      "button:not([disabled])",
+      "[href]",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex=\"-1\"])",
+    ].join(",");
+    const queried = Array.from(dialog.querySelectorAll?.(selector) ?? [])
+      .filter((element) => !element.hidden && element.getAttribute?.("aria-hidden") !== "true");
+    const fallback = [downloadButton, closeButton].filter((element) => !element.disabled && !element.hidden);
+    return [...new Set(queried.length > 0 ? queried : fallback)];
+  }
+
+  function setOpen(nextOpen, configuration = {}) {
+    const shouldOpen = Boolean(nextOpen);
+    const restoreFocus = configuration.restoreFocus !== false;
+    if (shouldOpen === open) return open;
+
+    if (shouldOpen) {
+      restoreFocusTarget = documentRef?.activeElement?.focus ? documentRef.activeElement : showButton;
+      open = true;
+      overlay.hidden = false;
+      overlay.setAttribute("aria-hidden", "false");
+      showButton.setAttribute("aria-expanded", "true");
+      setBackgroundInert(true);
+      setBodyLocked(true);
+      closeButton.focus?.({ preventScroll: true });
+      return true;
+    }
+
+    open = false;
+    overlay.hidden = true;
+    overlay.setAttribute("aria-hidden", "true");
+    showButton.setAttribute("aria-expanded", "false");
+    setBackgroundInert(false);
+    setBodyLocked(false);
+    if (restoreFocus) restoreFocusTarget?.focus?.({ preventScroll: true });
+    restoreFocusTarget = showButton;
+    return false;
+  }
+
+  function close(configuration) {
+    return setOpen(false, configuration);
   }
 
   function openTable() {
@@ -4338,11 +4466,35 @@ function bindMeasurementResults(root, appState, options = {}) {
   }
 
   function onKeyDown(event) {
-    if (open && event?.key === "Escape") {
+    if (!open) return;
+    event?.stopImmediatePropagation?.();
+
+    if (event?.key === "Escape") {
       event.preventDefault?.();
+      event.stopPropagation?.();
       close();
-      showButton.focus?.();
+      return;
     }
+
+    if (event?.key !== "Tab") return;
+    const focusable = getFocusableElements();
+    if (focusable.length === 0) {
+      event.preventDefault?.();
+      dialog.focus?.({ preventScroll: true });
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    const current = event.target ?? documentRef?.activeElement;
+    const outside = !focusable.includes(current);
+    const wrapsBackward = Boolean(event.shiftKey) && (current === first || outside);
+    const wrapsForward = !event.shiftKey && (current === last || outside);
+    if (!wrapsBackward && !wrapsForward) return;
+
+    event.preventDefault?.();
+    event.stopPropagation?.();
+    (wrapsBackward ? last : first)?.focus?.({ preventScroll: true });
   }
 
   showButton.addEventListener("click", onShowClick);
@@ -4362,6 +4514,7 @@ function bindMeasurementResults(root, appState, options = {}) {
     isOpen: () => open,
     destroy() {
       if (destroyed) return false;
+      close({ restoreFocus: false });
       destroyed = true;
       showButton.removeEventListener?.("click", onShowClick);
       closeButton.removeEventListener?.("click", onCloseClick);

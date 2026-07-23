@@ -38,15 +38,20 @@ export function applyApparatusViewport(svg, viewport) {
   if (!svg || typeof svg.setAttribute !== "function") {
     throw new TypeError("Un élément SVG modifiable est requis.");
   }
-  const selected = selectApparatusViewport(viewport);
+  const normalized = normalizeViewportSize(viewport);
+  const selected = selectApparatusViewport(normalized);
   svg.setAttribute("viewBox", selected.viewBox);
   svg.setAttribute("data-responsive-layout", selected.id);
+  svg.setAttribute("data-viewport-width", String(Math.round(normalized.width)));
+  svg.setAttribute("data-viewport-height", String(Math.round(normalized.height)));
   return selected;
 }
 
 /**
  * Met à jour le cadrage du SVG lors des changements de taille ou d'orientation.
  * Les coordonnées du montage restent inchangées ; seule la fenêtre SVG évolue.
+ * Les événements de la fenêtre, du visual viewport et de Screen Orientation
+ * sont pris en charge pour couvrir les navigateurs mobiles les plus courants.
  */
 export function createResponsiveApparatusViewport(svg, options = {}) {
   const windowRef = options.windowRef ?? globalThis.window;
@@ -59,6 +64,13 @@ export function createResponsiveApparatusViewport(svg, options = {}) {
 
   let destroyed = false;
   let frameId = null;
+  const removeListeners = [];
+
+  function listen(target, eventName, callback) {
+    if (!target || typeof target.addEventListener !== "function") return;
+    target.addEventListener(eventName, callback);
+    removeListeners.push(() => target.removeEventListener?.(eventName, callback));
+  }
 
   function readViewport() {
     const visualViewport = windowRef.visualViewport;
@@ -83,9 +95,11 @@ export function createResponsiveApparatusViewport(svg, options = {}) {
     }
   }
 
-  windowRef.addEventListener("resize", scheduleUpdate);
-  windowRef.addEventListener("orientationchange", scheduleUpdate);
-  windowRef.visualViewport?.addEventListener?.("resize", scheduleUpdate);
+  listen(windowRef, "resize", scheduleUpdate);
+  listen(windowRef, "orientationchange", scheduleUpdate);
+  listen(windowRef, "pageshow", scheduleUpdate);
+  listen(windowRef.visualViewport, "resize", scheduleUpdate);
+  listen(windowRef.screen?.orientation, "change", scheduleUpdate);
   update();
 
   return Object.freeze({
@@ -93,9 +107,7 @@ export function createResponsiveApparatusViewport(svg, options = {}) {
     destroy() {
       if (destroyed) return false;
       destroyed = true;
-      windowRef.removeEventListener?.("resize", scheduleUpdate);
-      windowRef.removeEventListener?.("orientationchange", scheduleUpdate);
-      windowRef.visualViewport?.removeEventListener?.("resize", scheduleUpdate);
+      removeListeners.splice(0).forEach((remove) => remove());
       if (frameId !== null && typeof windowRef.cancelAnimationFrame === "function") {
         windowRef.cancelAnimationFrame(frameId);
       }

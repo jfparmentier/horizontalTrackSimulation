@@ -219,7 +219,8 @@ ${css}
   </style>
 </head>
 <body>
-  <main class="page-shell">
+  <a class="skip-link" href="#main-content" data-i18n="accessibility.skipToContent">Aller au contenu principal</a>
+  <main id="main-content" class="page-shell" tabindex="-1">
     <section id="mode-selection" class="mode-selection" aria-labelledby="mode-selection-title">
       <nav id="language-switcher" class="language-switcher" aria-label="Langue" data-i18n-aria-label="language.label">
         <button id="language-fr-button" class="language-button language-button--active" type="button" lang="fr" aria-pressed="true" aria-label="Français" data-i18n-aria-label="language.fr">FR</button>
@@ -294,6 +295,7 @@ ${css}
     </section>
 
     <section id="simulation-screen" class="simulation-screen" aria-label="Simulation" data-i18n-aria-label="simulation.label" hidden aria-hidden="true">
+      <p id="simulation-announcer" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true"></p>
       <section class="apparatus-card" aria-label="Montage expérimental animé" data-i18n-aria-label="apparatus.label">
         <div class="apparatus-stage">
           <div id="apparatus-host" class="apparatus-host"></div>
@@ -349,12 +351,13 @@ ${css}
         </div>
       </section>
 
-      <div id="measurement-table-overlay" class="measurement-table-overlay" role="dialog" aria-modal="true" aria-labelledby="measurement-table-title" aria-hidden="true" hidden>
-        <section class="measurement-table-dialog">
+      <div id="measurement-table-overlay" class="measurement-table-overlay" role="dialog" aria-modal="true" aria-labelledby="measurement-table-title" aria-describedby="measurement-table-description" aria-hidden="true" hidden>
+        <section class="measurement-table-dialog" tabindex="-1">
           <header class="measurement-table-header">
             <div>
               <p class="measurement-table-eyebrow" data-i18n="measurements.eyebrow">Résultats expérimentaux</p>
               <h2 id="measurement-table-title" data-i18n="measurements.title">Mesures des capteurs de vitesse</h2>
+              <p id="measurement-table-description" class="visually-hidden" data-i18n="measurements.description">Tableau des mesures enregistrées par les onze capteurs. Utilisez Tab pour parcourir les actions et Échap pour fermer.</p>
             </div>
             <div class="measurement-table-actions">
               <button id="measurement-table-download-button" class="dialog-icon-button dialog-icon-button--download" type="button" aria-label="Télécharger les mesures au format CSV" title="Télécharger les mesures au format CSV" data-i18n-aria-label="measurements.download" data-i18n-title="measurements.download">

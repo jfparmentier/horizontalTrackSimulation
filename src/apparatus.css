@@ -14,6 +14,33 @@
   box-sizing: border-box;
 }
 
+
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: max(8px, var(--safe-area-top));
+  left: max(8px, var(--safe-area-left));
+  padding: 10px 14px;
+  border: 2px solid #174d69;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #153247;
+  font-weight: 850;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 24px));
+}
+
+.skip-link:focus-visible {
+  outline: 4px solid rgba(40, 122, 164, 0.38);
+  outline-offset: 2px;
+  transform: translateY(0);
+}
+
+body.measurement-dialog-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   min-height: 100vh;
   min-height: 100dvh;
@@ -372,10 +399,25 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+    transition-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .mode-card:hover,
+  .mode-card:active,
+  .mobile-mass-button:hover,
+  .mobile-mass-button:active {
+    transform: none;
   }
 }
 
@@ -1167,6 +1209,10 @@ h1 {
   box-shadow: 0 28px 90px rgba(10, 37, 52, 0.3);
 }
 
+.measurement-table-dialog:focus {
+  outline: none;
+}
+
 .measurement-table-header {
   display: flex;
   align-items: center;
@@ -1863,3 +1909,85 @@ summary {
     display: none;
   }
 }
+
+/* Robustness for very short landscape viewports such as 568 × 320 px. */
+@media (orientation: landscape) and (max-height: 360px) and (max-width: 760px) {
+  .apparatus-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(248px, 46%);
+  }
+
+  .mobile-mass-selector {
+    padding: 5px 7px 6px;
+  }
+
+  .mobile-mass-selector legend {
+    font-size: 0.64rem;
+  }
+
+  .mobile-mass-buttons {
+    gap: 4px;
+    margin-top: 3px;
+  }
+
+  .mobile-mass-button {
+    min-height: 44px;
+    padding: 4px 2px;
+    border-width: 2px;
+    font-size: 0.66rem;
+  }
+
+  .animation-controls {
+    gap: 5px;
+    padding: 6px 7px;
+  }
+
+  .main-control-buttons {
+    gap: 6px;
+  }
+
+  .playback-control {
+    padding-top: 5px;
+  }
+
+  .animation-readout {
+    gap: 3px;
+  }
+
+  .readout-item {
+    gap: 5px;
+    padding: 3px 5px;
+  }
+
+  .readout-item dt {
+    font-size: 0.56rem;
+  }
+
+  .readout-item dd {
+    font-size: 0.76rem;
+  }
+}
+
+/* Preserve operability in operating-system high-contrast modes. */
+@media (forced-colors: active) {
+  button,
+  summary,
+  .mode-card,
+  .apparatus-card,
+  .measurement-table-dialog,
+  .mobile-mass-button {
+    forced-color-adjust: auto;
+  }
+
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 3px !important;
+  }
+
+  .mobile-mass-button--selected,
+  .sensor[data-sensor-state="triggered"] .sensor-head,
+  .sensor[data-sensor-state="triggered"] .sensor-lens {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+

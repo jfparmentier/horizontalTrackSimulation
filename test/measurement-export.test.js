@@ -14,18 +14,33 @@ const MEASUREMENTS = Object.freeze([
   Object.freeze({ sensorId: 1, position: 0.2222222, time: 0.512, velocity: 0.8 }),
 ]);
 
+class FakeClassList {
+  constructor() { this.items = new Set(); }
+  toggle(name, force) {
+    if (force) this.items.add(name);
+    else this.items.delete(name);
+  }
+  contains(name) { return this.items.has(name); }
+}
+
 class FakeElement {
-  constructor() {
+  constructor(documentRef = null) {
     this.disabled = false;
     this.hidden = false;
     this.innerHTML = "";
     this.attributes = new Map();
     this.listeners = new Map();
     this.focused = false;
+    this.inert = false;
+    this.classList = new FakeClassList();
+    this.documentRef = documentRef;
+    this.focusableChildren = [];
   }
+  getAttribute(name) { return this.attributes.get(name) ?? null; }
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
   }
+  removeAttribute(name) { this.attributes.delete(name); }
   addEventListener(name, callback) {
     const callbacks = this.listeners.get(name) ?? new Set();
     callbacks.add(callback);
@@ -35,7 +50,7 @@ class FakeElement {
     this.listeners.get(name)?.delete(callback);
   }
   dispatch(name, event = {}) {
-    const normalized = { target: this, preventDefault() {}, ...event };
+    const normalized = { target: this, preventDefault() {}, stopPropagation() {}, ...event };
     for (const callback of this.listeners.get(name) ?? []) callback(normalized);
   }
   click() {
@@ -43,36 +58,52 @@ class FakeElement {
   }
   focus() {
     this.focused = true;
+    if (this.documentRef) this.documentRef.activeElement = this;
   }
+  querySelectorAll() { return this.focusableChildren; }
 }
 
 function createResultsDom() {
+  const documentRef = {
+    activeElement: null,
+    body: { classList: new FakeClassList() },
+  };
+  const showButton = new FakeElement(documentRef);
+  const overlay = new FakeElement(documentRef);
+  const dialog = new FakeElement(documentRef);
+  const tableBody = new FakeElement(documentRef);
+  const closeButton = new FakeElement(documentRef);
+  const downloadButton = new FakeElement(documentRef);
+  const apparatusCard = new FakeElement(documentRef);
+  dialog.focusableChildren = [downloadButton, closeButton];
   const elements = new Map([
-    ["#show-data-button", new FakeElement()],
-    ["#measurement-table-overlay", new FakeElement()],
-    ["#measurement-table-body", new FakeElement()],
-    ["#measurement-table-close-button", new FakeElement()],
-    ["#measurement-table-download-button", new FakeElement()],
+    ["#show-data-button", showButton],
+    ["#measurement-table-overlay", overlay],
+    [".measurement-table-dialog", dialog],
+    ["#measurement-table-body", tableBody],
+    ["#measurement-table-close-button", closeButton],
+    ["#measurement-table-download-button", downloadButton],
+    [".apparatus-card", apparatusCard],
   ]);
-  elements.get("#measurement-table-overlay").hidden = true;
-  return {
-    elements,
-    root: {
-      querySelector(selector) { return elements.get(selector) ?? null; },
-      addEventListener(name, callback) {
-        const callbacks = this.listeners?.get(name) ?? new Set();
-        if (!this.listeners) this.listeners = new Map();
-        callbacks.add(callback);
-        this.listeners.set(name, callbacks);
-      },
-      removeEventListener(name, callback) {
-        this.listeners?.get(name)?.delete(callback);
-      },
-      dispatch(name, event = {}) {
-        for (const callback of this.listeners?.get(name) ?? []) callback({ preventDefault() {}, ...event });
-      },
+  overlay.hidden = true;
+  const root = {
+    body: documentRef.body,
+    activeElement: null,
+    querySelector(selector) { return elements.get(selector) ?? null; },
+    addEventListener(name, callback) {
+      const callbacks = this.listeners?.get(name) ?? new Set();
+      if (!this.listeners) this.listeners = new Map();
+      callbacks.add(callback);
+      this.listeners.set(name, callbacks);
+    },
+    removeEventListener(name, callback) {
+      this.listeners?.get(name)?.delete(callback);
+    },
+    dispatch(name, event = {}) {
+      for (const callback of this.listeners?.get(name) ?? []) callback({ preventDefault() {}, stopPropagation() {}, ...event });
     },
   };
+  return { elements, root, documentRef };
 }
 
 function terminalSimulation(status = "finished") {
@@ -182,10 +213,11 @@ test("le téléchargement crée un fichier UTF-8 et libère l'URL temporaire", (
 });
 
 test("le bouton ouvre le tableau uniquement après la fin de la simulation", () => {
-  const { root, elements } = createResultsDom();
+  const { root, elements, documentRef } = createResultsDom();
   const store = createAppState({ measurements: measurementsForStore() });
   const exported = [];
   const binding = bindMeasurementResults(root, store, {
+    documentRef,
     downloader(measurements) { exported.push(measurements); },
   });
   const showButton = elements.get("#show-data-button");
@@ -207,6 +239,9 @@ test("le bouton ouvre le tableau uniquement après la fin de la simulation", () 
   assert.equal(overlay.attributes.get("aria-hidden"), "false");
   assert.equal(showButton.attributes.get("aria-expanded"), "true");
   assert.equal(closeButton.focused, true);
+  assert.equal(elements.get(".apparatus-card").inert, true);
+  assert.equal(elements.get(".apparatus-card").attributes.get("aria-hidden"), "true");
+  assert.equal(documentRef.body.classList.contains("measurement-dialog-open"), true);
   assert.match(tableBody.innerHTML, /<td data-label="Numéro du capteur">1<\/td><td data-label="Position \(m\)">0,222222<\/td><td data-label="Instant de déclenchement \(s\)">0,512<\/td><td data-label="Vitesse mesurée \(m\/s\)">0,8<\/td>/);
   assert.match(tableBody.innerHTML, /<td data-label="Numéro du capteur">2<\/td><td data-label="Position \(m\)">0,444444<\/td><td data-label="Instant de déclenchement \(s\)">0,812346<\/td><td data-label="Vitesse mesurée \(m\/s\)">1,234568<\/td>/);
 
@@ -216,6 +251,9 @@ test("le bouton ouvre le tableau uniquement après la fin de la simulation", () 
 
   closeButton.click();
   assert.equal(overlay.hidden, true);
+  assert.equal(showButton.focused, true);
+  assert.equal(elements.get(".apparatus-card").inert, false);
+  assert.equal(documentRef.body.classList.contains("measurement-dialog-open"), false);
   assert.equal(showButton.attributes.get("aria-expanded"), "false");
 
   showButton.click();
@@ -295,4 +333,29 @@ test("le CSV adapte ses en-têtes et son nom à la langue anglaise", () => {
 
   assert.equal(result.filename, "sensor-measurements.csv");
   assert.equal(clicks.length, 1);
+});
+
+
+test("le dialogue piège le focus entre les actions et le restitue à la fermeture", () => {
+  const { root, elements, documentRef } = createResultsDom();
+  const store = createAppState({ measurements: measurementsForStore() });
+  bindMeasurementResults(root, store, { documentRef, downloader() {} });
+  store.setSimulationState(terminalSimulation());
+
+  const show = elements.get("#show-data-button");
+  const download = elements.get("#measurement-table-download-button");
+  const close = elements.get("#measurement-table-close-button");
+  show.focus();
+  show.click();
+
+  let prevented = 0;
+  root.dispatch("keydown", { key: "Tab", target: close, preventDefault() { prevented += 1; } });
+  assert.equal(download.focused, true);
+  root.dispatch("keydown", { key: "Tab", shiftKey: true, target: download, preventDefault() { prevented += 1; } });
+  assert.equal(close.focused, true);
+  assert.equal(prevented, 2);
+
+  root.dispatch("keydown", { key: "Escape", target: close });
+  assert.equal(elements.get("#measurement-table-overlay").hidden, true);
+  assert.equal(documentRef.activeElement, show);
 });

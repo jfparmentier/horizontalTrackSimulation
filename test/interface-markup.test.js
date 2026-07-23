@@ -46,9 +46,9 @@ test("la gravité terrestre est fixe et aucun sélecteur ni badge n'est affiché
   assert.doesNotMatch(html, /class="gravity-badge"/);
 });
 
-test("aucun message d'état n'est affiché sous les commandes", () => {
+test("les états de simulation sont annoncés sans ajouter de message visible", () => {
   assert.doesNotMatch(html, /id="control-status"/);
-  assert.doesNotMatch(html, /Simulation prête\.|Simulation terminée|Simulation en cours\.|Simulation en pause\./);
+  assert.match(html, /id="simulation-announcer"[^>]+class="visually-hidden"[^>]+role="status"[^>]+aria-live="polite"/);
 });
 
 
@@ -249,4 +249,23 @@ test("le tableau devient une liste de fiches sans défilement horizontal sur pet
   assert.match(html, /data-label=/);
   assert.match(html, /@media \(max-width: 560px\) \{[\s\S]*?\.measurement-table thead \{[\s\S]*?display: none;/);
   assert.match(html, /\.measurement-table tbody td::before \{[\s\S]*?content: attr\(data-label\)/);
+});
+
+
+test("la navigation clavier comprend un lien d'évitement et une gestion modale complète", () => {
+  assert.match(html, /class="skip-link" href="#main-content"[^>]+data-i18n="accessibility\.skipToContent"/);
+  assert.match(html, /<main id="main-content" class="page-shell" tabindex="-1">/);
+  assert.match(html, /id="measurement-table-overlay"[^>]+aria-describedby="measurement-table-description"/);
+  assert.match(html, /id="measurement-table-description" class="visually-hidden"[^>]+data-i18n="measurements\.description"/);
+  assert.match(html, /body\.measurement-dialog-open \{[\s\S]*?overflow: hidden;[\s\S]*?overscroll-behavior: none;/);
+});
+
+test("les préférences de mouvement réduit et le contraste forcé sont prises en charge", () => {
+  assert.match(html, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?animation-duration: 0\.001ms !important;[\s\S]*?transition-duration: 0\.001ms !important;/);
+  assert.match(html, /@media \(forced-colors: active\) \{/);
+});
+
+test("les téléphones très courts en paysage disposent d'une disposition renforcée", () => {
+  assert.match(html, /@media \(orientation: landscape\) and \(max-height: 360px\) and \(max-width: 760px\)/);
+  assert.match(html, /grid-template-columns: minmax\(0, 1fr\) minmax\(248px, 46%\)/);
 });

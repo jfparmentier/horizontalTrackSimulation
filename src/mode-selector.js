@@ -6,9 +6,18 @@ function getRequiredElement(root, selector) {
   return element;
 }
 
+function setInert(element, inert) {
+  if (!element) return;
+  element.inert = Boolean(inert);
+  if (inert) element.setAttribute?.("inert", "");
+  else element.removeAttribute?.("inert");
+}
+
 /**
  * Relie l'écran d'accueil à l'état central et permet de revenir au choix du
- * mode depuis la simulation.
+ * mode depuis la simulation. Le focus suit le changement d'écran afin qu'une
+ * navigation au clavier ou avec un lecteur d'écran conserve un point d'ancrage
+ * explicite après chaque transition.
  */
 export function bindModeSelector(root, appState) {
   if (!root || typeof root.querySelector !== "function") {
@@ -27,7 +36,9 @@ export function bindModeSelector(root, appState) {
   const idealButton = getRequiredElement(root, "#mode-ideal-button");
   const frictionButton = getRequiredElement(root, "#mode-friction-button");
   const homeButton = getRequiredElement(root, "#mode-home-button");
+  const startButton = root.querySelector("#start-button");
   const listeners = [];
+  let returnFocusTarget = idealButton;
 
   function listen(element, eventName, callback) {
     element.addEventListener(eventName, callback);
@@ -40,6 +51,8 @@ export function bindModeSelector(root, appState) {
     simulationScreen.hidden = !hasMode;
     selectionScreen.setAttribute("aria-hidden", String(hasMode));
     simulationScreen.setAttribute("aria-hidden", String(!hasMode));
+    setInert(selectionScreen, hasMode);
+    setInert(simulationScreen, !hasMode);
   }
 
   function scrollViewportToTop() {
@@ -49,17 +62,22 @@ export function bindModeSelector(root, appState) {
     }
   }
 
-  listen(idealButton, "click", () => {
-    appState.selectMode("ideal");
+  function enterMode(mode, sourceButton) {
+    returnFocusTarget = sourceButton;
+    appState.selectMode(mode);
     scrollViewportToTop();
-  });
-  listen(frictionButton, "click", () => {
-    appState.selectMode("friction");
-    scrollViewportToTop();
-  });
+    startButton?.focus?.({ preventScroll: true });
+  }
+
+  listen(idealButton, "click", () => enterMode("ideal", idealButton));
+  listen(frictionButton, "click", () => enterMode("friction", frictionButton));
   listen(homeButton, "click", () => {
+    const currentMode = appState.getSnapshot().mode;
+    if (currentMode === "friction") returnFocusTarget = frictionButton;
+    else if (currentMode === "ideal") returnFocusTarget = idealButton;
     appState.clearMode();
     scrollViewportToTop();
+    returnFocusTarget?.focus?.({ preventScroll: true });
   });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
