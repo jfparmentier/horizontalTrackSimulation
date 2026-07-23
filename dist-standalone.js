@@ -41,7 +41,7 @@ const MESSAGES = Object.freeze({
     "controls.playbackValue": "Valeur de la vitesse de lecture",
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
-    "readout.impactVelocity": "Vitesse d’impact",
+    "readout.impactVelocity": "V impact",
 
     "measurements.show": "Afficher le tableau des mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
@@ -2674,12 +2674,27 @@ function bindModeSelector(root, appState) {
     simulationScreen.hidden = !hasMode;
     selectionScreen.setAttribute("aria-hidden", String(hasMode));
     simulationScreen.setAttribute("aria-hidden", String(!hasMode));
-
   }
 
-  listen(idealButton, "click", () => appState.selectMode("ideal"));
-  listen(frictionButton, "click", () => appState.selectMode("friction"));
-  listen(homeButton, "click", () => appState.clearMode());
+  function scrollViewportToTop() {
+    const view = root.defaultView ?? root.ownerDocument?.defaultView;
+    if (typeof view?.scrollTo === "function") {
+      view.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }
+
+  listen(idealButton, "click", () => {
+    appState.selectMode("ideal");
+    scrollViewportToTop();
+  });
+  listen(frictionButton, "click", () => {
+    appState.selectMode("friction");
+    scrollViewportToTop();
+  });
+  listen(homeButton, "click", () => {
+    appState.clearMode();
+    scrollViewportToTop();
+  });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
     if (["mode-change", "mode-cleared", "subscription"].includes(meta.reason)) {

@@ -33,9 +33,16 @@ function createRoot() {
     "mode-friction-button", "mode-home-button",
   ];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
+  const scrollCalls = [];
   return {
     elements,
+    scrollCalls,
     root: {
+      defaultView: {
+        scrollTo(options) {
+          scrollCalls.push(options);
+        },
+      },
       querySelector(selector) {
         return elements.get(selector) ?? null;
       },
@@ -92,4 +99,19 @@ test("le bouton d'accueil revient au choix du mode", () => {
   assert.equal(store.getSnapshot().mode, null);
   assert.equal(elements.get("#mode-selection").hidden, false);
   assert.equal(elements.get("#simulation-screen").hidden, true);
+});
+
+
+test("le changement d’écran replace le viewport en haut de la page", () => {
+  const store = createAppState();
+  const { root, elements, scrollCalls } = createRoot();
+  bindModeSelector(root, store);
+
+  elements.get("#mode-ideal-button").dispatch("click");
+  elements.get("#mode-home-button").dispatch("click");
+
+  assert.deepEqual(scrollCalls, [
+    { top: 0, left: 0, behavior: "auto" },
+    { top: 0, left: 0, behavior: "auto" },
+  ]);
 });

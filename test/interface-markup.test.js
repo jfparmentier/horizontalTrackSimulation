@@ -81,10 +81,11 @@ test("le curseur de vitesse de lecture est à droite des boutons de pilotage", (
 
 
 
-test("les commandes sont compactes, relevées et placées en bas à gauche du SVG", () => {
+test("les commandes restent superposées sur grand écran et passent dans le flux sur écran étroit", () => {
   assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls"/);
   assert.match(html, /\.apparatus-stage \{[\s\S]*?position: relative/);
-  assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: auto[\s\S]*?bottom: 5\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: 430px/);
+  assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: auto[\s\S]*?bottom: 5\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: min\(430px, 93%\)/);
+  assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.animation-controls \{[\s\S]*?position: static;[\s\S]*?width: 100%;/);
 });
 
 test("les quatre commandes principales utilisent uniquement des icônes visibles", () => {
@@ -98,7 +99,7 @@ test("les quatre commandes principales utilisent uniquement des icônes visibles
 test("la vitesse de lecture varie de 0,2× à 1× par pas de 0,2×", () => {
   assert.match(html, /id="playback-speed-range"[^>]+min="0.2"[^>]+max="1"[^>]+step="0.2"/);
   assert.match(html, /id="playback-speed-number"[^>]+min="0.2"[^>]+max="1"[^>]+step="0.2"/);
-  assert.match(html, /\.playback-control input\[type="range"\] \{[\s\S]*?width: 76px/);
+  assert.match(html, /\.playback-control input\[type="range"\] \{[\s\S]*?width: 100%;[\s\S]*?min-width: 64px/);
   assert.match(html, /\.playback-control \.number-with-unit input\[type="number"\] \{[\s\S]*?width: 54px/);
 });
 
@@ -121,7 +122,7 @@ test("les résultats de la phase 1 sont toujours visibles mais initialement gris
   assert.doesNotMatch(html, /id="s2-stop-time-item"[^>]+hidden/);
   assert.doesNotMatch(html, /id="s2-contact-velocity-item"[^>]+hidden/);
   assert.match(html, /<dt[^>]*>Durée de chute<\/dt><dd id="s2-stop-time-value"><\/dd>/);
-  assert.match(html, /<dt[^>]*>Vitesse d’impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
+  assert.match(html, /<dt[^>]*>V impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
 });
 
 test("le menu latéral de paramètres a disparu", () => {
@@ -195,4 +196,34 @@ test("la page d’accueil place le dépôt GitHub et la licence dans un panneau 
   assert.match(modeSelection, /data-i18n="home\.license"/);
   assert.match(modeSelection, /Jean-Francois Parmentier, IPSA, IRIT/);
   assert.doesNotMatch(modeSelection, /mode-selection-footer/);
+});
+
+
+test("la page autonome active le viewport intégral et les zones sûres", () => {
+  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/);
+  assert.match(html, /--safe-area-top: env\(safe-area-inset-top, 0px\)/);
+  assert.match(html, /--safe-area-right: env\(safe-area-inset-right, 0px\)/);
+  assert.match(html, /--safe-area-bottom: env\(safe-area-inset-bottom, 0px\)/);
+  assert.match(html, /--safe-area-left: env\(safe-area-inset-left, 0px\)/);
+});
+
+test("la fondation responsive supprime le canevas mobile de 900 px et le défilement horizontal", () => {
+  assert.doesNotMatch(html, /min-width:\s*900px/);
+  assert.doesNotMatch(html, /\.apparatus-card \{[\s\S]{0,180}?overflow-x:\s*auto/);
+  assert.match(html, /body \{[\s\S]*?overflow-x: clip/);
+  assert.match(html, /\.apparatus-card,[\s\S]*?\.apparatus-svg \{[\s\S]*?max-width: 100%;[\s\S]*?min-width: 0;/);
+});
+
+test("les unités de viewport dynamiques et les tailles tactiles de base sont présentes", () => {
+  assert.match(html, /min-height: 100dvh/);
+  assert.match(html, /max-height: min\(82dvh, 720px\)/);
+  assert.match(html, /\.control-button \{[\s\S]*?width: 44px;[\s\S]*?min-height: 44px/);
+  assert.match(html, /\.mode-home-button \{[\s\S]*?width: 44px;[\s\S]*?height: 44px/);
+  assert.match(html, /\.dialog-icon-button \{[\s\S]*?width: 44px;[\s\S]*?height: 44px/);
+});
+
+
+test("la largeur maximale de la simulation sur ordinateur reste fixée à 1440 px", () => {
+  assert.match(html, /--desktop-apparatus-width: 1440px/);
+  assert.match(html, /\.page-shell \{[\s\S]*?max-width: calc\(var\(--desktop-apparatus-width\) \+ 32px\)/);
 });

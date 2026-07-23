@@ -197,7 +197,7 @@ const html = `<!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Simulation autonome du glissement d’un mobile sur un banc horizontal." data-i18n-content="meta.description">
   <title>Simulation du banc horizontal</title>
   <style>
@@ -313,7 +313,7 @@ ${css}
               <dl class="animation-readout">
                 <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0,00 s</dd></div>
                 <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.fallDuration">Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
-                <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.impactVelocity">Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
+                <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.impactVelocity">V impact</dt><dd id="s2-contact-velocity-value"></dd></div>
               </dl>
               <button id="show-data-button" class="control-button control-button--icon" type="button" aria-label="Afficher le tableau des mesures" title="Afficher le tableau des mesures" data-i18n-aria-label="measurements.show" data-i18n-title="measurements.show" aria-controls="measurement-table-overlay" aria-expanded="false" disabled>
                 <svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

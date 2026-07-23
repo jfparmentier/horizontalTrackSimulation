@@ -36,7 +36,7 @@ const MESSAGES = Object.freeze({
     "controls.playbackValue": "Valeur de la vitesse de lecture",
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
-    "readout.impactVelocity": "Vitesse d’impact",
+    "readout.impactVelocity": "V impact",
 
     "measurements.show": "Afficher le tableau des mesures",
     "measurements.eyebrow": "Résultats expérimentaux",

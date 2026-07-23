@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Simulation autonome du glissement d’un mobile sur un banc horizontal." data-i18n-content="meta.description">
   <title>Simulation du banc horizontal</title>
   <style>
@@ -11,6 +11,11 @@
   font-family: Inter, ui-rounded, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   background: #eef5f8;
   color: #153247;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --desktop-apparatus-width: 1440px;
 }
 
 * {
@@ -18,17 +23,25 @@
 }
 
 body {
-  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 20% 0%, rgba(120, 205, 240, 0.22), transparent 34rem),
     #eef5f8;
 }
 
 .page-shell {
-  width: min(1440px, calc(100% - 32px));
+  width: 100%;
+  /* Keep the same 1440 px desktop content width as before the responsive foundation. */
+  max-width: calc(var(--desktop-apparatus-width) + 32px);
   margin: 0 auto;
-  padding: 28px 0 40px;
+  padding:
+    calc(28px + var(--safe-area-top))
+    max(16px, var(--safe-area-right))
+    calc(40px + var(--safe-area-bottom))
+    max(16px, var(--safe-area-left));
 }
 
 .page-header {
@@ -342,8 +355,11 @@ h1 {
 
 @media (max-width: 760px) {
   .page-shell {
-    width: min(100% - 16px, 1440px);
-    padding-top: 16px;
+    padding:
+      calc(12px + var(--safe-area-top))
+      max(8px, var(--safe-area-right))
+      calc(20px + var(--safe-area-bottom))
+      max(8px, var(--safe-area-left));
   }
 
   .page-header {
@@ -353,12 +369,13 @@ h1 {
   }
 
   .apparatus-card {
+    overflow: hidden;
     border-radius: 16px;
-    overflow-x: auto;
   }
 
   .apparatus-host {
-    min-width: 900px;
+    min-width: 0;
+    min-height: 0;
   }
 }
 
@@ -383,7 +400,7 @@ h1 {
   bottom: 5.5%;
   left: 3.5%;
   display: flex;
-  width: 430px;
+  width: min(430px, 93%);
   min-width: 0;
   flex-direction: column;
   gap: 8px;
@@ -404,19 +421,19 @@ h1 {
 .playback-control {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: 20px 76px 66px;
+  grid-template-columns: 20px minmax(64px, 1fr) 66px;
   align-items: center;
   gap: 7px;
-  min-width: 178px;
+  min-width: 0;
   margin-left: 4px;
   padding-left: 10px;
   border-left: 1px solid #d0e2eb;
 }
 
 .playback-control input[type="range"] {
-  width: 76px;
-  min-width: 76px;
-  max-width: 76px;
+  width: 100%;
+  min-width: 64px;
+  max-width: none;
   accent-color: #247da9;
 }
 
@@ -455,9 +472,9 @@ h1 {
 
 .control-button {
   display: inline-grid;
-  width: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border: 1px solid #8fb8ce;
   border-radius: 10px;
@@ -483,8 +500,8 @@ h1 {
 }
 
 .control-button--icon {
-  width: 40px;
-  min-width: 40px;
+  width: 44px;
+  min-width: 44px;
 }
 
 .control-button--primary {
@@ -569,7 +586,7 @@ h1 {
 @media (max-width: 980px) {
   .animation-controls {
     left: 3.5%;
-    width: 430px;
+    width: min(430px, 93%);
   }
 }
 
@@ -802,6 +819,7 @@ h1 {
 .mode-selection {
   display: grid;
   min-height: calc(100vh - 68px);
+  min-height: calc(100dvh - 68px);
   place-items: center;
   padding: 22px 0;
 }
@@ -965,14 +983,14 @@ h1 {
 .project-info {
   position: fixed;
   z-index: 130;
-  top: 16px;
-  right: 16px;
+  top: calc(16px + var(--safe-area-top));
+  right: calc(16px + var(--safe-area-right));
 }
 
 .project-info summary {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 9px;
   place-items: center;
   border: 1px solid rgba(53, 107, 136, 0.3);
@@ -1074,8 +1092,8 @@ h1 {
   top: 18px;
   right: 18px;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 8px;
   place-items: center;
   border: 1px solid #8fb8ce;
@@ -1148,6 +1166,7 @@ h1 {
   display: flex;
   width: min(960px, 100%);
   max-height: min(82vh, 720px);
+  max-height: min(82dvh, 720px);
   flex-direction: column;
   overflow: hidden;
   border: 1px solid #a9c7d7;
@@ -1189,8 +1208,8 @@ h1 {
 
 .dialog-icon-button {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   border: 1px solid #8fb8ce;
@@ -1317,8 +1336,8 @@ h1 {
 .language-switcher {
   position: fixed;
   z-index: 130;
-  top: 16px;
-  left: 16px;
+  top: calc(16px + var(--safe-area-top));
+  left: calc(16px + var(--safe-area-left));
   display: inline-flex;
   gap: 3px;
   padding: 4px;
@@ -1363,13 +1382,146 @@ h1 {
 
 @media (max-width: 760px) {
   .language-switcher {
-    top: 8px;
-    left: 8px;
+    top: calc(8px + var(--safe-area-top));
+    left: calc(8px + var(--safe-area-left));
   }
 
   .project-info {
-    top: 8px;
-    right: 8px;
+    top: calc(8px + var(--safe-area-top));
+    right: calc(8px + var(--safe-area-right));
+  }
+}
+
+
+/* Responsive foundation: the apparatus scales fluidly and controls reflow below it on narrow screens. */
+.apparatus-card,
+.apparatus-stage,
+.apparatus-host,
+.apparatus-svg {
+  max-width: 100%;
+  min-width: 0;
+}
+
+button,
+input,
+summary {
+  touch-action: manipulation;
+}
+
+@media (max-width: 760px) {
+  .apparatus-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .apparatus-svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1200 / 620;
+  }
+
+  .animation-controls {
+    position: static;
+    width: 100%;
+    max-width: none;
+    gap: 10px;
+    padding: 12px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    background: #f8fcfe;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .main-control-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 44px) minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .playback-control {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    grid-template-columns: 20px minmax(64px, 1fr) 66px;
+  }
+
+  .readout-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: stretch;
+  }
+
+  .animation-readout {
+    min-width: 0;
+  }
+
+  .readout-item,
+  .readout-item--result {
+    min-width: 0;
+  }
+
+  .mode-home-button {
+    top: 10px;
+    right: 10px;
+  }
+
+  .measurement-table-overlay {
+    padding:
+      max(10px, var(--safe-area-top))
+      max(10px, var(--safe-area-right))
+      max(10px, var(--safe-area-bottom))
+      max(10px, var(--safe-area-left));
+  }
+
+  .measurement-table-dialog {
+    max-height: 92vh;
+    max-height: 92dvh;
+  }
+}
+
+@media (max-width: 520px) {
+  .main-control-buttons {
+    grid-template-columns: repeat(4, 44px);
+    justify-content: center;
+  }
+
+  .playback-control {
+    grid-column: 1 / -1;
+    grid-template-columns: 22px minmax(0, 1fr) 72px;
+    margin-top: 2px;
+    padding-top: 10px;
+    padding-left: 0;
+    border-top: 1px solid #d0e2eb;
+    border-left: 0;
+  }
+
+  .animation-readout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .readout-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 9px;
+  }
+
+  .readout-item dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .control-button--icon {
+    width: 44px;
+    height: 44px;
+    align-self: end;
   }
 }
 
@@ -1484,7 +1636,7 @@ h1 {
               <dl class="animation-readout">
                 <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0,00 s</dd></div>
                 <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.fallDuration">Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
-                <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.impactVelocity">Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
+                <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.impactVelocity">V impact</dt><dd id="s2-contact-velocity-value"></dd></div>
               </dl>
               <button id="show-data-button" class="control-button control-button--icon" type="button" aria-label="Afficher le tableau des mesures" title="Afficher le tableau des mesures" data-i18n-aria-label="measurements.show" data-i18n-title="measurements.show" aria-controls="measurement-table-overlay" aria-expanded="false" disabled>
                 <svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -1578,7 +1730,7 @@ const MESSAGES = Object.freeze({
     "controls.playbackValue": "Valeur de la vitesse de lecture",
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
-    "readout.impactVelocity": "Vitesse d’impact",
+    "readout.impactVelocity": "V impact",
 
     "measurements.show": "Afficher le tableau des mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
@@ -4211,12 +4363,27 @@ function bindModeSelector(root, appState) {
     simulationScreen.hidden = !hasMode;
     selectionScreen.setAttribute("aria-hidden", String(hasMode));
     simulationScreen.setAttribute("aria-hidden", String(!hasMode));
-
   }
 
-  listen(idealButton, "click", () => appState.selectMode("ideal"));
-  listen(frictionButton, "click", () => appState.selectMode("friction"));
-  listen(homeButton, "click", () => appState.clearMode());
+  function scrollViewportToTop() {
+    const view = root.defaultView ?? root.ownerDocument?.defaultView;
+    if (typeof view?.scrollTo === "function") {
+      view.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }
+
+  listen(idealButton, "click", () => {
+    appState.selectMode("ideal");
+    scrollViewportToTop();
+  });
+  listen(frictionButton, "click", () => {
+    appState.selectMode("friction");
+    scrollViewportToTop();
+  });
+  listen(homeButton, "click", () => {
+    appState.clearMode();
+    scrollViewportToTop();
+  });
 
   const unsubscribe = appState.subscribe((snapshot, meta) => {
     if (["mode-change", "mode-cleared", "subscription"].includes(meta.reason)) {

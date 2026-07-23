@@ -35,7 +35,20 @@ The default suspended mass is `0.5 kg`.
 
 ## Mobile Compatibility
 
-A baseline mobile-compatibility audit is available in [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md). The landing page already adapts to narrow screens, but the simulation currently retains a horizontally scrollable `900 px` canvas below `760 px`. The audit identifies the responsive-layout, touch-target, orientation, safe-area, and measurement-table work required for full smartphone support.
+The responsive foundation is implemented and documented in [`docs/responsive-foundation.md`](./docs/responsive-foundation.md). The original baseline remains available in [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
+
+Current responsive behavior includes:
+
+- a fluid apparatus with no forced `900 px` mobile width;
+- the original `1440 px` maximum simulation width on desktop;
+- no page-level or apparatus-level horizontal scrolling from `320 px` upward;
+- controls moved below the apparatus at widths up to `760 px`;
+- a two-row control layout on narrow portrait screens;
+- `44 × 44 px` primary command and dialog targets;
+- safe-area-aware spacing and dynamic viewport units;
+- automatic scrolling to the top when entering or leaving a simulation mode.
+
+This is the structural responsive stage. A later mobile-interface stage will refine the apparatus composition, add tap-to-select mass interaction, improve short-landscape layouts, and further optimize the measurement table.
 
 ## Languages and Number Formatting
 
@@ -87,7 +100,7 @@ Keyboard users can focus a mass and press `Enter` or `Space` to select it.
 
 ### Animation Controls
 
-The controls are embedded in the lower part of the SVG:
+On wide screens, the controls are overlaid in the lower-left area of the apparatus. At widths up to `760 px`, they move into a responsive panel below the SVG:
 
 - play or resume;
 - pause;
@@ -237,7 +250,7 @@ Global shortcuts are ignored while an input or button has focus.
 ├── dist-standalone.js             # Generated JavaScript bundle
 ├── package.json                   # Project metadata and npm scripts
 ├── README.md                      # Project documentation
-├── docs/                          # Preview image, mobile audit report, raw measurements, and screenshots
+├── docs/                          # Preview, mobile audit, responsive report, measurements, and screenshots
 ├── LICENSE                        # CC BY 4.0 license and attribution
 ├── scripts/
 │   ├── build-standalone.mjs       # Generates index.html and the bundle

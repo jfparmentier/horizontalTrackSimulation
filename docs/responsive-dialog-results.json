@@ -1,0 +1,80 @@
+[
+  {
+    "profile": "small-phone-table",
+    "document": {
+      "scrollWidth": 320,
+      "clientWidth": 320
+    },
+    "dialog": {
+      "x": 10,
+      "y": 22.71875,
+      "width": 300,
+      "height": 522.546875,
+      "scrollWidth": 298,
+      "clientWidth": 298,
+      "scrollHeight": 521,
+      "clientHeight": 521
+    },
+    "scroll": {
+      "x": 11,
+      "y": 149.71875,
+      "width": 298,
+      "height": 394.546875,
+      "scrollWidth": 623,
+      "clientWidth": 298,
+      "scrollHeight": 494,
+      "clientHeight": 395
+    },
+    "buttons": [
+      {
+        "id": "measurement-table-download-button",
+        "width": 44,
+        "height": 44
+      },
+      {
+        "id": "measurement-table-close-button",
+        "width": 44,
+        "height": 44
+      }
+    ]
+  },
+  {
+    "profile": "phone-landscape-table",
+    "document": {
+      "scrollWidth": 667,
+      "clientWidth": 667
+    },
+    "dialog": {
+      "x": 10,
+      "y": 15,
+      "width": 647,
+      "height": 345,
+      "scrollWidth": 645,
+      "clientWidth": 645,
+      "scrollHeight": 343,
+      "clientHeight": 343
+    },
+    "scroll": {
+      "x": 11,
+      "y": 89,
+      "width": 645,
+      "height": 270,
+      "scrollWidth": 645,
+      "clientWidth": 645,
+      "scrollHeight": 494,
+      "clientHeight": 270
+    },
+    "buttons": [
+      {
+        "id": "measurement-table-download-button",
+        "width": 44,
+        "height": 44
+      },
+      {
+        "id": "measurement-table-close-button",
+        "width": 44,
+        "height": 44
+      }
+    ]
+  }
+]
