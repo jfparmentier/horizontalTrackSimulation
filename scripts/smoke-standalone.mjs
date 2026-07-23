@@ -27,6 +27,7 @@ class FakeElement {
       contains: (name) => this.classes.has(name),
     };
     this._innerHTML = "";
+    this.focused = false;
   }
   setAttribute(name, value) {
     this.attributes.set(name, String(value));
@@ -48,6 +49,9 @@ class FakeElement {
   }
   querySelector() {
     return null;
+  }
+  focus() {
+    this.focused = true;
   }
   set innerHTML(value) {
     this._innerHTML = String(value);
@@ -105,7 +109,9 @@ const elements = new Map();
 for (const id of [
   "mode-selection", "simulation-screen", "mode-ideal-button", "mode-friction-button",
   "mode-home-button",
-  "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
+  "start-button", "pause-button", "step-button", "reset-button", "show-data-button",
+  "measurement-table-overlay", "measurement-table-body",
+  "measurement-table-close-button", "measurement-table-download-button",
   "time-value", "s2-stop-time-item", "s2-stop-time-value",
   "s2-contact-velocity-item", "s2-contact-velocity-value",
   "playback-speed-range", "playback-speed-number",
@@ -197,8 +203,8 @@ if (elements.get("#time-value").textContent !== "0.00 s") {
 if (!host._innerHTML.includes(">0.5 kg</text>")) {
   throw new Error("La masse suspendue initiale de 0.5 kg n'est pas affichée.");
 }
-if (elements.get("#download-data-button").disabled !== true) {
-  throw new Error("Le bouton d'export devrait être désactivé avant la fin de la simulation.");
+if (elements.get("#show-data-button").disabled !== true) {
+  throw new Error("Le bouton du tableau devrait être désactivé avant la fin de la simulation.");
 }
 if (
   elements.get("#s2-stop-time-item").attributes.get("aria-disabled") !== "true"
@@ -246,11 +252,22 @@ if (
   throw new Error("La durée de chute et la vitesse d'impact doivent être renseignées dès le début de la phase 2.");
 }
 
-for (let index = 0; index < 100 && elements.get("#download-data-button").disabled; index += 1) {
+for (let index = 0; index < 100 && elements.get("#show-data-button").disabled; index += 1) {
   elements.get("#step-button").dispatch("click");
 }
-if (elements.get("#download-data-button").disabled) {
+if (elements.get("#show-data-button").disabled) {
   throw new Error("La simulation autonome n'a pas atteint son état terminal.");
+}
+elements.get("#show-data-button").dispatch("click");
+if (elements.get("#measurement-table-overlay").hidden) {
+  throw new Error("Le tableau des mesures ne s'est pas affiché.");
+}
+if (!elements.get("#measurement-table-body").innerHTML.includes("<td>1</td>")) {
+  throw new Error("Le tableau des mesures ne contient pas les données des capteurs.");
+}
+elements.get("#measurement-table-close-button").dispatch("click");
+if (!elements.get("#measurement-table-overlay").hidden) {
+  throw new Error("Le tableau des mesures ne s'est pas fermé.");
 }
 
 elements.get("#mode-home-button").dispatch("click");

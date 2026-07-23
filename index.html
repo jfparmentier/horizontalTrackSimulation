@@ -436,7 +436,9 @@ h1 {
 
 .playback-icon,
 .control-icon,
-.download-icon {
+.table-icon,
+.download-icon,
+.close-icon {
   width: 20px;
   height: 20px;
   fill: none;
@@ -1027,6 +1029,188 @@ h1 {
   }
 }
 
+
+/* Tableau de mesures affiché au-dessus de la simulation. */
+.measurement-table-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 43, 57, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.measurement-table-dialog {
+  display: flex;
+  width: min(960px, 100%);
+  max-height: min(82vh, 720px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #a9c7d7;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 90px rgba(10, 37, 52, 0.3);
+}
+
+.measurement-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #d5e5ed;
+  background: #f4fafe;
+}
+
+.measurement-table-eyebrow {
+  margin: 0 0 3px;
+  color: #287aa4;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.measurement-table-header h2 {
+  margin: 0;
+  color: #153247;
+  font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+}
+
+.measurement-table-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.dialog-icon-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #8fb8ce;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #174d69;
+  cursor: pointer;
+}
+
+.dialog-icon-button:hover:not(:disabled) {
+  background: #eaf6fc;
+}
+
+.dialog-icon-button:focus-visible {
+  outline: 3px solid rgba(35, 131, 180, 0.3);
+  outline-offset: 2px;
+}
+
+.dialog-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.dialog-icon-button--download {
+  border-color: #247da9;
+  background: #247da9;
+  color: #ffffff;
+}
+
+.dialog-icon-button--download:hover:not(:disabled) {
+  background: #1e6d94;
+}
+
+.measurement-table-scroll {
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+
+.measurement-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 18px;
+  color: #173f55;
+  font-variant-numeric: tabular-nums;
+}
+
+.measurement-table th,
+.measurement-table td {
+  padding: 11px 13px;
+  border-right: 1px solid #d7e6ed;
+  border-bottom: 1px solid #d7e6ed;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.measurement-table th:first-child,
+.measurement-table td:first-child {
+  border-left: 1px solid #d7e6ed;
+}
+
+.measurement-table thead th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  border-top: 1px solid #a9c7d7;
+  background: #eaf5fb;
+  color: #315d74;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.measurement-table thead th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.measurement-table thead th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.measurement-table tbody tr:nth-child(even) td {
+  background: #f7fbfd;
+}
+
+.measurement-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+
+.measurement-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+.measurement-table-empty {
+  padding: 26px !important;
+  color: #6c8390;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .measurement-table-overlay {
+    padding: 10px;
+  }
+
+  .measurement-table-dialog {
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+
+  .measurement-table-header {
+    padding: 14px;
+  }
+
+  .measurement-table-scroll {
+    padding: 0 10px 12px;
+  }
+
+  .measurement-table th,
+  .measurement-table td {
+    padding: 9px 10px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -1111,15 +1295,52 @@ h1 {
                 <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
                 <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
               </dl>
-              <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
-                <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+              <button id="show-data-button" class="control-button control-button--icon" type="button" aria-label="Afficher le tableau des mesures" title="Afficher le tableau des mesures" aria-controls="measurement-table-overlay" aria-expanded="false" disabled>
+                <svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M3 9h18M9 4v16M15 4v16" />
                 </svg>
               </button>
             </div>
           </div>
         </div>
       </section>
+
+      <div id="measurement-table-overlay" class="measurement-table-overlay" role="dialog" aria-modal="true" aria-labelledby="measurement-table-title" aria-hidden="true" hidden>
+        <section class="measurement-table-dialog">
+          <header class="measurement-table-header">
+            <div>
+              <p class="measurement-table-eyebrow">Résultats expérimentaux</p>
+              <h2 id="measurement-table-title">Mesures des capteurs de vitesse</h2>
+            </div>
+            <div class="measurement-table-actions">
+              <button id="measurement-table-download-button" class="dialog-icon-button dialog-icon-button--download" type="button" aria-label="Télécharger les mesures au format CSV" title="Télécharger les mesures au format CSV">
+                <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+                </svg>
+              </button>
+              <button id="measurement-table-close-button" class="dialog-icon-button" type="button" aria-label="Fermer le tableau" title="Fermer le tableau">
+                <svg class="close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m6 6 12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+          </header>
+          <div class="measurement-table-scroll">
+            <table class="measurement-table">
+              <thead>
+                <tr>
+                  <th scope="col">Numéro du capteur</th>
+                  <th scope="col">Position (m)</th>
+                  <th scope="col">Instant de déclenchement (s)</th>
+                  <th scope="col">Vitesse mesurée (m/s)</th>
+                </tr>
+              </thead>
+              <tbody id="measurement-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </section>
   </main>
   <script>
@@ -4585,7 +4806,7 @@ const CSV_NUMBER_PRECISION = 6;
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
-    throw new Error(`Élément d'export introuvable : ${selector}`);
+    throw new Error(`Élément de mesures introuvable : ${selector}`);
   }
   return element;
 }
@@ -4620,14 +4841,33 @@ function normalizeMeasurements(measurements) {
         throw new RangeError("Le numéro de capteur doit être un entier strictement positif.");
       }
 
-      return Object.freeze({
-        sensorId,
-        position: Number(measurement.position),
-        time: Number(measurement.time),
-        velocity: Number(measurement.velocity),
-      });
+      const position = Number(measurement.position);
+      const time = Number(measurement.time);
+      const velocity = Number(measurement.velocity);
+      for (const [name, value] of Object.entries({ position, time, velocity })) {
+        if (!Number.isFinite(value)) {
+          throw new TypeError(`${name} doit être un nombre fini.`);
+        }
+      }
+
+      return Object.freeze({ sensorId, position, time, velocity });
     })
     .sort((left, right) => left.sensorId - right.sensorId);
+}
+
+/**
+ * Retourne les quatre valeurs textuelles utilisées à la fois dans le tableau
+ * et dans le fichier CSV. Les lignes sont triées par numéro de capteur.
+ */
+function buildMeasurementsTableRows(measurements) {
+  return Object.freeze(
+    normalizeMeasurements(measurements).map((measurement) => Object.freeze([
+      String(measurement.sensorId),
+      formatCsvNumber(measurement.position),
+      formatCsvNumber(measurement.time),
+      formatCsvNumber(measurement.velocity),
+    ])),
+  );
 }
 
 /**
@@ -4635,16 +4875,11 @@ function normalizeMeasurements(measurements) {
  * Les nombres utilisent le point décimal et au plus six décimales.
  */
 function buildMeasurementsCsv(measurements) {
-  const normalized = normalizeMeasurements(measurements);
+  const rows = buildMeasurementsTableRows(measurements);
   const lines = [CSV_HEADERS.map((header) => `"${header}"`).join(",")];
 
-  for (const measurement of normalized) {
-    lines.push([
-      String(measurement.sensorId),
-      formatCsvNumber(measurement.position),
-      formatCsvNumber(measurement.time),
-      formatCsvNumber(measurement.velocity),
-    ].join(","));
+  for (const row of rows) {
+    lines.push(row.join(","));
   }
 
   return `${lines.join("\r\n")}\r\n`;
@@ -4687,10 +4922,25 @@ function downloadMeasurementsCsv(measurements, options = {}) {
   return Object.freeze({ filename, csv });
 }
 
+function renderMeasurementRows(tableBody, measurements) {
+  const rows = buildMeasurementsTableRows(measurements);
+  if (rows.length === 0) {
+    tableBody.innerHTML = '<tr><td class="measurement-table-empty" colspan="4">Aucune mesure disponible.</td></tr>';
+    return rows;
+  }
+
+  tableBody.innerHTML = rows
+    .map((row) => `<tr>${row.map((value) => `<td>${value}</td>`).join("")}</tr>`)
+    .join("");
+  return rows;
+}
+
 /**
- * Active le bouton d'export uniquement lorsque l'expérience est terminée.
+ * Active le bouton d'affichage uniquement lorsque l'expérience est terminée.
+ * Le tableau apparaît au-dessus de la simulation et conserve un bouton de
+ * téléchargement CSV dans son en-tête.
  */
-function bindMeasurementExport(root, appState, options = {}) {
+function bindMeasurementResults(root, appState, options = {}) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
   }
@@ -4698,42 +4948,105 @@ function bindMeasurementExport(root, appState, options = {}) {
     throw new TypeError("Un état central valide est requis.");
   }
 
-  const button = getRequiredElement(root, "#download-data-button");
+  const showButton = getRequiredElement(root, "#show-data-button");
+  const overlay = getRequiredElement(root, "#measurement-table-overlay");
+  const tableBody = getRequiredElement(root, "#measurement-table-body");
+  const closeButton = getRequiredElement(root, "#measurement-table-close-button");
+  const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
+  const keyboardTarget = options.keyboardTarget ?? root;
   const downloader = options.downloader
     ?? ((measurements) => downloadMeasurementsCsv(measurements, options));
   let destroyed = false;
+  let open = false;
+
+  function setOpen(nextOpen) {
+    open = Boolean(nextOpen);
+    overlay.hidden = !open;
+    overlay.setAttribute("aria-hidden", String(!open));
+    showButton.setAttribute("aria-expanded", String(open));
+    if (open && typeof closeButton.focus === "function") closeButton.focus();
+    return open;
+  }
+
+  function close() {
+    return setOpen(false);
+  }
+
+  function openTable() {
+    const snapshot = appState.getSnapshot();
+    if (!isTerminalState(snapshot.simulation)) return false;
+    const rows = renderMeasurementRows(tableBody, snapshot.measurements);
+    downloadButton.disabled = rows.length === 0;
+    downloadButton.setAttribute("aria-disabled", String(rows.length === 0));
+    return setOpen(true);
+  }
 
   function update(snapshot = appState.getSnapshot()) {
     if (destroyed) return false;
     const enabled = isTerminalState(snapshot.simulation);
-    button.disabled = !enabled;
-    button.setAttribute("aria-disabled", String(!enabled));
+    showButton.disabled = !enabled;
+    showButton.setAttribute("aria-disabled", String(!enabled));
+    if (!enabled) close();
     return enabled;
   }
 
-  function onClick() {
+  function onShowClick() {
+    openTable();
+  }
+
+  function onCloseClick() {
+    close();
+  }
+
+  function onDownloadClick() {
     const snapshot = appState.getSnapshot();
-    if (!isTerminalState(snapshot.simulation)) return;
+    if (!isTerminalState(snapshot.simulation) || snapshot.measurements.length === 0) return;
     downloader(snapshot.measurements);
   }
 
-  button.addEventListener("click", onClick);
+  function onOverlayClick(event) {
+    if (event?.target === overlay) close();
+  }
+
+  function onKeyDown(event) {
+    if (open && event?.key === "Escape") {
+      event.preventDefault?.();
+      close();
+      showButton.focus?.();
+    }
+  }
+
+  showButton.addEventListener("click", onShowClick);
+  closeButton.addEventListener("click", onCloseClick);
+  downloadButton.addEventListener("click", onDownloadClick);
+  overlay.addEventListener("click", onOverlayClick);
+  keyboardTarget?.addEventListener?.("keydown", onKeyDown);
   const unsubscribe = appState.subscribe((snapshot) => update(snapshot));
   update();
 
   return Object.freeze({
     update,
+    open: openTable,
+    close,
+    isOpen: () => open,
     destroy() {
       if (destroyed) return false;
       destroyed = true;
-      button.removeEventListener?.("click", onClick);
+      showButton.removeEventListener?.("click", onShowClick);
+      closeButton.removeEventListener?.("click", onCloseClick);
+      downloadButton.removeEventListener?.("click", onDownloadClick);
+      overlay.removeEventListener?.("click", onOverlayClick);
+      keyboardTarget?.removeEventListener?.("keydown", onKeyDown);
       unsubscribe();
       return true;
     },
   });
 }
 
-return Object.freeze({ buildMeasurementsCsv, downloadMeasurementsCsv, bindMeasurementExport });
+/** Alias conservé pour les intégrations antérieures. */
+const bindMeasurementExport = bindMeasurementResults;
+
+return Object.freeze({ buildMeasurementsTableRows, buildMeasurementsCsv, downloadMeasurementsCsv, bindMeasurementResults, bindMeasurementExport });
 })();
 
 modules.app = (() => {
@@ -4747,7 +5060,7 @@ const { createMassSelector } = modules.massSelector;
 const { bindSimulationControls } = modules.simulationControls;
 const { createSensorController } = modules.sensorController;
 const { createMeasurementRecorder } = modules.measurementRecorder;
-const { bindMeasurementExport } = modules.measurementExport;
+const { bindMeasurementResults } = modules.measurementExport;
 const { createTimeLoop } = modules.timeLoop;
 const TIME_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
@@ -4933,7 +5246,10 @@ function createAnimatedApp(root = document, options = {}) {
   });
 
   const modeSelector = bindModeSelector(root, appState);
-  const measurementExport = bindMeasurementExport(root, appState, options.exportOptions);
+  const measurementResults = bindMeasurementResults(root, appState, {
+    ...options.exportOptions,
+    keyboardTarget: options.keyboardTarget ?? root,
+  });
   simulationControls = bindSimulationControls(root, {
     appState,
     getLoop: () => runtime?.loop,
@@ -4953,7 +5269,7 @@ function createAnimatedApp(root = document, options = {}) {
       if (destroyed) return false;
       destroyed = true;
       simulationControls?.destroy();
-      measurementExport.destroy();
+      measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
       unsubscribe();

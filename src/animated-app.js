@@ -8,7 +8,7 @@ import { createMassSelector } from "./mass-selector.js";
 import { bindSimulationControls } from "./simulation-controls.js";
 import { createSensorController } from "./sensor-controller.js";
 import { createMeasurementRecorder } from "./measurement-recorder.js";
-import { bindMeasurementExport } from "./measurement-export.js";
+import { bindMeasurementResults } from "./measurement-export.js";
 import { createTimeLoop } from "./time-loop.js";
 
 const TIME_FORMAT = new Intl.NumberFormat("en-US", {
@@ -195,7 +195,10 @@ export function createAnimatedApp(root = document, options = {}) {
   });
 
   const modeSelector = bindModeSelector(root, appState);
-  const measurementExport = bindMeasurementExport(root, appState, options.exportOptions);
+  const measurementResults = bindMeasurementResults(root, appState, {
+    ...options.exportOptions,
+    keyboardTarget: options.keyboardTarget ?? root,
+  });
   simulationControls = bindSimulationControls(root, {
     appState,
     getLoop: () => runtime?.loop,
@@ -215,7 +218,7 @@ export function createAnimatedApp(root = document, options = {}) {
       if (destroyed) return false;
       destroyed = true;
       simulationControls?.destroy();
-      measurementExport.destroy();
+      measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
       unsubscribe();

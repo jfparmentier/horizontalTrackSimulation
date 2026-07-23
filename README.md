@@ -23,7 +23,7 @@ La simulation est conçue pour aider les élèves à :
 3. Choisir l’un des deux modes de simulation.
 4. Sélectionner une masse suspendue en la faisant glisser vers l’emplacement de `S2`.
 5. Lancer l’expérience avec le bouton de lecture.
-6. À la fin de la simulation, télécharger les mesures au format CSV.
+6. À la fin de la simulation, afficher le tableau des mesures puis, si nécessaire, télécharger le fichier CSV.
 
 La masse suspendue sélectionnée par défaut est `0.5 kg`.
 
@@ -72,7 +72,7 @@ La zone de résultats affiche :
 - le temps courant avec deux décimales ;
 - la **Durée de chute** ;
 - la **Vitesse d’impact** ;
-- le bouton de téléchargement des données.
+- le bouton d’affichage du tableau des mesures.
 
 La Durée de chute et la Vitesse d’impact correspondent aux mesures du capteur n° 5, situé à `0.60 m`. Dans le mode avec frottement, elles incluent donc les incertitudes de mesure temporelle et de vitesse.
 
@@ -147,11 +147,11 @@ v(t + Δt) = v(t) + aΔt
 
 La boucle temporelle utilise un pas physique fixe. Le changement de phase, l’arrêt par frottement, le franchissement des capteurs et l’arrivée en bout de banc sont localisés à leur instant exact, même lorsqu’ils surviennent entre deux images de l’animation.
 
-## Mesures et export CSV
+## Tableau des mesures et export CSV
 
-Le bouton de téléchargement devient actif lorsque la simulation atteint un état terminal.
+Le bouton du tableau devient actif lorsque la simulation atteint un état terminal. Il ouvre une fenêtre superposée à la simulation contenant les quatre valeurs enregistrées pour chaque capteur. Cette fenêtre peut être fermée avec son bouton de fermeture, en cliquant sur l’arrière-plan ou avec la touche `Échap`.
 
-Le fichier `mesures-capteurs.csv` contient exactement quatre colonnes :
+Un bouton de téléchargement reste disponible dans l’en-tête du tableau. Le fichier `mesures-capteurs.csv` contient exactement quatre colonnes :
 
 ```csv
 "Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"
@@ -199,7 +199,7 @@ Les raccourcis globaux sont ignorés lorsqu’un champ de saisie ou un bouton po
 │   ├── apparatus.css              # Présentation et mise en page
 │   ├── constants.js               # Paramètres fixes et modes
 │   ├── mass-selector.js           # Sélection des masses
-│   ├── measurement-export.js      # Création et téléchargement du CSV
+│   ├── measurement-export.js      # Tableau des mesures et téléchargement du CSV
 │   ├── measurement-recorder.js    # Calcul des mesures et du bruit
 │   ├── mode-selector.js           # Écran de choix du mode
 │   ├── parameter-controls.js      # Réglage de la vitesse de lecture
@@ -228,7 +228,7 @@ Le projet ne dépend d’aucun paquet npm tiers.
 npm test
 ```
 
-Exécute les `205` tests unitaires et d’intégration avec le module natif `node:test`.
+Exécute les `206` tests unitaires et d’intégration avec le module natif `node:test`.
 
 ```bash
 npm run build

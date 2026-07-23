@@ -9,22 +9,34 @@ test("le cadran inférieur n’affiche plus la position", () => {
   assert.doesNotMatch(html, /<dt>Position<\/dt>/);
 });
 
-test("le bouton d’export est une icône accessible sans texte visible", () => {
-  assert.match(html, /id="download-data-button"[^>]+aria-label="Télécharger les données des capteurs"/);
-  assert.match(html, /class="fa-solid fa-download download-icon"/);
-  assert.doesNotMatch(html, />Télécharger les données<\/button>/);
+test("le bouton des résultats affiche une icône de tableau accessible", () => {
+  assert.match(html, /id="show-data-button"[^>]+aria-label="Afficher le tableau des mesures"/);
+  assert.match(html, /id="show-data-button"[\s\S]*?class="table-icon"/);
+  assert.doesNotMatch(html, /id="download-data-button"/);
 });
 
-test("les résultats finaux puis le bouton d’export sont ordonnés à droite du chronomètre", () => {
+test("les résultats finaux puis le bouton du tableau sont ordonnés à droite du chronomètre", () => {
   const section = html.match(/<div class="readout-actions">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] ?? "";
   const time = section.indexOf('id="time-value"');
   const stopTime = section.indexOf('id="s2-stop-time-value"');
   const velocity = section.indexOf('id="s2-contact-velocity-value"');
-  const download = section.indexOf('id="download-data-button"');
+  const table = section.indexOf('id="show-data-button"');
   assert.ok(time >= 0);
   assert.ok(stopTime > time);
   assert.ok(velocity > stopTime);
-  assert.ok(download > velocity);
+  assert.ok(table > velocity);
+});
+
+test("le tableau des mesures est un dialogue superposé avec export CSV", () => {
+  assert.match(html, /id="measurement-table-overlay"[^>]+role="dialog"[^>]+aria-modal="true"[^>]+hidden/);
+  assert.match(html, /id="measurement-table-title">Mesures des capteurs de vitesse<\/h2>/);
+  assert.match(html, /<th scope="col">Numéro du capteur<\/th>/);
+  assert.match(html, /<th scope="col">Position \(m\)<\/th>/);
+  assert.match(html, /<th scope="col">Instant de déclenchement \(s\)<\/th>/);
+  assert.match(html, /<th scope="col">Vitesse mesurée \(m\/s\)<\/th>/);
+  assert.match(html, /id="measurement-table-download-button"[^>]+aria-label="Télécharger les mesures au format CSV"/);
+  assert.match(html, /id="measurement-table-close-button"[^>]+aria-label="Fermer le tableau"/);
+  assert.match(html, /\.measurement-table-overlay \{[\s\S]*?position: fixed;[\s\S]*?z-index: 100;/);
 });
 
 

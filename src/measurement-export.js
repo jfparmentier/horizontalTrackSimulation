@@ -10,7 +10,7 @@ const CSV_NUMBER_PRECISION = 6;
 function getRequiredElement(root, selector) {
   const element = root.querySelector(selector);
   if (!element) {
-    throw new Error(`Élément d'export introuvable : ${selector}`);
+    throw new Error(`Élément de mesures introuvable : ${selector}`);
   }
   return element;
 }
@@ -45,14 +45,33 @@ function normalizeMeasurements(measurements) {
         throw new RangeError("Le numéro de capteur doit être un entier strictement positif.");
       }
 
-      return Object.freeze({
-        sensorId,
-        position: Number(measurement.position),
-        time: Number(measurement.time),
-        velocity: Number(measurement.velocity),
-      });
+      const position = Number(measurement.position);
+      const time = Number(measurement.time);
+      const velocity = Number(measurement.velocity);
+      for (const [name, value] of Object.entries({ position, time, velocity })) {
+        if (!Number.isFinite(value)) {
+          throw new TypeError(`${name} doit être un nombre fini.`);
+        }
+      }
+
+      return Object.freeze({ sensorId, position, time, velocity });
     })
     .sort((left, right) => left.sensorId - right.sensorId);
+}
+
+/**
+ * Retourne les quatre valeurs textuelles utilisées à la fois dans le tableau
+ * et dans le fichier CSV. Les lignes sont triées par numéro de capteur.
+ */
+export function buildMeasurementsTableRows(measurements) {
+  return Object.freeze(
+    normalizeMeasurements(measurements).map((measurement) => Object.freeze([
+      String(measurement.sensorId),
+      formatCsvNumber(measurement.position),
+      formatCsvNumber(measurement.time),
+      formatCsvNumber(measurement.velocity),
+    ])),
+  );
 }
 
 /**
@@ -60,16 +79,11 @@ function normalizeMeasurements(measurements) {
  * Les nombres utilisent le point décimal et au plus six décimales.
  */
 export function buildMeasurementsCsv(measurements) {
-  const normalized = normalizeMeasurements(measurements);
+  const rows = buildMeasurementsTableRows(measurements);
   const lines = [CSV_HEADERS.map((header) => `"${header}"`).join(",")];
 
-  for (const measurement of normalized) {
-    lines.push([
-      String(measurement.sensorId),
-      formatCsvNumber(measurement.position),
-      formatCsvNumber(measurement.time),
-      formatCsvNumber(measurement.velocity),
-    ].join(","));
+  for (const row of rows) {
+    lines.push(row.join(","));
   }
 
   return `${lines.join("\r\n")}\r\n`;
@@ -112,10 +126,25 @@ export function downloadMeasurementsCsv(measurements, options = {}) {
   return Object.freeze({ filename, csv });
 }
 
+function renderMeasurementRows(tableBody, measurements) {
+  const rows = buildMeasurementsTableRows(measurements);
+  if (rows.length === 0) {
+    tableBody.innerHTML = '<tr><td class="measurement-table-empty" colspan="4">Aucune mesure disponible.</td></tr>';
+    return rows;
+  }
+
+  tableBody.innerHTML = rows
+    .map((row) => `<tr>${row.map((value) => `<td>${value}</td>`).join("")}</tr>`)
+    .join("");
+  return rows;
+}
+
 /**
- * Active le bouton d'export uniquement lorsque l'expérience est terminée.
+ * Active le bouton d'affichage uniquement lorsque l'expérience est terminée.
+ * Le tableau apparaît au-dessus de la simulation et conserve un bouton de
+ * téléchargement CSV dans son en-tête.
  */
-export function bindMeasurementExport(root, appState, options = {}) {
+export function bindMeasurementResults(root, appState, options = {}) {
   if (!root || typeof root.querySelector !== "function") {
     throw new TypeError("Une racine DOM interrogeable est requise.");
   }
@@ -123,37 +152,100 @@ export function bindMeasurementExport(root, appState, options = {}) {
     throw new TypeError("Un état central valide est requis.");
   }
 
-  const button = getRequiredElement(root, "#download-data-button");
+  const showButton = getRequiredElement(root, "#show-data-button");
+  const overlay = getRequiredElement(root, "#measurement-table-overlay");
+  const tableBody = getRequiredElement(root, "#measurement-table-body");
+  const closeButton = getRequiredElement(root, "#measurement-table-close-button");
+  const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
+  const keyboardTarget = options.keyboardTarget ?? root;
   const downloader = options.downloader
     ?? ((measurements) => downloadMeasurementsCsv(measurements, options));
   let destroyed = false;
+  let open = false;
+
+  function setOpen(nextOpen) {
+    open = Boolean(nextOpen);
+    overlay.hidden = !open;
+    overlay.setAttribute("aria-hidden", String(!open));
+    showButton.setAttribute("aria-expanded", String(open));
+    if (open && typeof closeButton.focus === "function") closeButton.focus();
+    return open;
+  }
+
+  function close() {
+    return setOpen(false);
+  }
+
+  function openTable() {
+    const snapshot = appState.getSnapshot();
+    if (!isTerminalState(snapshot.simulation)) return false;
+    const rows = renderMeasurementRows(tableBody, snapshot.measurements);
+    downloadButton.disabled = rows.length === 0;
+    downloadButton.setAttribute("aria-disabled", String(rows.length === 0));
+    return setOpen(true);
+  }
 
   function update(snapshot = appState.getSnapshot()) {
     if (destroyed) return false;
     const enabled = isTerminalState(snapshot.simulation);
-    button.disabled = !enabled;
-    button.setAttribute("aria-disabled", String(!enabled));
+    showButton.disabled = !enabled;
+    showButton.setAttribute("aria-disabled", String(!enabled));
+    if (!enabled) close();
     return enabled;
   }
 
-  function onClick() {
+  function onShowClick() {
+    openTable();
+  }
+
+  function onCloseClick() {
+    close();
+  }
+
+  function onDownloadClick() {
     const snapshot = appState.getSnapshot();
-    if (!isTerminalState(snapshot.simulation)) return;
+    if (!isTerminalState(snapshot.simulation) || snapshot.measurements.length === 0) return;
     downloader(snapshot.measurements);
   }
 
-  button.addEventListener("click", onClick);
+  function onOverlayClick(event) {
+    if (event?.target === overlay) close();
+  }
+
+  function onKeyDown(event) {
+    if (open && event?.key === "Escape") {
+      event.preventDefault?.();
+      close();
+      showButton.focus?.();
+    }
+  }
+
+  showButton.addEventListener("click", onShowClick);
+  closeButton.addEventListener("click", onCloseClick);
+  downloadButton.addEventListener("click", onDownloadClick);
+  overlay.addEventListener("click", onOverlayClick);
+  keyboardTarget?.addEventListener?.("keydown", onKeyDown);
   const unsubscribe = appState.subscribe((snapshot) => update(snapshot));
   update();
 
   return Object.freeze({
     update,
+    open: openTable,
+    close,
+    isOpen: () => open,
     destroy() {
       if (destroyed) return false;
       destroyed = true;
-      button.removeEventListener?.("click", onClick);
+      showButton.removeEventListener?.("click", onShowClick);
+      closeButton.removeEventListener?.("click", onCloseClick);
+      downloadButton.removeEventListener?.("click", onDownloadClick);
+      overlay.removeEventListener?.("click", onOverlayClick);
+      keyboardTarget?.removeEventListener?.("keydown", onKeyDown);
       unsubscribe();
       return true;
     },
   });
 }
+
+/** Alias conservé pour les intégrations antérieures. */
+export const bindMeasurementExport = bindMeasurementResults;

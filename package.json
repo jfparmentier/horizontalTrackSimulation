@@ -1,6 +1,6 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": true,
   "type": "module",
   "description": "Simulation SVG autonome avec deux modes : idéal ou frottement avec mesures bruitées.",

@@ -428,7 +428,9 @@ h1 {
 
 .playback-icon,
 .control-icon,
-.download-icon {
+.table-icon,
+.download-icon,
+.close-icon {
   width: 20px;
   height: 20px;
   fill: none;
@@ -1016,5 +1018,187 @@ h1 {
 
   .mode-card {
     min-height: 340px;
+  }
+}
+
+
+/* Tableau de mesures affiché au-dessus de la simulation. */
+.measurement-table-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 43, 57, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.measurement-table-dialog {
+  display: flex;
+  width: min(960px, 100%);
+  max-height: min(82vh, 720px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #a9c7d7;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 28px 90px rgba(10, 37, 52, 0.3);
+}
+
+.measurement-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #d5e5ed;
+  background: #f4fafe;
+}
+
+.measurement-table-eyebrow {
+  margin: 0 0 3px;
+  color: #287aa4;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.measurement-table-header h2 {
+  margin: 0;
+  color: #153247;
+  font-size: clamp(1.15rem, 2.5vw, 1.55rem);
+}
+
+.measurement-table-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.dialog-icon-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #8fb8ce;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #174d69;
+  cursor: pointer;
+}
+
+.dialog-icon-button:hover:not(:disabled) {
+  background: #eaf6fc;
+}
+
+.dialog-icon-button:focus-visible {
+  outline: 3px solid rgba(35, 131, 180, 0.3);
+  outline-offset: 2px;
+}
+
+.dialog-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.dialog-icon-button--download {
+  border-color: #247da9;
+  background: #247da9;
+  color: #ffffff;
+}
+
+.dialog-icon-button--download:hover:not(:disabled) {
+  background: #1e6d94;
+}
+
+.measurement-table-scroll {
+  overflow: auto;
+  padding: 0 20px 20px;
+}
+
+.measurement-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 18px;
+  color: #173f55;
+  font-variant-numeric: tabular-nums;
+}
+
+.measurement-table th,
+.measurement-table td {
+  padding: 11px 13px;
+  border-right: 1px solid #d7e6ed;
+  border-bottom: 1px solid #d7e6ed;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.measurement-table th:first-child,
+.measurement-table td:first-child {
+  border-left: 1px solid #d7e6ed;
+}
+
+.measurement-table thead th {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  border-top: 1px solid #a9c7d7;
+  background: #eaf5fb;
+  color: #315d74;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.measurement-table thead th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.measurement-table thead th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.measurement-table tbody tr:nth-child(even) td {
+  background: #f7fbfd;
+}
+
+.measurement-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+
+.measurement-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+.measurement-table-empty {
+  padding: 26px !important;
+  color: #6c8390;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .measurement-table-overlay {
+    padding: 10px;
+  }
+
+  .measurement-table-dialog {
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+
+  .measurement-table-header {
+    padding: 14px;
+  }
+
+  .measurement-table-scroll {
+    padding: 0 10px 12px;
+  }
+
+  .measurement-table th,
+  .measurement-table td {
+    padding: 9px 10px;
   }
 }

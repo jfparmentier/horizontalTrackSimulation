@@ -137,7 +137,7 @@ const manifests = [
     file: "src/measurement-export.js",
     dependencies: [],
     exports: [
-      "buildMeasurementsCsv", "downloadMeasurementsCsv", "bindMeasurementExport",
+      "buildMeasurementsTableRows", "buildMeasurementsCsv", "downloadMeasurementsCsv", "bindMeasurementResults", "bindMeasurementExport",
     ],
   },
   {
@@ -154,7 +154,7 @@ const manifests = [
       ["simulationControls", ["bindSimulationControls"]],
       ["sensorController", ["createSensorController"]],
       ["measurementRecorder", ["createMeasurementRecorder"]],
-      ["measurementExport", ["bindMeasurementExport"]],
+      ["measurementExport", ["bindMeasurementResults"]],
       ["timeLoop", ["createTimeLoop"]],
     ],
     exports: ["IMPACT_SENSOR_ID", "getImpactSensorMeasurement", "createAnimatedApp"],
@@ -269,15 +269,52 @@ ${css}
                 <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
                 <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt>Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
               </dl>
-              <button id="download-data-button" class="control-button control-button--icon" type="button" aria-label="Télécharger les données des capteurs" title="Télécharger les données des capteurs" disabled>
-                <svg class="fa-solid fa-download download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+              <button id="show-data-button" class="control-button control-button--icon" type="button" aria-label="Afficher le tableau des mesures" title="Afficher le tableau des mesures" aria-controls="measurement-table-overlay" aria-expanded="false" disabled>
+                <svg class="table-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <path d="M3 9h18M9 4v16M15 4v16" />
                 </svg>
               </button>
             </div>
           </div>
         </div>
       </section>
+
+      <div id="measurement-table-overlay" class="measurement-table-overlay" role="dialog" aria-modal="true" aria-labelledby="measurement-table-title" aria-hidden="true" hidden>
+        <section class="measurement-table-dialog">
+          <header class="measurement-table-header">
+            <div>
+              <p class="measurement-table-eyebrow">Résultats expérimentaux</p>
+              <h2 id="measurement-table-title">Mesures des capteurs de vitesse</h2>
+            </div>
+            <div class="measurement-table-actions">
+              <button id="measurement-table-download-button" class="dialog-icon-button dialog-icon-button--download" type="button" aria-label="Télécharger les mesures au format CSV" title="Télécharger les mesures au format CSV">
+                <svg class="download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3" />
+                </svg>
+              </button>
+              <button id="measurement-table-close-button" class="dialog-icon-button" type="button" aria-label="Fermer le tableau" title="Fermer le tableau">
+                <svg class="close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m6 6 12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+          </header>
+          <div class="measurement-table-scroll">
+            <table class="measurement-table">
+              <thead>
+                <tr>
+                  <th scope="col">Numéro du capteur</th>
+                  <th scope="col">Position (m)</th>
+                  <th scope="col">Instant de déclenchement (s)</th>
+                  <th scope="col">Vitesse mesurée (m/s)</th>
+                </tr>
+              </thead>
+              <tbody id="measurement-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </section>
   </main>
   <script>
