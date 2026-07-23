@@ -2315,8 +2315,6 @@ function bindModeSelector(root, appState) {
   const idealButton = getRequiredElement(root, "#mode-ideal-button");
   const frictionButton = getRequiredElement(root, "#mode-friction-button");
   const homeButton = getRequiredElement(root, "#mode-home-button");
-  const activeModeLabel = getRequiredElement(root, "#active-mode-label");
-  const activeModeDetail = getRequiredElement(root, "#active-mode-detail");
   const listeners = [];
 
   function listen(element, eventName, callback) {
@@ -2331,17 +2329,6 @@ function bindModeSelector(root, appState) {
     selectionScreen.setAttribute("aria-hidden", String(hasMode));
     simulationScreen.setAttribute("aria-hidden", String(!hasMode));
 
-    if (!hasMode) {
-      activeModeLabel.textContent = "";
-      activeModeDetail.textContent = "";
-      return;
-    }
-
-    const definition = SIMULATION_MODES[snapshot.mode];
-    activeModeLabel.textContent = definition.label;
-    activeModeDetail.textContent = definition.measurementsAreNoisy
-      ? "Frottement inconnu · mesures bruitées"
-      : "Sans frottement · mesures parfaites";
   }
 
   listen(idealButton, "click", () => appState.selectMode("ideal"));

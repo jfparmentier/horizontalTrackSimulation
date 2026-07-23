@@ -133,6 +133,14 @@ test("la simulation est initialement masquée jusqu'au choix du mode", () => {
   assert.match(html, /id="mode-home-button"[^>]+aria-label="Revenir au choix du mode"/);
 });
 
+test("le bouton d'accueil est superposé en haut à droite du SVG sans barre de mode", () => {
+  const visibleMarkup = html.slice(0, html.indexOf("<script>"));
+  assert.doesNotMatch(visibleMarkup, /class="mode-toolbar"/);
+  assert.doesNotMatch(visibleMarkup, /id="active-mode-label"|id="active-mode-detail"/);
+  assert.match(visibleMarkup, /class="apparatus-stage"[\s\S]*id="apparatus-host"[\s\S]*id="mode-home-button"/);
+  assert.match(html, /\.mode-home-button \{[\s\S]*?position: absolute;[\s\S]*?top: 18px;[\s\S]*?right: 18px;/);
+});
+
 test("la valeur inconnue du coefficient de frottement n'est pas révélée dans l'interface", () => {
   const visibleMarkup = html.slice(0, html.indexOf("<script>"));
   assert.doesNotMatch(visibleMarkup, /0[.,]058/);

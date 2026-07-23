@@ -30,8 +30,7 @@ class FakeElement {
 function createRoot() {
   const ids = [
     "mode-selection", "simulation-screen", "mode-ideal-button",
-    "mode-friction-button", "mode-home-button", "active-mode-label",
-    "active-mode-detail",
+    "mode-friction-button", "mode-home-button",
   ];
   const elements = new Map(ids.map((id) => [`#${id}`, new FakeElement()]));
   return {
@@ -66,7 +65,6 @@ test("le choix idéal ouvre la simulation et configure des mesures parfaites", (
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0);
   assert.equal(elements.get("#mode-selection").hidden, true);
   assert.equal(elements.get("#simulation-screen").hidden, false);
-  assert.equal(elements.get("#active-mode-label").textContent, "Cas idéal");
 });
 
 test("le choix avec frottement configure mu = 0,058 et des mesures bruitées", () => {
@@ -80,7 +78,6 @@ test("le choix avec frottement configure mu = 0,058 et des mesures bruitées", (
   assert.equal(snapshot.mode, "friction");
   assert.equal(snapshot.parameters.friction, 0.058);
   assert.equal(snapshot.experimental.measurementNoiseStdDev, 0.1);
-  assert.match(elements.get("#active-mode-detail").textContent, /mesures bruitées/i);
 });
 
 test("le bouton d'accueil revient au choix du mode", () => {

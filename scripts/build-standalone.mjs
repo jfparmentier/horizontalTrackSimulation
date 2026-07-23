@@ -235,19 +235,13 @@ ${css}
 
     <section id="simulation-screen" class="simulation-screen" aria-label="Simulation" hidden aria-hidden="true">
       <section class="apparatus-card" aria-label="Montage expérimental animé">
-        <div class="mode-toolbar">
+        <div class="apparatus-stage">
+          <div id="apparatus-host" class="apparatus-host"></div>
           <button id="mode-home-button" class="mode-home-button" type="button" aria-label="Revenir au choix du mode" title="Revenir au choix du mode">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <path d="M3 11.2 12 4l9 7.2M5.5 10.5V20h5v-5.5h3V20h5v-9.5" />
             </svg>
           </button>
-          <div class="active-mode-copy">
-            <strong id="active-mode-label"></strong>
-            <span id="active-mode-detail"></span>
-          </div>
-        </div>
-        <div class="apparatus-stage">
-          <div id="apparatus-host" class="apparatus-host"></div>
           <div class="animation-controls" aria-label="Commandes et résultats de la simulation">
             <div class="main-control-buttons">
               <button id="start-button" class="control-button control-button--primary" type="button" aria-label="Démarrer" title="Démarrer">

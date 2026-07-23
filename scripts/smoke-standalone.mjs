@@ -104,7 +104,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "mode-selection", "simulation-screen", "mode-ideal-button", "mode-friction-button",
-  "mode-home-button", "active-mode-label", "active-mode-detail",
+  "mode-home-button",
   "start-button", "pause-button", "step-button", "reset-button", "download-data-button",
   "time-value", "s2-stop-time-item", "s2-stop-time-value",
   "s2-contact-velocity-item", "s2-contact-velocity-value",
@@ -188,9 +188,6 @@ if (!host.svg) throw new Error("Le SVG n'a pas été monté après le choix du m
 if (!elements.get("#mode-selection").hidden || elements.get("#simulation-screen").hidden) {
   throw new Error("Le choix du mode n'a pas ouvert la simulation.");
 }
-if (elements.get("#active-mode-label").textContent !== "Cas idéal") {
-  throw new Error("Le mode actif n'est pas affiché.");
-}
 if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
   throw new Error("Le fil n'a pas reçu son tracé initial.");
 }
@@ -262,7 +259,7 @@ if (host.svg || elements.get("#mode-selection").hidden || !elements.get("#simula
 }
 
 elements.get("#mode-friction-button").dispatch("click");
-if (!host.svg || elements.get("#active-mode-label").textContent !== "Cas avec frottement") {
+if (!host.svg) {
   throw new Error("Le second mode n'a pas été ouvert correctement.");
 }
 if (host.attributes.get("data-simulation-mode") !== "friction") {
