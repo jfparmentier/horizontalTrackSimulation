@@ -186,6 +186,7 @@ Les raccourcis globaux sont ignorés lorsqu’un champ de saisie ou un bouton po
 ├── dist-standalone.js             # Bundle JavaScript généré
 ├── package.json                   # Métadonnées et scripts npm
 ├── README.md                      # Documentation du projet
+├── LICENSE                        # Licence CC BY 4.0 et attribution
 ├── scripts/
 │   ├── build-standalone.mjs       # Génération de index.html et du bundle
 │   └── smoke-standalone.mjs       # Test minimal de la version autonome
@@ -293,5 +294,12 @@ Pour un dépôt public accueillant des contributions externes, ces consignes dev
 
 ## Licence
 
-> [!WARNING]
-> Aucun fichier `LICENSE` n’est actuellement fourni. Une licence explicite doit être choisie avant toute publication, redistribution ou réutilisation du projet.
+Ce projet est distribué sous la licence **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
+
+Toute réutilisation, adaptation ou redistribution doit mentionner l’attribution suivante :
+
+> Jean-Francois Parmentier, IPSA, IRIT
+
+Le texte de la licence et les conditions applicables sont précisés dans le fichier [`LICENSE`](./LICENSE).
+
+Identifiant SPDX : `CC-BY-4.0`.
