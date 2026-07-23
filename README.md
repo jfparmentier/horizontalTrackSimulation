@@ -47,9 +47,9 @@ The active language applies to:
 - CSV headers and filenames;
 - accessible SVG descriptions.
 
-French readouts and table cells use a comma as the decimal separator, for example `1,23`. English readouts and table cells use a decimal point, for example `1.23`.
+French readouts, table cells, and CSV numerical values use a comma as the decimal separator, for example `1,23`. French CSV files use semicolons between columns so that decimal commas remain unambiguous.
 
-CSV numerical values retain the decimal point and comma-separated columns to provide a stable machine-readable format in both languages.
+English readouts, table cells, and CSV numerical values use a decimal point, for example `1.23`, with commas between CSV columns.
 
 ## Simulation Modes
 
@@ -185,7 +185,14 @@ A download button in the dialog header exports the same measurements as a UTF-8 
 - `mesures-capteurs.csv` in French;
 - `sensor-measurements.csv` in English.
 
-Example:
+French example:
+
+```csv
+"Numéro du capteur";"Position (m)";"Instant de déclenchement (s)";"Vitesse mesurée (m/s)"
+1;0,12;0,431628;0,541907
+```
+
+English example:
 
 ```csv
 "Sensor number","Position (m)","Trigger time (s)","Measured speed (m/s)"
@@ -197,7 +204,8 @@ Export characteristics:
 - one row per triggered sensor;
 - rows sorted by sensor number;
 - positions expressed in the same coordinate system as the SVG ruler;
-- decimal point in numerical CSV fields;
+- locale-aware decimal notation: comma in French, point in English;
+- semicolon-separated columns in French and comma-separated columns in English;
 - up to six decimal places;
 - UTF-8 byte-order mark for compatibility with common spreadsheet software.
 

@@ -97,9 +97,9 @@ function measurementsForStore() {
   }));
 }
 
-test("le tableau localise les décimales tandis que le CSV conserve le point", () => {
+test("le tableau et le CSV français utilisent la virgule décimale", () => {
   const rows = buildMeasurementsTableRows(MEASUREMENTS, { locale: "fr" });
-  const csv = buildMeasurementsCsv(MEASUREMENTS);
+  const csv = buildMeasurementsCsv(MEASUREMENTS, { locale: "fr" });
   const lines = csv.trim().split("\r\n");
 
   assert.deepEqual(rows, [
@@ -109,11 +109,11 @@ test("le tableau localise les décimales tandis que le CSV conserve le point", (
   assert.equal(lines.length, 3);
   assert.equal(
     lines[0],
-    '"Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"',
+    '"Numéro du capteur";"Position (m)";"Instant de déclenchement (s)";"Vitesse mesurée (m/s)"',
   );
-  assert.equal(lines[1], "1,0.222222,0.512,0.8");
-  assert.equal(lines[2], "2,0.444444,0.812346,1.234568");
-  assert.ok(lines.every((line) => line.split(",").length === 4));
+  assert.equal(lines[1], "1;0,222222;0,512;0,8");
+  assert.equal(lines[2], "2;0,444444;0,812346;1,234568");
+  assert.ok(lines.every((line) => line.split(";").length === 4));
 });
 
 test("le tableau anglais utilise le point décimal", () => {
@@ -124,7 +124,7 @@ test("le tableau anglais utilise le point décimal", () => {
 });
 
 test("un tableau vide produit un CSV avec uniquement l'en-tête", () => {
-  const csv = buildMeasurementsCsv([]);
+  const csv = buildMeasurementsCsv([], { locale: "fr" });
   assert.equal(csv.trim().split("\r\n").length, 1);
   assert.deepEqual(buildMeasurementsTableRows([]), []);
 });
@@ -255,10 +255,10 @@ test("le CSV conserve les positions nominales des onze capteurs", () => {
     time: index + 0.1,
     velocity: index + 0.2,
   }));
-  const lines = buildMeasurementsCsv(measurements).trim().split("\r\n").slice(1);
+  const lines = buildMeasurementsCsv(measurements, { locale: "fr" }).trim().split("\r\n").slice(1);
 
   assert.deepEqual(
-    lines.map((line) => Number(line.split(",")[1])),
+    lines.map((line) => Number(line.split(";")[1].replace(",", "."))),
     positions,
   );
 });
@@ -266,6 +266,7 @@ test("le CSV conserve les positions nominales des onze capteurs", () => {
 test("le CSV adapte ses en-têtes et son nom à la langue anglaise", () => {
   const csv = buildMeasurementsCsv(MEASUREMENTS, { locale: "en" });
   assert.match(csv, /^"Sensor number","Position \(m\)","Trigger time \(s\)","Measured speed \(m\/s\)"/);
+  assert.match(csv, /1,0\.222222,0\.512,0\.8/);
 
   const clicks = [];
   class FakeBlob {

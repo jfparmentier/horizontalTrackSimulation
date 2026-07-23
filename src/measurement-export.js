@@ -30,14 +30,15 @@ function isTerminalState(state) {
   return ["blocked", "finished"].includes(state?.status);
 }
 
-function formatCsvNumber(value) {
+function formatCsvNumber(value, locale = "en") {
   const normalized = Number(value);
   if (!Number.isFinite(normalized)) {
     throw new TypeError("Les valeurs exportées doivent être des nombres finis.");
   }
 
   const fixed = normalized.toFixed(CSV_NUMBER_PRECISION);
-  return fixed.replace(/(\.\d*?[1-9])0+$|\.0+$/, "$1");
+  const compact = fixed.replace(/(\.\d*?[1-9])0+$|\.0+$/, "$1");
+  return locale === "fr" ? compact.replace(".", ",") : compact;
 }
 
 function normalizeMeasurements(measurements) {
@@ -93,21 +94,25 @@ export function buildMeasurementsTableRows(measurements, options = {}) {
 
 /**
  * Construit un CSV à quatre colonnes, trié par numéro de capteur.
- * Les nombres utilisent le point décimal et au plus six décimales.
+ * En français, les nombres utilisent la virgule décimale et les colonnes sont
+ * séparées par des points-virgules. En anglais, le point décimal et la virgule
+ * de séparation sont conservés. La précision maximale est de six décimales.
  */
 export function buildMeasurementsCsv(measurements, options = {}) {
   const i18n = resolveTranslator(options);
+  const locale = i18n.getLocale();
+  const delimiter = locale === "fr" ? ";" : ",";
   const rows = normalizeMeasurements(measurements).map((measurement) => [
     String(measurement.sensorId),
-    formatCsvNumber(measurement.position),
-    formatCsvNumber(measurement.time),
-    formatCsvNumber(measurement.velocity),
+    formatCsvNumber(measurement.position, locale),
+    formatCsvNumber(measurement.time, locale),
+    formatCsvNumber(measurement.velocity, locale),
   ]);
   const headers = CSV_HEADER_KEYS.map((key) => i18n.t(key));
-  const lines = [headers.map((header) => `"${header}"`).join(",")];
+  const lines = [headers.map((header) => `"${header}"`).join(delimiter)];
 
   for (const row of rows) {
-    lines.push(row.join(","));
+    lines.push(row.join(delimiter));
   }
 
   return `${lines.join("\r\n")}\r\n`;
