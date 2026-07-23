@@ -4,6 +4,10 @@ A standalone, browser-based physics simulation inspired by the interaction princ
 
 The application is intended for classroom investigation of accelerated motion, motion with friction, measurement uncertainty, repeated experiments, and data analysis. It runs entirely in the browser without a server, external JavaScript library, or network connection.
 
+## Preview
+
+![Horizontal track motion simulation showing the cart, sensors, pulley, selectable masses, and controls.](./docs/simulation-preview.png)
+
 ## Features
 
 - Two pedagogical modes: ideal and frictional.
@@ -28,6 +32,10 @@ The application is intended for classroom investigation of accelerated motion, m
 7. When the experiment ends, open the measurement table and optionally download the CSV file.
 
 The default suspended mass is `0.5 kg`.
+
+## Mobile Compatibility
+
+A baseline mobile-compatibility audit is available in [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md). The landing page already adapts to narrow screens, but the simulation currently retains a horizontally scrollable `900 px` canvas below `760 px`. The audit identifies the responsive-layout, touch-target, orientation, safe-area, and measurement-table work required for full smartphone support.
 
 ## Languages and Number Formatting
 
@@ -229,6 +237,7 @@ Global shortcuts are ignored while an input or button has focus.
 ├── dist-standalone.js             # Generated JavaScript bundle
 ├── package.json                   # Project metadata and npm scripts
 ├── README.md                      # Project documentation
+├── docs/                          # Preview image, mobile audit report, raw measurements, and screenshots
 ├── LICENSE                        # CC BY 4.0 license and attribution
 ├── scripts/
 │   ├── build-standalone.mjs       # Generates index.html and the bundle
