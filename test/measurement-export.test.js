@@ -255,3 +255,36 @@ test("le CSV conserve les positions nominales des onze capteurs", () => {
     positions,
   );
 });
+
+test("le CSV adapte ses en-têtes et son nom à la langue anglaise", () => {
+  const csv = buildMeasurementsCsv(MEASUREMENTS, { locale: "en" });
+  assert.match(csv, /^"Sensor number","Position \(m\)","Trigger time \(s\)","Measured speed \(m\/s\)"/);
+
+  const clicks = [];
+  class FakeBlob {
+    constructor(parts) { this.parts = parts; }
+  }
+  const result = downloadMeasurementsCsv(MEASUREMENTS, {
+    locale: "en",
+    documentRef: {
+      body: { appendChild() {} },
+      createElement() {
+        return {
+          click() { clicks.push(true); },
+          remove() {},
+          hidden: false,
+          href: "",
+          download: "",
+        };
+      },
+    },
+    urlApi: {
+      createObjectURL() { return "blob:test"; },
+      revokeObjectURL() {},
+    },
+    BlobConstructor: FakeBlob,
+  });
+
+  assert.equal(result.filename, "sensor-measurements.csv");
+  assert.equal(clicks.length, 1);
+});

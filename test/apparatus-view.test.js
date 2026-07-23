@@ -197,3 +197,13 @@ test("mountStaticApparatus injecte le SVG dans le conteneur", () => {
 test("mountStaticApparatus refuse un conteneur invalide", () => {
   assert.throws(() => mountStaticApparatus(null, DEFAULTS), /conteneur DOM/i);
 });
+
+test("le SVG peut être construit en anglais sans modifier ses valeurs physiques", () => {
+  const svg = buildStaticApparatusSvg({ ...DEFAULTS, sensorCount: 11, locale: "en" });
+
+  assert.match(svg, /<title id="apparatus-title">Horizontal track setup<\/title>/);
+  assert.match(svg, /aria-label="Graduated ruler"/);
+  assert.match(svg, /aria-label="11 speed sensors"/);
+  assert.match(svg, /aria-label="Sensor 5, position 0\.6 metres"/);
+  assert.match(svg, />0\.6 m<\/text>/);
+});

@@ -1,3 +1,5 @@
+import { createI18n } from "./i18n.js";
+
 export const DEFAULT_MANUAL_STEP_DURATION = 0.05;
 
 function getRequiredElement(root, selector) {
@@ -57,16 +59,38 @@ export function bindSimulationControls(root, configuration = {}) {
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
+  const i18n = configuration.i18n ?? createI18n("fr");
+  const ownsI18n = !configuration.i18n;
+  let lastState = configuration.appState.getSnapshot().simulation;
+  let lastMeta = {};
   let destroyed = false;
 
   startButton.setAttribute("aria-keyshortcuts", "Space");
   pauseButton.setAttribute("aria-keyshortcuts", "Space");
   stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
   resetButton.setAttribute("aria-keyshortcuts", "Home");
-  stepButton.setAttribute(
-    "aria-label",
-    `Avancer la simulation de ${manualStepDuration.toFixed(2)} seconde`,
-  );
+
+  function localizedDuration() {
+    return new Intl.NumberFormat(i18n.getLocale() === "fr" ? "fr-FR" : "en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(manualStepDuration);
+  }
+
+  function localize() {
+    const pauseLabel = i18n.t("controls.pause");
+    const stepLabel = i18n.t("controls.step", { duration: localizedDuration() });
+    const resetLabel = i18n.t("controls.reset");
+    pauseButton.setAttribute("aria-label", pauseLabel);
+    pauseButton.setAttribute("title", pauseLabel);
+    stepButton.setAttribute("aria-label", stepLabel);
+    stepButton.setAttribute("title", stepLabel);
+    resetButton.setAttribute("aria-label", resetLabel);
+    resetButton.setAttribute("title", resetLabel);
+    const loop = getLoop();
+    update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
+    return i18n.getLocale();
+  }
 
   function listen(element, eventName, callback) {
     element.addEventListener(eventName, callback);
@@ -84,6 +108,8 @@ export function bindSimulationControls(root, configuration = {}) {
   }
 
   function update(state = configuration.appState.getSnapshot().simulation, meta = {}) {
+    lastState = state;
+    lastMeta = meta;
     const running = resolveRunning(meta);
     const terminal = isTerminalState(state);
     const initial = isInitialState(state);
@@ -93,7 +119,7 @@ export function bindSimulationControls(root, configuration = {}) {
     stepButton.disabled = running || terminal;
     resetButton.disabled = initial && !running;
 
-    const startLabel = initial ? "Démarrer" : "Reprendre";
+    const startLabel = i18n.t(initial ? "controls.start" : "controls.resume");
     startButton.setAttribute("aria-label", startLabel);
     startButton.setAttribute("title", startLabel);
     startButton.dataset.actionState = initial ? "start" : "resume";
@@ -163,7 +189,8 @@ export function bindSimulationControls(root, configuration = {}) {
     listen(keyboardTarget, "keydown", onKeyDown);
   }
 
-  update();
+  const unsubscribeLanguage = i18n.subscribe(localize);
+  localize();
 
   return Object.freeze({
     start,
@@ -171,10 +198,13 @@ export function bindSimulationControls(root, configuration = {}) {
     step,
     reset,
     update,
+    localize,
     destroy() {
       if (destroyed) return false;
       destroyed = true;
       listeners.splice(0).forEach((remove) => remove());
+      unsubscribeLanguage();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });

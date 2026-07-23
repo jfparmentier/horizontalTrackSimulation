@@ -20,12 +20,33 @@ La simulation est conçue pour aider les élèves à :
 
 1. Télécharger ou cloner le projet.
 2. Ouvrir [`index.html`](./index.html) dans un navigateur récent.
-3. Choisir l’un des deux modes de simulation.
-4. Sélectionner une masse suspendue en la faisant glisser vers l’emplacement de `S2`.
-5. Lancer l’expérience avec le bouton de lecture.
-6. À la fin de la simulation, afficher le tableau des mesures puis, si nécessaire, télécharger le fichier CSV.
+3. L’interface s’ouvre en français. Utiliser le sélecteur `FR / EN` pour passer en anglais.
+4. Choisir l’un des deux modes de simulation.
+5. Sélectionner une masse suspendue en la faisant glisser vers l’emplacement de `S2`.
+6. Lancer l’expérience avec le bouton de lecture.
+7. À la fin de la simulation, afficher le tableau des mesures puis, si nécessaire, télécharger le fichier CSV.
 
 La masse suspendue sélectionnée par défaut est `0.5 kg`.
+
+## Langues
+
+L’interface prend en charge :
+
+- le **français**, sélectionné par défaut ;
+- l’**anglais**.
+
+Le sélecteur `FR / EN`, affiché dans le coin supérieur gauche, reste disponible sur l’écran d’accueil et pendant la simulation. Le changement de langue est immédiat et ne réinitialise ni l’expérience, ni la masse sélectionnée, ni les mesures déjà enregistrées.
+
+La traduction couvre notamment :
+
+- l’écran de choix du mode ;
+- les noms accessibles et les infobulles des commandes ;
+- les cadrans de résultats ;
+- le tableau des mesures ;
+- les en-têtes et le nom du fichier CSV ;
+- les descriptions accessibles du montage SVG et des capteurs.
+
+Les valeurs numériques du tableau et du CSV conservent le point comme séparateur décimal afin de faciliter leur exploitation scientifique.
 
 ## Modes de simulation
 
@@ -151,7 +172,7 @@ La boucle temporelle utilise un pas physique fixe. Le changement de phase, l’a
 
 Le bouton du tableau devient actif lorsque la simulation atteint un état terminal. Il ouvre une fenêtre superposée à la simulation contenant les quatre valeurs enregistrées pour chaque capteur. Cette fenêtre peut être fermée avec son bouton de fermeture, en cliquant sur l’arrière-plan ou avec la touche `Échap`.
 
-Un bouton de téléchargement reste disponible dans l’en-tête du tableau. Le fichier `mesures-capteurs.csv` contient exactement quatre colonnes :
+Un bouton de téléchargement reste disponible dans l’en-tête du tableau. Le fichier se nomme `mesures-capteurs.csv` en français et `sensor-measurements.csv` en anglais. Il contient exactement quatre colonnes, dont les en-têtes suivent la langue active :
 
 ```csv
 "Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"
@@ -198,6 +219,8 @@ Les raccourcis globaux sont ignorés lorsqu’un champ de saisie ou un bouton po
 │   ├── apparatus-view.js          # Construction du montage SVG
 │   ├── apparatus.css              # Présentation et mise en page
 │   ├── constants.js               # Paramètres fixes et modes
+│   ├── i18n.js                    # Dictionnaires français et anglais
+│   ├── language-selector.js       # Sélecteur de langue et traduction du DOM
 │   ├── mass-selector.js           # Sélection des masses
 │   ├── measurement-export.js      # Tableau des mesures et téléchargement du CSV
 │   ├── measurement-recorder.js    # Calcul des mesures et du bruit
@@ -228,7 +251,7 @@ Le projet ne dépend d’aucun paquet npm tiers.
 npm test
 ```
 
-Exécute les `206` tests unitaires et d’intégration avec le module natif `node:test`.
+Exécute les `214` tests unitaires et d’intégration avec le module natif `node:test`.
 
 ```bash
 npm run build
@@ -265,9 +288,10 @@ L’interface prévoit notamment :
 - des noms accessibles pour les boutons représentés par des icônes ;
 - une navigation et une sélection des masses au clavier ;
 - des attributs `disabled`, `aria-disabled` et `aria-keyshortcuts` cohérents ;
-- une description textuelle du montage SVG ;
+- une description textuelle du montage SVG, disponible en français et en anglais ;
 - des états de capteurs persistants et non fondés uniquement sur une animation transitoire ;
-- un fonctionnement au pointeur, à la souris et au tactile.
+- un fonctionnement au pointeur, à la souris et au tactile ;
+- un sélecteur de langue utilisable au clavier et exposant son état avec `aria-pressed`.
 
 ## Limites connues
 

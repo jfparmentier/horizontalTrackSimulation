@@ -29,11 +29,11 @@ test("les résultats finaux puis le bouton du tableau sont ordonnés à droite d
 
 test("le tableau des mesures est un dialogue superposé avec export CSV", () => {
   assert.match(html, /id="measurement-table-overlay"[^>]+role="dialog"[^>]+aria-modal="true"[^>]+hidden/);
-  assert.match(html, /id="measurement-table-title">Mesures des capteurs de vitesse<\/h2>/);
-  assert.match(html, /<th scope="col">Numéro du capteur<\/th>/);
-  assert.match(html, /<th scope="col">Position \(m\)<\/th>/);
-  assert.match(html, /<th scope="col">Instant de déclenchement \(s\)<\/th>/);
-  assert.match(html, /<th scope="col">Vitesse mesurée \(m\/s\)<\/th>/);
+  assert.match(html, /id="measurement-table-title"[^>]*>Mesures des capteurs de vitesse<\/h2>/);
+  assert.match(html, /<th scope="col"[^>]*>Numéro du capteur<\/th>/);
+  assert.match(html, /<th scope="col"[^>]*>Position \(m\)<\/th>/);
+  assert.match(html, /<th scope="col"[^>]*>Instant de déclenchement \(s\)<\/th>/);
+  assert.match(html, /<th scope="col"[^>]*>Vitesse mesurée \(m\/s\)<\/th>/);
   assert.match(html, /id="measurement-table-download-button"[^>]+aria-label="Télécharger les mesures au format CSV"/);
   assert.match(html, /id="measurement-table-close-button"[^>]+aria-label="Fermer le tableau"/);
   assert.match(html, /\.measurement-table-overlay \{[\s\S]*?position: fixed;[\s\S]*?z-index: 100;/);
@@ -120,8 +120,8 @@ test("les résultats de la phase 1 sont toujours visibles mais initialement gris
   assert.match(html, /id="s2-contact-velocity-item"[^>]+readout-item--pending[^>]+aria-disabled="true"/);
   assert.doesNotMatch(html, /id="s2-stop-time-item"[^>]+hidden/);
   assert.doesNotMatch(html, /id="s2-contact-velocity-item"[^>]+hidden/);
-  assert.match(html, /<dt>Durée de chute<\/dt><dd id="s2-stop-time-value"><\/dd>/);
-  assert.match(html, /<dt>Vitesse d’impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
+  assert.match(html, /<dt[^>]*>Durée de chute<\/dt><dd id="s2-stop-time-value"><\/dd>/);
+  assert.match(html, /<dt[^>]*>Vitesse d’impact<\/dt><dd id="s2-contact-velocity-value"><\/dd>/);
 });
 
 test("le menu latéral de paramètres a disparu", () => {
@@ -157,4 +157,15 @@ test("la valeur inconnue du coefficient de frottement n'est pas révélée dans 
   const visibleMarkup = html.slice(0, html.indexOf("<script>"));
   assert.doesNotMatch(visibleMarkup, /0[.,]058/);
   assert.match(visibleMarkup, /Frottement inconnu/);
+});
+
+
+test("l'interface propose le français et l'anglais avec le français par défaut", () => {
+  assert.match(html, /<html lang="fr">/);
+  assert.match(html, /id="language-switcher"[^>]+data-i18n-aria-label="language.label"/);
+  assert.match(html, /id="language-fr-button"[^>]+aria-pressed="true"[^>]*>FR<\/button>/);
+  assert.match(html, /id="language-en-button"[^>]+aria-pressed="false"[^>]*>EN<\/button>/);
+  assert.match(html, /data-i18n="mode.title"/);
+  assert.match(html, /data-i18n="readout.fallDuration"/);
+  assert.match(html, /data-i18n="measurements.title"/);
 });

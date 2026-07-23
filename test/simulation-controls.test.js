@@ -239,3 +239,25 @@ test("un état terminal désactive les commandes de progression", () => {
   assert.equal(elements.get("#pause-button").disabled, true);
   assert.equal(elements.get("#step-button").disabled, true);
 });
+
+test("les libellés dynamiques des commandes suivent la langue choisie", async () => {
+  const { createI18n } = await import("../src/i18n.js");
+  const loop = createFakeLoop();
+  const store = createAppState();
+  const { elements, keyboard, root } = createFixture();
+  const i18n = createI18n("fr");
+  bindSimulationControls(root, {
+    appState: store,
+    i18n,
+    getLoop: () => loop,
+    keyboardTarget: keyboard,
+  });
+
+  i18n.setLocale("en");
+  assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Start");
+  assert.equal(elements.get("#step-button").attributes.get("aria-label"), "Advance the simulation by 0.05 seconds");
+
+  loop.step(0.05);
+  i18n.setLocale("fr");
+  assert.equal(elements.get("#start-button").attributes.get("aria-label"), "Reprendre");
+});

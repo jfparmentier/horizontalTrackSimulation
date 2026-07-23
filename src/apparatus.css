@@ -1202,3 +1202,58 @@ h1 {
     padding: 9px 10px;
   }
 }
+
+/* Sélecteur de langue global, disponible sur l'accueil et la simulation. */
+.language-switcher {
+  position: fixed;
+  z-index: 130;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid rgba(53, 107, 136, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 22px rgba(35, 88, 117, 0.16);
+  backdrop-filter: blur(8px);
+}
+
+.language-button {
+  min-width: 42px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #356b88;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.language-button:hover {
+  background: #edf6fb;
+}
+
+.language-button:focus-visible {
+  outline: 3px solid rgba(40, 122, 164, 0.35);
+  outline-offset: 2px;
+}
+
+.language-button--active {
+  background: #287aa4;
+  color: #ffffff;
+}
+
+.language-button--active:hover {
+  background: #246f95;
+}
+
+@media (max-width: 760px) {
+  .language-switcher {
+    top: 8px;
+    left: 8px;
+  }
+}

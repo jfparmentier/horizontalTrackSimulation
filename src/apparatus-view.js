@@ -1,9 +1,5 @@
 import { computeApparatusLayout } from "./apparatus-geometry.js";
-
-const NUMBER_FORMAT = new Intl.NumberFormat("fr-FR", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
+import { normalizeLocale, translate } from "./i18n.js";
 
 const US_NUMBER_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
@@ -19,12 +15,23 @@ function escapeXml(value) {
     .replaceAll("'", "&apos;");
 }
 
-function formatNumber(value) {
-  return NUMBER_FORMAT.format(value);
+function formatLocaleNumber(value, locale) {
+  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function formatUsNumber(value) {
   return US_NUMBER_FORMAT.format(value);
+}
+
+function resolveLocalization(options = {}) {
+  const locale = normalizeLocale(options.i18n?.getLocale?.() ?? options.locale);
+  const t = options.i18n?.t
+    ? (key, parameters = {}) => options.i18n.t(key, parameters)
+    : (key, parameters = {}) => translate(locale, key, parameters);
+  return Object.freeze({ locale, t });
 }
 
 function massColorClass(value) {
@@ -38,7 +45,7 @@ function massColorClass(value) {
   return classes.get(normalized) ?? "mass-color--0-2";
 }
 
-function buildRuler(layout) {
+function buildRuler(layout, t) {
   const { ruler } = layout;
   const ticks = ruler.ticks
     .map((tick) => {
@@ -56,17 +63,17 @@ function buildRuler(layout) {
     .join("");
 
   return `
-    <g id="layer-ruler" data-role="ruler" aria-label="Règle graduée">
+    <g id="layer-ruler" data-role="ruler" aria-label="${escapeXml(t("svg.ruler"))}">
       <rect class="ruler-body" x="${ruler.x}" y="${ruler.y}" width="${ruler.width}" height="${ruler.height}" rx="8" />
       ${ticks}
       <text class="ruler-unit" x="${ruler.x + ruler.width + 18}" y="${ruler.y + 39}">m</text>
     </g>`;
 }
 
-function buildSensors(layout) {
+function buildSensors(layout, locale, t) {
   return layout.sensors
     .map((sensor) => `
-      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-state="idle" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="Capteur ${sensor.id}, position ${formatNumber(sensor.position)} mètre">
+      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-state="idle" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="${escapeXml(t("svg.sensor", { id: sensor.id, position: formatLocaleNumber(sensor.position, locale) }))}">
         <line class="sensor-beam" x1="0" y1="${sensor.gateTopY + 12}" x2="0" y2="${sensor.gateBottomY - 6}" />
         <rect class="sensor-head" x="-16" y="${sensor.gateTopY - 10}" width="32" height="22" rx="7" />
         <circle class="sensor-lens" cx="-7" cy="${sensor.gateTopY + 1}" r="4" />
@@ -83,10 +90,10 @@ function buildStringPath(layout) {
     L ${rope.endX} ${rope.endY}`;
 }
 
-function buildMassRack(layout) {
+function buildMassRack(layout, t) {
   const slots = layout.massRack.choices
     .map((choice) => `
-      <g class="mass-rack-slot-group">
+      <g class="mass-rack-slot-group"${choice.selected ? ` data-role="mass-placeholder" data-mass-value="${choice.value}" role="img" aria-label="${escapeXml(t("svg.massPlaceholder", { mass: formatUsNumber(choice.value) }))}"` : ""}>
         <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />
         ${choice.selected
           ? `<text class="mass-rack-slot-label" x="${choice.x + choice.width / 2}" y="${choice.y + choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>`
@@ -97,14 +104,14 @@ function buildMassRack(layout) {
   const masses = layout.massRack.choices
     .filter((choice) => !choice.selected)
     .map((choice) => `
-      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice ${massColorClass(choice.value)}" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
+      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice ${massColorClass(choice.value)}" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="${escapeXml(t("svg.massChoice", { mass: formatUsNumber(choice.value) }))}">
         <rect class="mass-choice-body" x="0" y="0" width="${choice.width}" height="${choice.height}" rx="14" />
         <text class="object-label mass-value-label" x="${choice.width / 2}" y="${choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>
       </g>`)
     .join("");
 
   return `
-    <g id="layer-mass-rack" data-role="mass-rack" aria-label="Masses disponibles">
+    <g id="layer-mass-rack" data-role="mass-rack" aria-label="${escapeXml(t("svg.massRack"))}">
       <rect class="mass-rack-support" x="${layout.massRack.x}" y="${layout.massRack.y}" width="${layout.massRack.width}" height="${layout.massRack.height}" rx="8" />
       <g class="mass-rack-slots" aria-hidden="true">${slots}</g>
       ${masses}
@@ -118,14 +125,11 @@ function buildMassRack(layout) {
 export function buildStaticApparatusSvg(options = {}) {
   const layout = computeApparatusLayout(options);
   const { parameters } = layout;
-  const description = [
-    "Montage initial avec le mobile S1 sur un banc horizontal,",
-    "la masse S2 suspendue par un fil passant sur une poulie,",
-    `${layout.sensorCount} capteurs placés aux positions expérimentales et un support de réception sous S2.`,
-  ].join(" ");
+  const { locale, t } = resolveLocalization(options);
+  const description = t("svg.description", { count: layout.sensorCount });
 
   return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet">
-    <title id="apparatus-title">Montage du banc horizontal</title>
+    <title id="apparatus-title">${escapeXml(t("svg.title"))}</title>
     <desc id="apparatus-description">${escapeXml(description)}</desc>
 
     <defs>
@@ -173,10 +177,10 @@ export function buildStaticApparatusSvg(options = {}) {
       <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} ${layout.track.y + 139} H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
     </g>
 
-    ${buildRuler(layout)}
+    ${buildRuler(layout, t)}
 
-    <g id="layer-sensors" aria-label="${layout.sensorCount} capteurs de vitesse">
-      ${buildSensors(layout)}
+    <g id="layer-sensors" aria-label="${escapeXml(t("svg.sensors", { count: layout.sensorCount }))}">
+      ${buildSensors(layout, locale, t)}
     </g>
 
     <g id="layer-pulley" data-role="pulley">
@@ -186,7 +190,7 @@ export function buildStaticApparatusSvg(options = {}) {
       <circle class="pulley-hub" cx="${layout.pulley.centerX}" cy="${layout.pulley.centerY}" r="5" />
     </g>
 
-    <g id="layer-string" data-role="string" aria-label="Fil tendu">
+    <g id="layer-string" data-role="string" aria-label="${escapeXml(t("svg.string"))}">
       <path id="string-path" class="string-path" data-role="string-path" d="${buildStringPath(layout)}" />
     </g>
 
@@ -206,14 +210,60 @@ export function buildStaticApparatusSvg(options = {}) {
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
 
-    ${buildMassRack(layout)}
+    ${buildMassRack(layout, t)}
 
-    <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
+    <g id="layer-height-guide" aria-label="${escapeXml(t("svg.dropHeight", { height: formatLocaleNumber(parameters.dropHeight, locale) }))}">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />
       <text class="dimension-label height-label" x="${layout.heightGuide.x + 14}" y="${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2}" text-anchor="middle" transform="rotate(-90 ${layout.heightGuide.x + 14} ${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2})">${formatUsNumber(parameters.dropHeight)} m</text>
     </g>
 
   </svg>`;
+}
+
+/** Met à jour les libellés accessibles du SVG sans réinitialiser la simulation. */
+export function localizeStaticApparatus(svg, layout, i18n) {
+  if (!svg || typeof svg.querySelector !== "function") {
+    throw new TypeError("Un élément SVG interrogeable est requis.");
+  }
+  if (!layout || !Array.isArray(layout.sensors)) {
+    throw new TypeError("Un layout de montage valide est requis.");
+  }
+  if (!i18n || typeof i18n.t !== "function" || typeof i18n.getLocale !== "function") {
+    throw new TypeError("Un gestionnaire de langue valide est requis.");
+  }
+
+  const locale = i18n.getLocale();
+  const setText = (selector, value) => {
+    const element = svg.querySelector(selector);
+    if (element) element.textContent = value;
+  };
+  const setLabel = (selector, value) => svg.querySelector(selector)?.setAttribute?.("aria-label", value);
+
+  setText("#apparatus-title", i18n.t("svg.title"));
+  setText("#apparatus-description", i18n.t("svg.description", { count: layout.sensorCount }));
+  setLabel("#layer-ruler", i18n.t("svg.ruler"));
+  setLabel("#layer-sensors", i18n.t("svg.sensors", { count: layout.sensorCount }));
+  setLabel("#layer-string", i18n.t("svg.string"));
+  setLabel("#layer-mass-rack", i18n.t("svg.massRack"));
+  setLabel("#layer-height-guide", i18n.t("svg.dropHeight", {
+    height: formatLocaleNumber(layout.parameters.dropHeight, locale),
+  }));
+
+  for (const sensor of layout.sensors) {
+    setLabel(`#sensor-${sensor.id}`, i18n.t("svg.sensor", {
+      id: sensor.id,
+      position: formatLocaleNumber(sensor.position, locale),
+    }));
+  }
+  for (const choice of layout.massRack.choices) {
+    const id = String(choice.value).replace(".", "-");
+    setLabel(`#mass-choice-${id}`, i18n.t("svg.massChoice", { mass: formatUsNumber(choice.value) }));
+  }
+  for (const placeholder of svg.querySelectorAll?.('[data-role="mass-placeholder"]') ?? []) {
+    const mass = formatUsNumber(Number(placeholder.getAttribute?.("data-mass-value")));
+    placeholder.setAttribute?.("aria-label", i18n.t("svg.massPlaceholder", { mass }));
+  }
+  return locale;
 }
 
 /** Monte le SVG dans un conteneur existant et retourne l'élément SVG. */

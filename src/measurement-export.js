@@ -1,9 +1,20 @@
-const CSV_HEADERS = Object.freeze([
-  "Numéro du capteur",
-  "Position (m)",
-  "Instant de déclenchement (s)",
-  "Vitesse mesurée (m/s)",
+import { createI18n, translate } from "./i18n.js";
+
+const CSV_HEADER_KEYS = Object.freeze([
+  "measurements.sensorNumber",
+  "measurements.position",
+  "measurements.triggerTime",
+  "measurements.velocity",
 ]);
+
+function resolveTranslator(options = {}) {
+  if (options.i18n?.t && options.i18n?.getLocale) return options.i18n;
+  const locale = options.locale ?? "fr";
+  return Object.freeze({
+    getLocale: () => locale,
+    t: (key, parameters = {}) => translate(locale, key, parameters),
+  });
+}
 
 const CSV_NUMBER_PRECISION = 6;
 
@@ -78,9 +89,11 @@ export function buildMeasurementsTableRows(measurements) {
  * Construit un CSV à quatre colonnes, trié par numéro de capteur.
  * Les nombres utilisent le point décimal et au plus six décimales.
  */
-export function buildMeasurementsCsv(measurements) {
+export function buildMeasurementsCsv(measurements, options = {}) {
+  const i18n = resolveTranslator(options);
   const rows = buildMeasurementsTableRows(measurements);
-  const lines = [CSV_HEADERS.map((header) => `"${header}"`).join(",")];
+  const headers = CSV_HEADER_KEYS.map((key) => i18n.t(key));
+  const lines = [headers.map((header) => `"${header}"`).join(",")];
 
   for (const row of rows) {
     lines.push(row.join(","));
@@ -94,7 +107,8 @@ export function downloadMeasurementsCsv(measurements, options = {}) {
   const documentRef = options.documentRef ?? globalThis.document;
   const urlApi = options.urlApi ?? globalThis.URL;
   const BlobConstructor = options.BlobConstructor ?? globalThis.Blob;
-  const filename = options.filename ?? "mesures-capteurs.csv";
+  const i18n = resolveTranslator(options);
+  const filename = options.filename ?? i18n.t("measurements.filename");
 
   if (!documentRef || typeof documentRef.createElement !== "function") {
     throw new Error("Un document capable de créer un lien est requis pour le téléchargement.");
@@ -106,7 +120,7 @@ export function downloadMeasurementsCsv(measurements, options = {}) {
     throw new Error("Le constructeur Blob est indisponible.");
   }
 
-  const csv = buildMeasurementsCsv(measurements);
+  const csv = buildMeasurementsCsv(measurements, { i18n });
   const blob = new BlobConstructor(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
   const url = urlApi.createObjectURL(blob);
   const link = documentRef.createElement("a");
@@ -126,10 +140,10 @@ export function downloadMeasurementsCsv(measurements, options = {}) {
   return Object.freeze({ filename, csv });
 }
 
-function renderMeasurementRows(tableBody, measurements) {
+function renderMeasurementRows(tableBody, measurements, i18n) {
   const rows = buildMeasurementsTableRows(measurements);
   if (rows.length === 0) {
-    tableBody.innerHTML = '<tr><td class="measurement-table-empty" colspan="4">Aucune mesure disponible.</td></tr>';
+    tableBody.innerHTML = `<tr><td class="measurement-table-empty" colspan="4">${i18n.t("measurements.empty")}</td></tr>`;
     return rows;
   }
 
@@ -158,8 +172,10 @@ export function bindMeasurementResults(root, appState, options = {}) {
   const closeButton = getRequiredElement(root, "#measurement-table-close-button");
   const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
   const keyboardTarget = options.keyboardTarget ?? root;
+  const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
+  const ownsI18n = !options.i18n;
   const downloader = options.downloader
-    ?? ((measurements) => downloadMeasurementsCsv(measurements, options));
+    ?? ((measurements) => downloadMeasurementsCsv(measurements, { ...options, i18n }));
   let destroyed = false;
   let open = false;
 
@@ -179,7 +195,7 @@ export function bindMeasurementResults(root, appState, options = {}) {
   function openTable() {
     const snapshot = appState.getSnapshot();
     if (!isTerminalState(snapshot.simulation)) return false;
-    const rows = renderMeasurementRows(tableBody, snapshot.measurements);
+    const rows = renderMeasurementRows(tableBody, snapshot.measurements, i18n);
     downloadButton.disabled = rows.length === 0;
     downloadButton.setAttribute("aria-disabled", String(rows.length === 0));
     return setOpen(true);
@@ -192,6 +208,14 @@ export function bindMeasurementResults(root, appState, options = {}) {
     showButton.setAttribute("aria-disabled", String(!enabled));
     if (!enabled) close();
     return enabled;
+  }
+
+  function localize() {
+    if (open) {
+      const snapshot = appState.getSnapshot();
+      renderMeasurementRows(tableBody, snapshot.measurements, i18n);
+    }
+    return i18n.getLocale();
   }
 
   function onShowClick() {
@@ -226,12 +250,14 @@ export function bindMeasurementResults(root, appState, options = {}) {
   overlay.addEventListener("click", onOverlayClick);
   keyboardTarget?.addEventListener?.("keydown", onKeyDown);
   const unsubscribe = appState.subscribe((snapshot) => update(snapshot));
+  const unsubscribeLanguage = i18n.subscribe(localize);
   update();
 
   return Object.freeze({
     update,
     open: openTable,
     close,
+    localize,
     isOpen: () => open,
     destroy() {
       if (destroyed) return false;
@@ -242,6 +268,8 @@ export function bindMeasurementResults(root, appState, options = {}) {
       overlay.removeEventListener?.("click", onOverlayClick);
       keyboardTarget?.removeEventListener?.("keydown", onKeyDown);
       unsubscribe();
+      unsubscribeLanguage();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });

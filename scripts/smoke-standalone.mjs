@@ -108,7 +108,7 @@ class FakeHost extends FakeElement {
 const elements = new Map();
 for (const id of [
   "mode-selection", "simulation-screen", "mode-ideal-button", "mode-friction-button",
-  "mode-home-button",
+  "mode-home-button", "language-fr-button", "language-en-button",
   "start-button", "pause-button", "step-button", "reset-button", "show-data-button",
   "measurement-table-overlay", "measurement-table-body",
   "measurement-table-close-button", "measurement-table-download-button",
@@ -122,6 +122,8 @@ const host = new FakeHost();
 elements.set("#apparatus-host", host);
 const documentListeners = new Map();
 const document = {
+  documentElement: new FakeElement("html"),
+  title: "",
   body: { appendChild() {} },
   createElement() {
     return {
@@ -134,6 +136,9 @@ const document = {
   },
   querySelector(selector) {
     return elements.get(selector) ?? null;
+  },
+  querySelectorAll() {
+    return [];
   },
   addEventListener(name, callback) {
     const callbacks = documentListeners.get(name) ?? new Set();
@@ -180,6 +185,13 @@ context.globalThis = context;
 
 const bundle = fs.readFileSync(path.join(root, "dist-standalone.js"), "utf8");
 vm.runInContext(bundle, context, { filename: "dist-standalone.js" });
+
+if (document.documentElement.attributes.get("lang") !== "fr") {
+  throw new Error("Le français devrait être la langue par défaut.");
+}
+if (elements.get("#language-fr-button").attributes.get("aria-pressed") !== "true") {
+  throw new Error("Le bouton français devrait être actif au démarrage.");
+}
 
 if (host.svg) throw new Error("Le SVG ne doit pas être monté avant le choix du mode.");
 if (elements.get("#mode-selection").hidden) {
@@ -281,6 +293,14 @@ if (!host.svg) {
 }
 if (host.attributes.get("data-simulation-mode") !== "friction") {
   throw new Error("Le mode avec frottement n'est pas transmis au montage.");
+}
+
+elements.get("#language-en-button").dispatch("click");
+if (document.documentElement.attributes.get("lang") !== "en") {
+  throw new Error("Le changement vers l'anglais n'a pas été appliqué.");
+}
+if (elements.get("#start-button").attributes.get("aria-label") !== "Start") {
+  throw new Error("Les commandes dynamiques n'ont pas été traduites en anglais.");
 }
 
 console.log("Smoke test autonome réussi.");

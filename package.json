@@ -1,9 +1,9 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
-  "description": "Simulation SVG autonome avec deux modes : idéal ou frottement avec mesures bruitées.",
+  "description": "Simulation SVG autonome bilingue français-anglais avec modes idéal et frottement bruité.",
   "scripts": {
     "test": "node --test",
     "build": "node scripts/build-standalone.mjs",

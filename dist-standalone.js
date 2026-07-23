@@ -1,6 +1,270 @@
 (() => {
 "use strict";
 const modules = {};
+modules.i18n = (() => {
+
+const DEFAULT_LOCALE = "fr";
+const SUPPORTED_LOCALES = Object.freeze(["fr", "en"]);
+
+const MESSAGES = Object.freeze({
+  fr: Object.freeze({
+    "meta.title": "Simulation du banc horizontal",
+    "meta.description": "Simulation autonome du glissement d’un mobile sur un banc horizontal.",
+    "language.label": "Langue",
+    "language.fr": "Français",
+    "language.en": "Anglais",
+
+    "mode.eyebrow": "Simulation du banc horizontal",
+    "mode.title": "Choisir un mode d’exploration",
+    "mode.intro": "Sélectionnez le niveau de modélisation avant de lancer l’expérience.",
+    "mode.ideal.title": "Cas idéal",
+    "mode.ideal.summary": "Sans frottement",
+    "mode.ideal.description": "Les capteurs fournissent des mesures parfaites pour identifier les deux phases du mouvement.",
+    "mode.friction.title": "Cas avec frottement",
+    "mode.friction.summary": "Frottement inconnu · mesures bruitées",
+    "mode.friction.description": "Répétez les expériences et exploitez les vitesses et instants bruités pour estimer le coefficient de frottement.",
+
+    "simulation.label": "Simulation",
+    "apparatus.label": "Montage expérimental animé",
+    "home": "Revenir au choix du mode",
+    "controls.group": "Commandes et résultats de la simulation",
+    "controls.start": "Démarrer",
+    "controls.resume": "Reprendre",
+    "controls.pause": "Pause",
+    "controls.step": "Avancer la simulation de {duration} seconde",
+    "controls.reset": "Réinitialiser",
+    "controls.playback": "Vitesse de lecture",
+    "controls.playbackValue": "Valeur de la vitesse de lecture",
+    "readout.time": "Temps",
+    "readout.fallDuration": "Durée de chute",
+    "readout.impactVelocity": "Vitesse d’impact",
+
+    "measurements.show": "Afficher le tableau des mesures",
+    "measurements.eyebrow": "Résultats expérimentaux",
+    "measurements.title": "Mesures des capteurs de vitesse",
+    "measurements.download": "Télécharger les mesures au format CSV",
+    "measurements.close": "Fermer le tableau",
+    "measurements.sensorNumber": "Numéro du capteur",
+    "measurements.position": "Position (m)",
+    "measurements.triggerTime": "Instant de déclenchement (s)",
+    "measurements.velocity": "Vitesse mesurée (m/s)",
+    "measurements.empty": "Aucune mesure disponible.",
+    "measurements.filename": "mesures-capteurs.csv",
+
+    "svg.title": "Montage du banc horizontal",
+    "svg.description": "Montage initial avec le mobile S1 sur un banc horizontal, la masse S2 suspendue par un fil passant sur une poulie, {count} capteurs placés aux positions expérimentales et un support de réception sous S2.",
+    "svg.ruler": "Règle graduée",
+    "svg.sensors": "{count} capteurs de vitesse",
+    "svg.sensor": "Capteur {id}, position {position} mètre",
+    "svg.string": "Fil tendu",
+    "svg.massRack": "Masses disponibles",
+    "svg.massChoice": "Masse de {mass} kilogramme à placer comme masse suspendue",
+    "svg.massPlaceholder": "Emplacement de la masse de {mass} kilogramme",
+    "svg.dropHeight": "Hauteur de chute {height} mètre",
+  }),
+  en: Object.freeze({
+    "meta.title": "Horizontal track simulation",
+    "meta.description": "Standalone simulation of a cart moving on a horizontal track.",
+    "language.label": "Language",
+    "language.fr": "French",
+    "language.en": "English",
+
+    "mode.eyebrow": "Horizontal track simulation",
+    "mode.title": "Choose an exploration mode",
+    "mode.intro": "Select the modelling level before starting the experiment.",
+    "mode.ideal.title": "Ideal case",
+    "mode.ideal.summary": "No friction",
+    "mode.ideal.description": "The sensors provide perfect measurements to identify the two phases of motion.",
+    "mode.friction.title": "Case with friction",
+    "mode.friction.summary": "Unknown friction · noisy measurements",
+    "mode.friction.description": "Repeat the experiments and use the noisy speeds and trigger times to estimate the friction coefficient.",
+
+    "simulation.label": "Simulation",
+    "apparatus.label": "Animated experimental setup",
+    "home": "Return to mode selection",
+    "controls.group": "Simulation controls and results",
+    "controls.start": "Start",
+    "controls.resume": "Resume",
+    "controls.pause": "Pause",
+    "controls.step": "Advance the simulation by {duration} seconds",
+    "controls.reset": "Reset",
+    "controls.playback": "Playback speed",
+    "controls.playbackValue": "Playback speed value",
+    "readout.time": "Time",
+    "readout.fallDuration": "Fall duration",
+    "readout.impactVelocity": "Impact speed",
+
+    "measurements.show": "Show the measurement table",
+    "measurements.eyebrow": "Experimental results",
+    "measurements.title": "Speed sensor measurements",
+    "measurements.download": "Download measurements as CSV",
+    "measurements.close": "Close the table",
+    "measurements.sensorNumber": "Sensor number",
+    "measurements.position": "Position (m)",
+    "measurements.triggerTime": "Trigger time (s)",
+    "measurements.velocity": "Measured speed (m/s)",
+    "measurements.empty": "No measurements available.",
+    "measurements.filename": "sensor-measurements.csv",
+
+    "svg.title": "Horizontal track setup",
+    "svg.description": "Initial setup with cart S1 on a horizontal track, mass S2 suspended by a string over a pulley, {count} sensors at the experimental positions, and a stop beneath S2.",
+    "svg.ruler": "Graduated ruler",
+    "svg.sensors": "{count} speed sensors",
+    "svg.sensor": "Sensor {id}, position {position} metres",
+    "svg.string": "Taut string",
+    "svg.massRack": "Available masses",
+    "svg.massChoice": "{mass} kilogram mass to use as the suspended mass",
+    "svg.massPlaceholder": "Location of the {mass} kilogram mass",
+    "svg.dropHeight": "Drop height {height} metres",
+  }),
+});
+
+function normalizeLocale(locale) {
+  const normalized = String(locale ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  return SUPPORTED_LOCALES.includes(normalized) ? normalized : DEFAULT_LOCALE;
+}
+
+function interpolate(template, parameters = {}) {
+  return String(template).replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => (
+    Object.hasOwn(parameters, name) ? String(parameters[name]) : match
+  ));
+}
+
+function translate(locale, key, parameters = {}) {
+  const normalized = normalizeLocale(locale);
+  const template = MESSAGES[normalized]?.[key] ?? MESSAGES[DEFAULT_LOCALE]?.[key] ?? key;
+  return interpolate(template, parameters);
+}
+
+function createI18n(initialLocale = DEFAULT_LOCALE) {
+  let locale = normalizeLocale(initialLocale);
+  const subscribers = new Set();
+  let destroyed = false;
+
+  function notify(previousLocale) {
+    for (const subscriber of subscribers) {
+      subscriber(locale, Object.freeze({ previousLocale, reason: "locale-change" }));
+    }
+  }
+
+  return Object.freeze({
+    getLocale: () => locale,
+    t(key, parameters = {}) {
+      return translate(locale, key, parameters);
+    },
+    setLocale(nextLocale) {
+      if (destroyed) throw new Error("Ce gestionnaire de langue a été détruit.");
+      const normalized = normalizeLocale(nextLocale);
+      if (normalized === locale) return false;
+      const previousLocale = locale;
+      locale = normalized;
+      notify(previousLocale);
+      return true;
+    },
+    subscribe(subscriber, options = {}) {
+      if (destroyed) throw new Error("Ce gestionnaire de langue a été détruit.");
+      if (typeof subscriber !== "function") throw new TypeError("subscriber doit être une fonction.");
+      subscribers.add(subscriber);
+      if (options.emitCurrent) {
+        subscriber(locale, Object.freeze({ previousLocale: locale, reason: "subscription" }));
+      }
+      return () => subscribers.delete(subscriber);
+    },
+    destroy() {
+      if (destroyed) return false;
+      destroyed = true;
+      subscribers.clear();
+      return true;
+    },
+  });
+}
+
+return Object.freeze({ DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale, translate, createI18n });
+})();
+
+modules.languageSelector = (() => {
+
+function getRequiredElement(root, selector) {
+  const element = root.querySelector(selector);
+  if (!element) throw new Error(`Élément de langue introuvable : ${selector}`);
+  return element;
+}
+
+function applyTextTranslations(root, i18n) {
+  for (const element of root.querySelectorAll?.("[data-i18n]") ?? []) {
+    element.textContent = i18n.t(element.getAttribute("data-i18n"));
+  }
+  for (const element of root.querySelectorAll?.("[data-i18n-aria-label]") ?? []) {
+    element.setAttribute("aria-label", i18n.t(element.getAttribute("data-i18n-aria-label")));
+  }
+  for (const element of root.querySelectorAll?.("[data-i18n-title]") ?? []) {
+    element.setAttribute("title", i18n.t(element.getAttribute("data-i18n-title")));
+  }
+  for (const element of root.querySelectorAll?.("[data-i18n-content]") ?? []) {
+    element.setAttribute("content", i18n.t(element.getAttribute("data-i18n-content")));
+  }
+}
+
+function applyInterfaceLanguage(root, i18n) {
+  if (!root || typeof root.querySelector !== "function") {
+    throw new TypeError("Une racine DOM interrogeable est requise.");
+  }
+  if (!i18n || typeof i18n.t !== "function" || typeof i18n.getLocale !== "function") {
+    throw new TypeError("Un gestionnaire de langue valide est requis.");
+  }
+
+  applyTextTranslations(root, i18n);
+  const documentElement = root.documentElement ?? root.ownerDocument?.documentElement;
+  documentElement?.setAttribute?.("lang", i18n.getLocale());
+  if (typeof root.title === "string") root.title = i18n.t("meta.title");
+  return i18n.getLocale();
+}
+
+function bindLanguageSelector(root, i18n) {
+  if (!root || typeof root.querySelector !== "function") {
+    throw new TypeError("Une racine DOM interrogeable est requise.");
+  }
+  if (!i18n || typeof i18n.setLocale !== "function" || typeof i18n.subscribe !== "function") {
+    throw new TypeError("Un gestionnaire de langue valide est requis.");
+  }
+
+  const frenchButton = getRequiredElement(root, "#language-fr-button");
+  const englishButton = getRequiredElement(root, "#language-en-button");
+  const listeners = [];
+
+  function listen(element, eventName, callback) {
+    element.addEventListener(eventName, callback);
+    listeners.push(() => element.removeEventListener?.(eventName, callback));
+  }
+
+  function refresh() {
+    applyInterfaceLanguage(root, i18n);
+    const locale = i18n.getLocale();
+    for (const [button, code] of [[frenchButton, "fr"], [englishButton, "en"]]) {
+      const active = locale === code;
+      button.classList?.toggle("language-button--active", active);
+      button.setAttribute("aria-pressed", String(active));
+      button.setAttribute("lang", code);
+    }
+    return locale;
+  }
+
+  listen(frenchButton, "click", () => i18n.setLocale("fr"));
+  listen(englishButton, "click", () => i18n.setLocale("en"));
+  const unsubscribe = i18n.subscribe(refresh, { emitCurrent: true });
+
+  return Object.freeze({
+    refresh,
+    destroy() {
+      unsubscribe();
+      listeners.splice(0).forEach((remove) => remove());
+    },
+  });
+}
+
+return Object.freeze({ applyInterfaceLanguage, bindLanguageSelector });
+})();
+
 modules.constants = (() => {
 
 /**
@@ -1429,11 +1693,7 @@ return Object.freeze({ APPARATUS_VIEWBOX, SENSOR_COUNT_LIMITS, createDefaultSens
 
 modules.view = (() => {
 const { computeApparatusLayout } = modules.geometry;
-const NUMBER_FORMAT = new Intl.NumberFormat("fr-FR", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
-
+const { normalizeLocale, translate } = modules.i18n;
 const US_NUMBER_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
@@ -1448,12 +1708,23 @@ function escapeXml(value) {
     .replaceAll("'", "&apos;");
 }
 
-function formatNumber(value) {
-  return NUMBER_FORMAT.format(value);
+function formatLocaleNumber(value, locale) {
+  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function formatUsNumber(value) {
   return US_NUMBER_FORMAT.format(value);
+}
+
+function resolveLocalization(options = {}) {
+  const locale = normalizeLocale(options.i18n?.getLocale?.() ?? options.locale);
+  const t = options.i18n?.t
+    ? (key, parameters = {}) => options.i18n.t(key, parameters)
+    : (key, parameters = {}) => translate(locale, key, parameters);
+  return Object.freeze({ locale, t });
 }
 
 function massColorClass(value) {
@@ -1467,7 +1738,7 @@ function massColorClass(value) {
   return classes.get(normalized) ?? "mass-color--0-2";
 }
 
-function buildRuler(layout) {
+function buildRuler(layout, t) {
   const { ruler } = layout;
   const ticks = ruler.ticks
     .map((tick) => {
@@ -1485,17 +1756,17 @@ function buildRuler(layout) {
     .join("");
 
   return `
-    <g id="layer-ruler" data-role="ruler" aria-label="Règle graduée">
+    <g id="layer-ruler" data-role="ruler" aria-label="${escapeXml(t("svg.ruler"))}">
       <rect class="ruler-body" x="${ruler.x}" y="${ruler.y}" width="${ruler.width}" height="${ruler.height}" rx="8" />
       ${ticks}
       <text class="ruler-unit" x="${ruler.x + ruler.width + 18}" y="${ruler.y + 39}">m</text>
     </g>`;
 }
 
-function buildSensors(layout) {
+function buildSensors(layout, locale, t) {
   return layout.sensors
     .map((sensor) => `
-      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-state="idle" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="Capteur ${sensor.id}, position ${formatNumber(sensor.position)} mètre">
+      <g id="sensor-${sensor.id}" class="sensor" data-role="sensor" data-sensor-state="idle" data-sensor-id="${sensor.id}" data-position="${sensor.position}" transform="translate(${sensor.x} 0)" tabindex="0" role="img" aria-label="${escapeXml(t("svg.sensor", { id: sensor.id, position: formatLocaleNumber(sensor.position, locale) }))}">
         <line class="sensor-beam" x1="0" y1="${sensor.gateTopY + 12}" x2="0" y2="${sensor.gateBottomY - 6}" />
         <rect class="sensor-head" x="-16" y="${sensor.gateTopY - 10}" width="32" height="22" rx="7" />
         <circle class="sensor-lens" cx="-7" cy="${sensor.gateTopY + 1}" r="4" />
@@ -1512,10 +1783,10 @@ function buildStringPath(layout) {
     L ${rope.endX} ${rope.endY}`;
 }
 
-function buildMassRack(layout) {
+function buildMassRack(layout, t) {
   const slots = layout.massRack.choices
     .map((choice) => `
-      <g class="mass-rack-slot-group">
+      <g class="mass-rack-slot-group"${choice.selected ? ` data-role="mass-placeholder" data-mass-value="${choice.value}" role="img" aria-label="${escapeXml(t("svg.massPlaceholder", { mass: formatUsNumber(choice.value) }))}"` : ""}>
         <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />
         ${choice.selected
           ? `<text class="mass-rack-slot-label" x="${choice.x + choice.width / 2}" y="${choice.y + choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>`
@@ -1526,14 +1797,14 @@ function buildMassRack(layout) {
   const masses = layout.massRack.choices
     .filter((choice) => !choice.selected)
     .map((choice) => `
-      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice ${massColorClass(choice.value)}" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="Masse de ${formatUsNumber(choice.value)} kilogramme à placer comme masse suspendue">
+      <g id="mass-choice-${String(choice.value).replace(".", "-")}" class="mass-choice ${massColorClass(choice.value)}" data-role="mass-choice" data-mass-value="${choice.value}" data-origin-x="${choice.x}" data-origin-y="${choice.y}" transform="translate(${choice.x} ${choice.y})" tabindex="0" role="button" aria-label="${escapeXml(t("svg.massChoice", { mass: formatUsNumber(choice.value) }))}">
         <rect class="mass-choice-body" x="0" y="0" width="${choice.width}" height="${choice.height}" rx="14" />
         <text class="object-label mass-value-label" x="${choice.width / 2}" y="${choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>
       </g>`)
     .join("");
 
   return `
-    <g id="layer-mass-rack" data-role="mass-rack" aria-label="Masses disponibles">
+    <g id="layer-mass-rack" data-role="mass-rack" aria-label="${escapeXml(t("svg.massRack"))}">
       <rect class="mass-rack-support" x="${layout.massRack.x}" y="${layout.massRack.y}" width="${layout.massRack.width}" height="${layout.massRack.height}" rx="8" />
       <g class="mass-rack-slots" aria-hidden="true">${slots}</g>
       ${masses}
@@ -1547,14 +1818,11 @@ function buildMassRack(layout) {
 function buildStaticApparatusSvg(options = {}) {
   const layout = computeApparatusLayout(options);
   const { parameters } = layout;
-  const description = [
-    "Montage initial avec le mobile S1 sur un banc horizontal,",
-    "la masse S2 suspendue par un fil passant sur une poulie,",
-    `${layout.sensorCount} capteurs placés aux positions expérimentales et un support de réception sous S2.`,
-  ].join(" ");
+  const { locale, t } = resolveLocalization(options);
+  const description = t("svg.description", { count: layout.sensorCount });
 
   return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet">
-    <title id="apparatus-title">Montage du banc horizontal</title>
+    <title id="apparatus-title">${escapeXml(t("svg.title"))}</title>
     <desc id="apparatus-description">${escapeXml(description)}</desc>
 
     <defs>
@@ -1602,10 +1870,10 @@ function buildStaticApparatusSvg(options = {}) {
       <path class="bench-leg" d="M ${layout.track.endX - 132} ${layout.track.y + layout.track.height} L ${layout.track.endX - 150} ${layout.track.y + 139} H ${layout.track.endX - 70} L ${layout.track.endX - 88} ${layout.track.y + layout.track.height}" />
     </g>
 
-    ${buildRuler(layout)}
+    ${buildRuler(layout, t)}
 
-    <g id="layer-sensors" aria-label="${layout.sensorCount} capteurs de vitesse">
-      ${buildSensors(layout)}
+    <g id="layer-sensors" aria-label="${escapeXml(t("svg.sensors", { count: layout.sensorCount }))}">
+      ${buildSensors(layout, locale, t)}
     </g>
 
     <g id="layer-pulley" data-role="pulley">
@@ -1615,7 +1883,7 @@ function buildStaticApparatusSvg(options = {}) {
       <circle class="pulley-hub" cx="${layout.pulley.centerX}" cy="${layout.pulley.centerY}" r="5" />
     </g>
 
-    <g id="layer-string" data-role="string" aria-label="Fil tendu">
+    <g id="layer-string" data-role="string" aria-label="${escapeXml(t("svg.string"))}">
       <path id="string-path" class="string-path" data-role="string-path" d="${buildStringPath(layout)}" />
     </g>
 
@@ -1635,14 +1903,60 @@ function buildStaticApparatusSvg(options = {}) {
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
 
-    ${buildMassRack(layout)}
+    ${buildMassRack(layout, t)}
 
-    <g id="layer-height-guide" aria-label="Hauteur de chute ${formatNumber(parameters.dropHeight)} mètre">
+    <g id="layer-height-guide" aria-label="${escapeXml(t("svg.dropHeight", { height: formatLocaleNumber(parameters.dropHeight, locale) }))}">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />
       <text class="dimension-label height-label" x="${layout.heightGuide.x + 14}" y="${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2}" text-anchor="middle" transform="rotate(-90 ${layout.heightGuide.x + 14} ${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2})">${formatUsNumber(parameters.dropHeight)} m</text>
     </g>
 
   </svg>`;
+}
+
+/** Met à jour les libellés accessibles du SVG sans réinitialiser la simulation. */
+function localizeStaticApparatus(svg, layout, i18n) {
+  if (!svg || typeof svg.querySelector !== "function") {
+    throw new TypeError("Un élément SVG interrogeable est requis.");
+  }
+  if (!layout || !Array.isArray(layout.sensors)) {
+    throw new TypeError("Un layout de montage valide est requis.");
+  }
+  if (!i18n || typeof i18n.t !== "function" || typeof i18n.getLocale !== "function") {
+    throw new TypeError("Un gestionnaire de langue valide est requis.");
+  }
+
+  const locale = i18n.getLocale();
+  const setText = (selector, value) => {
+    const element = svg.querySelector(selector);
+    if (element) element.textContent = value;
+  };
+  const setLabel = (selector, value) => svg.querySelector(selector)?.setAttribute?.("aria-label", value);
+
+  setText("#apparatus-title", i18n.t("svg.title"));
+  setText("#apparatus-description", i18n.t("svg.description", { count: layout.sensorCount }));
+  setLabel("#layer-ruler", i18n.t("svg.ruler"));
+  setLabel("#layer-sensors", i18n.t("svg.sensors", { count: layout.sensorCount }));
+  setLabel("#layer-string", i18n.t("svg.string"));
+  setLabel("#layer-mass-rack", i18n.t("svg.massRack"));
+  setLabel("#layer-height-guide", i18n.t("svg.dropHeight", {
+    height: formatLocaleNumber(layout.parameters.dropHeight, locale),
+  }));
+
+  for (const sensor of layout.sensors) {
+    setLabel(`#sensor-${sensor.id}`, i18n.t("svg.sensor", {
+      id: sensor.id,
+      position: formatLocaleNumber(sensor.position, locale),
+    }));
+  }
+  for (const choice of layout.massRack.choices) {
+    const id = String(choice.value).replace(".", "-");
+    setLabel(`#mass-choice-${id}`, i18n.t("svg.massChoice", { mass: formatUsNumber(choice.value) }));
+  }
+  for (const placeholder of svg.querySelectorAll?.('[data-role="mass-placeholder"]') ?? []) {
+    const mass = formatUsNumber(Number(placeholder.getAttribute?.("data-mass-value")));
+    placeholder.setAttribute?.("aria-label", i18n.t("svg.massPlaceholder", { mass }));
+  }
+  return locale;
 }
 
 /** Monte le SVG dans un conteneur existant et retourne l'élément SVG. */
@@ -1657,7 +1971,7 @@ function mountStaticApparatus(container, options = {}) {
     : null;
 }
 
-return Object.freeze({ buildStaticApparatusSvg, mountStaticApparatus });
+return Object.freeze({ buildStaticApparatusSvg, localizeStaticApparatus, mountStaticApparatus });
 })();
 
 modules.animation = (() => {
@@ -2663,7 +2977,7 @@ return Object.freeze({ isPointInsideRect, createMassSelector });
 })();
 
 modules.simulationControls = (() => {
-
+const { createI18n } = modules.i18n;
 const DEFAULT_MANUAL_STEP_DURATION = 0.05;
 
 function getRequiredElement(root, selector) {
@@ -2723,16 +3037,38 @@ function bindSimulationControls(root, configuration = {}) {
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
   const listeners = [];
+  const i18n = configuration.i18n ?? createI18n("fr");
+  const ownsI18n = !configuration.i18n;
+  let lastState = configuration.appState.getSnapshot().simulation;
+  let lastMeta = {};
   let destroyed = false;
 
   startButton.setAttribute("aria-keyshortcuts", "Space");
   pauseButton.setAttribute("aria-keyshortcuts", "Space");
   stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
   resetButton.setAttribute("aria-keyshortcuts", "Home");
-  stepButton.setAttribute(
-    "aria-label",
-    `Avancer la simulation de ${manualStepDuration.toFixed(2)} seconde`,
-  );
+
+  function localizedDuration() {
+    return new Intl.NumberFormat(i18n.getLocale() === "fr" ? "fr-FR" : "en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(manualStepDuration);
+  }
+
+  function localize() {
+    const pauseLabel = i18n.t("controls.pause");
+    const stepLabel = i18n.t("controls.step", { duration: localizedDuration() });
+    const resetLabel = i18n.t("controls.reset");
+    pauseButton.setAttribute("aria-label", pauseLabel);
+    pauseButton.setAttribute("title", pauseLabel);
+    stepButton.setAttribute("aria-label", stepLabel);
+    stepButton.setAttribute("title", stepLabel);
+    resetButton.setAttribute("aria-label", resetLabel);
+    resetButton.setAttribute("title", resetLabel);
+    const loop = getLoop();
+    update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
+    return i18n.getLocale();
+  }
 
   function listen(element, eventName, callback) {
     element.addEventListener(eventName, callback);
@@ -2750,6 +3086,8 @@ function bindSimulationControls(root, configuration = {}) {
   }
 
   function update(state = configuration.appState.getSnapshot().simulation, meta = {}) {
+    lastState = state;
+    lastMeta = meta;
     const running = resolveRunning(meta);
     const terminal = isTerminalState(state);
     const initial = isInitialState(state);
@@ -2759,7 +3097,7 @@ function bindSimulationControls(root, configuration = {}) {
     stepButton.disabled = running || terminal;
     resetButton.disabled = initial && !running;
 
-    const startLabel = initial ? "Démarrer" : "Reprendre";
+    const startLabel = i18n.t(initial ? "controls.start" : "controls.resume");
     startButton.setAttribute("aria-label", startLabel);
     startButton.setAttribute("title", startLabel);
     startButton.dataset.actionState = initial ? "start" : "resume";
@@ -2829,7 +3167,8 @@ function bindSimulationControls(root, configuration = {}) {
     listen(keyboardTarget, "keydown", onKeyDown);
   }
 
-  update();
+  const unsubscribeLanguage = i18n.subscribe(localize);
+  localize();
 
   return Object.freeze({
     start,
@@ -2837,10 +3176,13 @@ function bindSimulationControls(root, configuration = {}) {
     step,
     reset,
     update,
+    localize,
     destroy() {
       if (destroyed) return false;
       destroyed = true;
       listeners.splice(0).forEach((remove) => remove());
+      unsubscribeLanguage();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });
@@ -3447,13 +3789,22 @@ return Object.freeze({ sampleStandardNormal, addVelocityMeasurementNoise, addTim
 })();
 
 modules.measurementExport = (() => {
-
-const CSV_HEADERS = Object.freeze([
-  "Numéro du capteur",
-  "Position (m)",
-  "Instant de déclenchement (s)",
-  "Vitesse mesurée (m/s)",
+const { createI18n, translate } = modules.i18n;
+const CSV_HEADER_KEYS = Object.freeze([
+  "measurements.sensorNumber",
+  "measurements.position",
+  "measurements.triggerTime",
+  "measurements.velocity",
 ]);
+
+function resolveTranslator(options = {}) {
+  if (options.i18n?.t && options.i18n?.getLocale) return options.i18n;
+  const locale = options.locale ?? "fr";
+  return Object.freeze({
+    getLocale: () => locale,
+    t: (key, parameters = {}) => translate(locale, key, parameters),
+  });
+}
 
 const CSV_NUMBER_PRECISION = 6;
 
@@ -3528,9 +3879,11 @@ function buildMeasurementsTableRows(measurements) {
  * Construit un CSV à quatre colonnes, trié par numéro de capteur.
  * Les nombres utilisent le point décimal et au plus six décimales.
  */
-function buildMeasurementsCsv(measurements) {
+function buildMeasurementsCsv(measurements, options = {}) {
+  const i18n = resolveTranslator(options);
   const rows = buildMeasurementsTableRows(measurements);
-  const lines = [CSV_HEADERS.map((header) => `"${header}"`).join(",")];
+  const headers = CSV_HEADER_KEYS.map((key) => i18n.t(key));
+  const lines = [headers.map((header) => `"${header}"`).join(",")];
 
   for (const row of rows) {
     lines.push(row.join(","));
@@ -3544,7 +3897,8 @@ function downloadMeasurementsCsv(measurements, options = {}) {
   const documentRef = options.documentRef ?? globalThis.document;
   const urlApi = options.urlApi ?? globalThis.URL;
   const BlobConstructor = options.BlobConstructor ?? globalThis.Blob;
-  const filename = options.filename ?? "mesures-capteurs.csv";
+  const i18n = resolveTranslator(options);
+  const filename = options.filename ?? i18n.t("measurements.filename");
 
   if (!documentRef || typeof documentRef.createElement !== "function") {
     throw new Error("Un document capable de créer un lien est requis pour le téléchargement.");
@@ -3556,7 +3910,7 @@ function downloadMeasurementsCsv(measurements, options = {}) {
     throw new Error("Le constructeur Blob est indisponible.");
   }
 
-  const csv = buildMeasurementsCsv(measurements);
+  const csv = buildMeasurementsCsv(measurements, { i18n });
   const blob = new BlobConstructor(["\uFEFF", csv], { type: "text/csv;charset=utf-8" });
   const url = urlApi.createObjectURL(blob);
   const link = documentRef.createElement("a");
@@ -3576,10 +3930,10 @@ function downloadMeasurementsCsv(measurements, options = {}) {
   return Object.freeze({ filename, csv });
 }
 
-function renderMeasurementRows(tableBody, measurements) {
+function renderMeasurementRows(tableBody, measurements, i18n) {
   const rows = buildMeasurementsTableRows(measurements);
   if (rows.length === 0) {
-    tableBody.innerHTML = '<tr><td class="measurement-table-empty" colspan="4">Aucune mesure disponible.</td></tr>';
+    tableBody.innerHTML = `<tr><td class="measurement-table-empty" colspan="4">${i18n.t("measurements.empty")}</td></tr>`;
     return rows;
   }
 
@@ -3608,8 +3962,10 @@ function bindMeasurementResults(root, appState, options = {}) {
   const closeButton = getRequiredElement(root, "#measurement-table-close-button");
   const downloadButton = getRequiredElement(root, "#measurement-table-download-button");
   const keyboardTarget = options.keyboardTarget ?? root;
+  const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
+  const ownsI18n = !options.i18n;
   const downloader = options.downloader
-    ?? ((measurements) => downloadMeasurementsCsv(measurements, options));
+    ?? ((measurements) => downloadMeasurementsCsv(measurements, { ...options, i18n }));
   let destroyed = false;
   let open = false;
 
@@ -3629,7 +3985,7 @@ function bindMeasurementResults(root, appState, options = {}) {
   function openTable() {
     const snapshot = appState.getSnapshot();
     if (!isTerminalState(snapshot.simulation)) return false;
-    const rows = renderMeasurementRows(tableBody, snapshot.measurements);
+    const rows = renderMeasurementRows(tableBody, snapshot.measurements, i18n);
     downloadButton.disabled = rows.length === 0;
     downloadButton.setAttribute("aria-disabled", String(rows.length === 0));
     return setOpen(true);
@@ -3642,6 +3998,14 @@ function bindMeasurementResults(root, appState, options = {}) {
     showButton.setAttribute("aria-disabled", String(!enabled));
     if (!enabled) close();
     return enabled;
+  }
+
+  function localize() {
+    if (open) {
+      const snapshot = appState.getSnapshot();
+      renderMeasurementRows(tableBody, snapshot.measurements, i18n);
+    }
+    return i18n.getLocale();
   }
 
   function onShowClick() {
@@ -3676,12 +4040,14 @@ function bindMeasurementResults(root, appState, options = {}) {
   overlay.addEventListener("click", onOverlayClick);
   keyboardTarget?.addEventListener?.("keydown", onKeyDown);
   const unsubscribe = appState.subscribe((snapshot) => update(snapshot));
+  const unsubscribeLanguage = i18n.subscribe(localize);
   update();
 
   return Object.freeze({
     update,
     open: openTable,
     close,
+    localize,
     isOpen: () => open,
     destroy() {
       if (destroyed) return false;
@@ -3692,6 +4058,8 @@ function bindMeasurementResults(root, appState, options = {}) {
       overlay.removeEventListener?.("click", onOverlayClick);
       keyboardTarget?.removeEventListener?.("keydown", onKeyDown);
       unsubscribe();
+      unsubscribeLanguage();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });
@@ -3706,8 +4074,10 @@ return Object.freeze({ buildMeasurementsTableRows, buildMeasurementsCsv, downloa
 modules.app = (() => {
 const { computeApparatusLayout } = modules.geometry;
 const { createApparatusAnimator } = modules.animation;
-const { mountStaticApparatus } = modules.view;
+const { localizeStaticApparatus, mountStaticApparatus } = modules.view;
 const { createAppState } = modules.appState;
+const { createI18n } = modules.i18n;
+const { bindLanguageSelector } = modules.languageSelector;
 const { bindModeSelector } = modules.modeSelector;
 const { bindParameterControls } = modules.parameterControls;
 const { createMassSelector } = modules.massSelector;
@@ -3755,6 +4125,10 @@ function createAnimatedApp(root = document, options = {}) {
   const s2StopTimeValue = getRequiredElement(root, "#s2-stop-time-value");
   const s2ContactVelocityItem = getRequiredElement(root, "#s2-contact-velocity-item");
   const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
+
+  const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
+  const ownsI18n = !options.i18n;
+  const languageSelector = bindLanguageSelector(root, i18n);
 
   const appState = options.appState ?? createAppState({
     mode: options.mode ?? null,
@@ -3821,6 +4195,7 @@ function createAnimatedApp(root = document, options = {}) {
     const svg = mountStaticApparatus(host, {
       ...snapshot.parameters,
       sensorCount,
+      i18n,
     });
     const animator = createApparatusAnimator(svg, layout);
     const massSelector = createMassSelector(svg, {
@@ -3902,15 +4277,20 @@ function createAnimatedApp(root = document, options = {}) {
   const modeSelector = bindModeSelector(root, appState);
   const measurementResults = bindMeasurementResults(root, appState, {
     ...options.exportOptions,
+    i18n,
     keyboardTarget: options.keyboardTarget ?? root,
   });
   simulationControls = bindSimulationControls(root, {
     appState,
+    i18n,
     getLoop: () => runtime?.loop,
     manualStepDuration: options.manualStepDuration,
     keyboardTarget: options.keyboardTarget,
   });
   const parameterControls = bindParameterControls(root, appState);
+  const unsubscribeLanguage = i18n.subscribe(() => {
+    if (runtime) localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+  });
 
   const initialSnapshot = appState.getSnapshot();
   clearReadout();
@@ -3918,6 +4298,7 @@ function createAnimatedApp(root = document, options = {}) {
 
   return Object.freeze({
     appState,
+    i18n,
     getRuntime: () => runtime,
     destroy() {
       if (destroyed) return false;
@@ -3926,9 +4307,12 @@ function createAnimatedApp(root = document, options = {}) {
       measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
+      languageSelector.destroy();
+      unsubscribeLanguage();
       unsubscribe();
       destroyRuntime({ clearHost: true });
       if (!options.appState) appState.destroy();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });

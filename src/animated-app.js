@@ -1,7 +1,9 @@
 import { computeApparatusLayout } from "./apparatus-geometry.js";
 import { createApparatusAnimator } from "./apparatus-animation.js";
-import { mountStaticApparatus } from "./apparatus-view.js";
+import { localizeStaticApparatus, mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
+import { createI18n } from "./i18n.js";
+import { bindLanguageSelector } from "./language-selector.js";
 import { bindModeSelector } from "./mode-selector.js";
 import { bindParameterControls } from "./parameter-controls.js";
 import { createMassSelector } from "./mass-selector.js";
@@ -50,6 +52,10 @@ export function createAnimatedApp(root = document, options = {}) {
   const s2StopTimeValue = getRequiredElement(root, "#s2-stop-time-value");
   const s2ContactVelocityItem = getRequiredElement(root, "#s2-contact-velocity-item");
   const s2ContactVelocityValue = getRequiredElement(root, "#s2-contact-velocity-value");
+
+  const i18n = options.i18n ?? createI18n(options.locale ?? "fr");
+  const ownsI18n = !options.i18n;
+  const languageSelector = bindLanguageSelector(root, i18n);
 
   const appState = options.appState ?? createAppState({
     mode: options.mode ?? null,
@@ -116,6 +122,7 @@ export function createAnimatedApp(root = document, options = {}) {
     const svg = mountStaticApparatus(host, {
       ...snapshot.parameters,
       sensorCount,
+      i18n,
     });
     const animator = createApparatusAnimator(svg, layout);
     const massSelector = createMassSelector(svg, {
@@ -197,15 +204,20 @@ export function createAnimatedApp(root = document, options = {}) {
   const modeSelector = bindModeSelector(root, appState);
   const measurementResults = bindMeasurementResults(root, appState, {
     ...options.exportOptions,
+    i18n,
     keyboardTarget: options.keyboardTarget ?? root,
   });
   simulationControls = bindSimulationControls(root, {
     appState,
+    i18n,
     getLoop: () => runtime?.loop,
     manualStepDuration: options.manualStepDuration,
     keyboardTarget: options.keyboardTarget,
   });
   const parameterControls = bindParameterControls(root, appState);
+  const unsubscribeLanguage = i18n.subscribe(() => {
+    if (runtime) localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+  });
 
   const initialSnapshot = appState.getSnapshot();
   clearReadout();
@@ -213,6 +225,7 @@ export function createAnimatedApp(root = document, options = {}) {
 
   return Object.freeze({
     appState,
+    i18n,
     getRuntime: () => runtime,
     destroy() {
       if (destroyed) return false;
@@ -221,9 +234,12 @@ export function createAnimatedApp(root = document, options = {}) {
       measurementResults.destroy();
       parameterControls.destroy();
       modeSelector.destroy();
+      languageSelector.destroy();
+      unsubscribeLanguage();
       unsubscribe();
       destroyRuntime({ clearHost: true });
       if (!options.appState) appState.destroy();
+      if (ownsI18n) i18n.destroy();
       return true;
     },
   });
