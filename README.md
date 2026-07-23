@@ -35,7 +35,7 @@ The default suspended mass is `0.5 kg`.
 
 ## Mobile Compatibility
 
-The mobile robustness stage is documented in [`docs/mobile-robustness.md`](./docs/mobile-robustness.md). The dedicated mobile interface, responsive foundation, and original audit remain available in [`docs/mobile-interface.md`](./docs/mobile-interface.md), [`docs/responsive-foundation.md`](./docs/responsive-foundation.md), and [`docs/mobile-compatibility-audit.md`](./docs/mobile-compatibility-audit.md).
+The current mobile behavior and validation scope are documented in [`docs/mobile-robustness.md`](./docs/mobile-robustness.md). Historical implementation reports and intermediate screenshots have been removed so that the repository documents only the current interface.
 
 Current responsive behavior includes:
 
@@ -254,7 +254,7 @@ Global shortcuts are ignored while an input or button has focus.
 ├── dist-standalone.js             # Generated JavaScript bundle
 ├── package.json                   # Project metadata and npm scripts
 ├── README.md                      # Project documentation
-├── docs/                          # Preview, mobile audit, responsive stages, measurements, and screenshots
+├── docs/                          # Current preview and mobile robustness notes
 ├── LICENSE                        # CC BY 4.0 license and attribution
 ├── scripts/
 │   ├── build-standalone.mjs       # Generates index.html and the bundle
@@ -284,7 +284,7 @@ Global shortcuts are ignored while an input or button has focus.
 └── test/                          # Unit and integration tests
 ```
 
-`index.html` and `dist-standalone.js` are generated files. Functional changes should be made in `src/` or the standalone build script, followed by a rebuild.
+`index.html` and `dist-standalone.js` are generated files. Functional changes should be made in `src/` or the standalone build script, followed by a rebuild. Temporary test reports are intentionally excluded from the repository because they become stale; use `npm test` for the current result.
 
 ## Development
 

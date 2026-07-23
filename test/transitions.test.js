@@ -1,20 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { DEFAULT_PARAMETERS } from "../src/constants.js";
 import {
-  DEFAULT_PARAMETERS,
-  PHYSICAL_EVENT,
   PhysicsParameterError,
-  advanceSimulation,
-  advanceSimulationWithEvents,
-  advanceToPhysicalEvent,
-  advanceWithinCurrentPhase,
   computePhase1Acceleration,
   computePhase2Acceleration,
   createInitialState,
   getMaximumMobilePosition,
+} from "../src/physics.js";
+import {
+  PHYSICAL_EVENT,
+  advanceSimulation,
+  advanceSimulationWithEvents,
+  advanceToPhysicalEvent,
+  advanceWithinCurrentPhase,
   getNextPhysicalEvent,
-} from "../src/index.js";
+} from "../src/transitions.js";
 
 const closeTo = (actual, expected, tolerance = 1e-10) => {
   assert.ok(

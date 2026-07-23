@@ -1,116 +1,58 @@
 # Mobile Robustness
 
-## Status
+This document records the current mobile behavior of the standalone horizontal-track simulation. Historical audit reports, raw browser measurements, and intermediate screenshots were removed during repository cleanup because they no longer represented the current interface.
 
-**Implementation date:** 23 July 2026  
-**Stage:** mobile robustness and accessibility  
-**Scope:** orientation changes, very short landscape screens, keyboard focus, modal behavior, motion preferences, high-contrast operation, and regression testing.
+## Supported Layouts
 
-This stage strengthens the responsive interface introduced in the previous stages. It does not modify the physical model, apparatus coordinates, sensor positions, numerical integration, measurement noise, CSV data, or desktop apparatus composition.
+The interface supports:
 
-## Implemented Changes
+- portrait phones from `320 px` wide;
+- short landscape phones down to `568 × 320 px`;
+- tablets in portrait and landscape orientations;
+- desktop layouts up to the restored `1440 px` maximum interface width.
 
-### Orientation and viewport robustness
+The page avoids global horizontal scrolling. The SVG apparatus is recropped without changing the physical coordinate system, and controls are repositioned according to the available width and height.
 
-The SVG viewport controller now reacts to:
+## Touch Interaction
 
-- ordinary window resizing;
-- legacy `orientationchange` events;
-- Screen Orientation API `change` events;
-- Visual Viewport resizing;
-- page restoration through `pageshow`.
+Suspended masses can be selected by:
 
-The current viewport width and height are recorded on the SVG as diagnostic data attributes. A live rotation from `390 × 844 px` portrait to `844 × 390 px` landscape changes the layout from `mobile-portrait` to `short-landscape` and applies the corresponding SVG viewBox without rebuilding or changing the physical geometry.
+- tapping the dedicated large mobile buttons;
+- clicking the SVG masses;
+- dragging and dropping on supported pointer devices;
+- using `Enter` or `Space` from the keyboard.
 
-For very short landscape screens up to `760 px` wide and `360 px` high, the right-hand command column is compacted while keeping every primary target at least `44 × 44 px`. The complete simulation fits in a `568 × 320 px` viewport without horizontal or vertical page scrolling.
+Primary interactive targets are at least `44 × 44 px`. Interrupted pointer gestures are cancelled cleanly, and viewport changes trigger a fresh responsive layout calculation.
 
-### Focus continuity between screens
+## Phone-Specific Navigation
 
-After a mode is selected, keyboard focus moves to the start button. Returning to the landing page restores focus to the mode card that opened the simulation. The hidden screen is also marked inert, in addition to being hidden and excluded from the accessibility tree.
+The overlaid home button is hidden in phone layouts in both portrait and landscape orientations because it can overlap content or conflict with browser gestures. On larger screens, the button remains available. On a phone, reloading the page returns to the language and mode selection screen.
 
-On phone layouts, the overlaid home button is hidden in portrait and landscape orientations. This prevents the control from covering the apparatus or interfering with browser-edge gestures; the control remains unchanged on larger-screen layouts.
+## Measurement Dialog
 
-A keyboard-visible skip link provides direct access to the main content.
+On narrow screens, measurement rows are presented as cards rather than a horizontally compressed table. The dialog:
 
-### Accessible simulation status
+- traps keyboard focus;
+- closes with its close button, the backdrop, or `Escape`;
+- prevents interaction with the apparatus while open;
+- locks page scrolling;
+- restores focus to the table button when closed;
+- keeps the localized CSV download available.
 
-A visually hidden `role="status"` region announces the principal state changes:
+## Accessibility and User Preferences
 
-- ready;
-- running;
-- paused;
-- complete;
-- blocked by insufficient driving force.
+The simulation includes visible focus states, translated accessible names, a live simulation-status announcement, reduced decorative motion when requested, and forced-color support. The physical animation remains active under reduced-motion preferences because it conveys the scientific behavior being studied.
 
-The status text is localized in French and English and does not add a visible status line to the interface.
+## Validation
 
-### Modal measurement table
+The automated test suite covers the physical model, exact events, localization, measurement formatting, touch and keyboard selection, modal behavior, responsive viewport selection, and standalone generation.
 
-The measurement table now behaves as a complete modal dialog:
+Run the current checks with:
 
-- focus is moved to the close action when the dialog opens;
-- `Tab` and `Shift+Tab` remain inside the dialog;
-- `Escape` closes the dialog;
-- the apparatus is inert and hidden from assistive technologies while the dialog is open;
-- page scrolling is locked while the dialog is displayed;
-- focus returns to the table button after closing;
-- an accessible description explains the available keyboard actions.
+```bash
+npm test
+npm run build
+npm run smoke
+```
 
-The existing CSV download and eleven localized measurement records are unchanged.
-
-### Motion and contrast preferences
-
-When `prefers-reduced-motion: reduce` is active, decorative transitions and CSS animations are reduced to an effectively instantaneous duration. The physical movement itself remains available because it conveys the scientific behavior of the system rather than serving as decoration.
-
-A `forced-colors` media query preserves focus outlines, selected mass states, and triggered-sensor states in operating-system high-contrast modes.
-
-## Browser Validation
-
-The generated standalone page was exercised with headless Chromium using the complete inline `index.html` file.
-
-| Profile | Viewport | Layout | Page overflow | Minimum primary target |
-|---|---:|---|---|---:|
-| Very short phone, landscape | `568 × 320` | `short-landscape` | None | `44 px` |
-| Phone, landscape | `844 × 390` | `short-landscape` | None | `44 px` |
-| Phone, portrait | `390 × 844` | `mobile-portrait` | None | `44 px` |
-| Desktop reference | `1440 × 900` | `desktop` | None | `44 px` |
-
-Additional checks confirmed:
-
-- focus reaches the start control after mode selection in every profile;
-- a live portrait-to-landscape resize updates the SVG layout and viewBox;
-- the modal displays all `11` measurement rows;
-- the modal locks the page, makes the apparatus inert, traps focus, closes with `Escape`, and restores focus;
-- reduced-motion and forced-colors media queries are detected by the browser.
-
-Raw browser measurements are stored in [`mobile-robustness-results.json`](./mobile-robustness-results.json).
-
-## Reference Screenshots
-
-### Very short landscape phone
-
-![Robust two-column interface at 568 by 320 pixels.](./mobile-robustness-screenshots/compact-landscape.png)
-
-### Standard landscape phone
-
-![Two-column interface at 844 by 390 pixels.](./mobile-robustness-screenshots/phone-landscape.png)
-
-### Portrait phone
-
-![Portrait mobile interface at 390 by 844 pixels.](./mobile-robustness-screenshots/phone-portrait.png)
-
-### Modal measurement records
-
-![Localized measurement cards displayed in the modal dialog on a portrait phone.](./mobile-robustness-screenshots/phone-dialog.png)
-
-### Desktop reference
-
-![Desktop interface retaining the full apparatus composition and previous maximum width.](./mobile-robustness-screenshots/desktop.png)
-
-## Automated Validation
-
-- `242` automated tests pass.
-- The standalone smoke test passes.
-- The generated `index.html` remains self-contained.
-- The desktop `1200 × 620` SVG viewBox and `1440 px` maximum interface width remain unchanged.
-- The physical equations, exact event handling, sensor data, and CSV formatting remain unchanged.
+Automated browser checks are useful, but final validation on representative physical smartphones remains recommended before public deployment.

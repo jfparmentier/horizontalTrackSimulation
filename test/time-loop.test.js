@@ -1,14 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  DEFAULT_PARAMETERS,
-  PHYSICAL_EVENT,
-  PLAYBACK_SPEED_LIMITS,
-  PhysicsParameterError,
-  createInitialState,
-  createTimeLoop,
-} from "../src/index.js";
+import { DEFAULT_PARAMETERS } from "../src/constants.js";
+import { PhysicsParameterError, createInitialState } from "../src/physics.js";
+import { PHYSICAL_EVENT } from "../src/transitions.js";
+import { PLAYBACK_SPEED_LIMITS, createTimeLoop } from "../src/time-loop.js";
 
 class FakeAnimationScheduler {
   constructor() {

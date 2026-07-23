@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { DEFAULT_PARAMETERS } from "../src/constants.js";
 import {
-  DEFAULT_PARAMETERS,
   PhysicsParameterError,
   computePhase1Acceleration,
   computePhase1EndVelocity,
@@ -15,7 +15,7 @@ import {
   timeToStop,
   validateParameters,
   validateSimulationState,
-} from "../src/index.js";
+} from "../src/physics.js";
 
 const closeTo = (actual, expected, tolerance = 1e-10) => {
   assert.ok(
