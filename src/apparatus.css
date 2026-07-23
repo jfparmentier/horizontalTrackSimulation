@@ -734,6 +734,15 @@ h1 {
   stroke: #c2d0d7;
 }
 
+.mass-rack-slot-label {
+  fill: #82949e;
+  font-size: 18px;
+  font-weight: 800;
+  opacity: 0.82;
+  pointer-events: none;
+  user-select: none;
+}
+
 .mass-choice {
   cursor: grab;
   touch-action: none;

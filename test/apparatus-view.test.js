@@ -122,6 +122,16 @@ test("la masse actuellement suspendue quitte son emplacement du support", () => 
   assert.match(svg, /<text class="object-label mass-value-label"[^>]*>0.5 kg<\/text>/);
 });
 
+test("l'emplacement vide affiche en gris la valeur de la masse suspendue", () => {
+  const svg = buildStaticApparatusSvg({ ...DEFAULTS, m2: 0.5 });
+
+  assert.match(
+    svg,
+    /<text class="mass-rack-slot-label"[^>]*>0.5 kg<\/text>/,
+  );
+  assert.equal((svg.match(/class="mass-rack-slot-label"/g) ?? []).length, 1);
+});
+
 
 test("les quatre masses utilisent des couleurs distinctes", () => {
   const svg = buildStaticApparatusSvg(DEFAULTS);

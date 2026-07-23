@@ -1515,7 +1515,12 @@ function buildStringPath(layout) {
 function buildMassRack(layout) {
   const slots = layout.massRack.choices
     .map((choice) => `
-      <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />`)
+      <g class="mass-rack-slot-group">
+        <rect class="mass-rack-slot${choice.selected ? " mass-rack-slot--empty" : ""}" x="${choice.x}" y="${choice.y}" width="${choice.width}" height="${choice.height}" rx="14" />
+        ${choice.selected
+          ? `<text class="mass-rack-slot-label" x="${choice.x + choice.width / 2}" y="${choice.y + choice.height / 2 + 7}" text-anchor="middle">${formatUsNumber(choice.value)} kg</text>`
+          : ""}
+      </g>`)
     .join("");
 
   const masses = layout.massRack.choices
