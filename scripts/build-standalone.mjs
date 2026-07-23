@@ -251,6 +251,31 @@ ${css}
             <span class="mode-card-description" data-i18n="mode.friction.description">Répétez les expériences et exploitez les vitesses et instants bruités pour estimer le coefficient de frottement.</span>
           </button>
         </div>
+
+        <details class="project-info">
+          <summary aria-label="Informations sur le projet" title="Informations sur le projet" data-i18n-aria-label="home.info" data-i18n-title="home.info">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 10.5v6M12 7.5h.01" />
+            </svg>
+          </summary>
+          <aside class="project-info-panel">
+            <h2 data-i18n="home.infoTitle">À propos</h2>
+            <a href="https://github.com/jfparmentier/experimentationMasses" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 .7a11.3 11.3 0 0 0-3.6 22c.6.1.8-.2.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.6 0-1.2.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C14.2 4.6 15.2 5 15.2 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.3-2.8 5.3-5.4 5.6.4.4.8 1.1.8 2.1v3.2c0 .4.2.7.8.6A11.3 11.3 0 0 0 12 .7Z" />
+              </svg>
+              <span data-i18n="home.github">Code source sur GitHub</span>
+            </a>
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M15.7 9.4a4 4 0 1 0 0 5.2M17.5 9.4a4 4 0 1 0 0 5.2" />
+              </svg>
+              <span data-i18n="home.license">Sous licence CC BY 4.0 — Jean-Francois Parmentier, IPSA, IRIT</span>
+            </a>
+          </aside>
+        </details>
       </div>
     </section>
 

@@ -181,3 +181,18 @@ test("l'interface propose le français et l'anglais avec le français par défau
   assert.match(html, /data-i18n="readout.fallDuration"/);
   assert.match(html, /data-i18n="measurements.title"/);
 });
+
+
+test("la page d’accueil place le dépôt GitHub et la licence dans un panneau discret", () => {
+  const visibleMarkup = html.slice(0, html.indexOf("<script>"));
+  const modeSelection = visibleMarkup.match(/<section id="mode-selection"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(modeSelection, /<details class="project-info">/);
+  assert.match(modeSelection, /<summary[^>]+data-i18n-aria-label="home\.info"/);
+  assert.match(modeSelection, /class="project-info-panel"/);
+  assert.match(modeSelection, /href="https:\/\/github\.com\/jfparmentier\/experimentationMasses"/);
+  assert.match(modeSelection, /data-i18n="home\.github"/);
+  assert.match(modeSelection, /href="https:\/\/creativecommons\.org\/licenses\/by\/4\.0\/"/);
+  assert.match(modeSelection, /data-i18n="home\.license"/);
+  assert.match(modeSelection, /Jean-Francois Parmentier, IPSA, IRIT/);
+  assert.doesNotMatch(modeSelection, /mode-selection-footer/);
+});

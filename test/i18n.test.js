@@ -21,6 +21,11 @@ test("le français est la langue par défaut et les deux langues sont déclarée
 test("les traductions françaises et anglaises sont disponibles", () => {
   assert.equal(translate("fr", "controls.start"), "Démarrer");
   assert.equal(translate("en", "controls.start"), "Start");
+  assert.equal(translate("fr", "home.info"), "Informations sur le projet");
+  assert.equal(translate("en", "home.info"), "Project information");
+  assert.equal(translate("fr", "home.github"), "Code source sur GitHub");
+  assert.equal(translate("en", "home.github"), "Source code on GitHub");
+  assert.match(translate("fr", "home.license"), /CC BY 4\.0/);
   assert.equal(
     translate("en", "controls.step", { duration: "0.05" }),
     "Advance the simulation by 0.05 seconds",

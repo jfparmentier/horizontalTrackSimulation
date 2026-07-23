@@ -23,6 +23,10 @@ const MESSAGES = Object.freeze({
     "mode.friction.title": "Cas avec frottement",
     "mode.friction.summary": "Frottement inconnu · mesures bruitées",
     "mode.friction.description": "Répétez les expériences et exploitez les vitesses et instants bruités pour estimer le coefficient de frottement.",
+    "home.info": "Informations sur le projet",
+    "home.infoTitle": "À propos",
+    "home.github": "Code source sur GitHub",
+    "home.license": "Sous licence CC BY 4.0 — Jean-Francois Parmentier, IPSA, IRIT",
 
     "simulation.label": "Simulation",
     "apparatus.label": "Montage expérimental animé",
@@ -78,6 +82,10 @@ const MESSAGES = Object.freeze({
     "mode.friction.title": "Case with friction",
     "mode.friction.summary": "Unknown friction · noisy measurements",
     "mode.friction.description": "Repeat the experiments and use the noisy speeds and trigger times to estimate the friction coefficient.",
+    "home.info": "Project information",
+    "home.infoTitle": "About",
+    "home.github": "Source code on GitHub",
+    "home.license": "Licensed under CC BY 4.0 — Jean-Francois Parmentier, IPSA, IRIT",
 
     "simulation.label": "Simulation",
     "apparatus.label": "Animated experimental setup",
