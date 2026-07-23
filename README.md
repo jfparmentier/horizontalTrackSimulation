@@ -1,329 +1,363 @@
-# Simulation du glissement d’un mobile sur un banc horizontal
+# Horizontal Track Motion Simulation
 
-Simulation pédagogique autonome d’un mobile horizontal entraîné par une masse suspendue. Elle permet d’étudier les deux phases du mouvement, d’exploiter des capteurs de vitesse virtuels et, dans un mode expérimental, d’estimer un coefficient de frottement à partir de mesures répétées et bruitées.
+A standalone, browser-based physics simulation inspired by the interaction principles of PhET. It models a cart moving on a horizontal track while being pulled by a suspended mass through a string and pulley system.
 
-> [!NOTE]
-> Le fichier [`index.html`](./index.html) est autonome. Il fonctionne hors ligne, sans serveur, sans bibliothèque externe et sans installation.
+The application is intended for classroom investigation of accelerated motion, motion with friction, measurement uncertainty, repeated experiments, and data analysis. It runs entirely in the browser without a server, external JavaScript library, or network connection.
 
-## Objectifs pédagogiques
+## Features
 
-La simulation est conçue pour aider les élèves à :
+- Two pedagogical modes: ideal and frictional.
+- Animated SVG apparatus with a cart, pulley, string, suspended mass, and speed sensors.
+- Four selectable suspended masses placed by drag and drop.
+- Exact event handling for sensor crossings, impact, phase transition, stopping, and track end.
+- Perfect measurements in ideal mode.
+- Gaussian measurement noise in friction mode.
+- On-screen measurement table and CSV export.
+- French and English user interfaces.
+- Keyboard and pointer interaction.
+- A single generated `index.html` file that can be opened directly.
 
-- distinguer une phase accélérée d’une phase de mouvement libre avec ou sans frottement ;
-- relier masse, accélération, position, durée et vitesse ;
-- comparer un modèle idéal à une situation expérimentale bruitée ;
-- exploiter des mesures répétées pour réduire l’incertitude ;
-- estimer une grandeur physique inconnue à partir de données expérimentales ;
-- exporter des mesures afin de les traiter dans un tableur ou un logiciel scientifique.
+## Quick Start
 
-## Démarrage rapide
+1. Download or clone the repository.
+2. Open [`index.html`](./index.html) in a recent browser.
+3. Select the interface language on the landing page. French is selected by default.
+4. Choose an exploration mode.
+5. Drag one of the available masses to the suspended-mass position.
+6. Start the simulation with the play control.
+7. When the experiment ends, open the measurement table and optionally download the CSV file.
 
-1. Télécharger ou cloner le projet.
-2. Ouvrir [`index.html`](./index.html) dans un navigateur récent.
-3. L’interface s’ouvre en français. Utiliser le sélecteur `FR / EN` pour passer en anglais.
-4. Choisir l’un des deux modes de simulation.
-5. Sélectionner une masse suspendue en la faisant glisser vers l’emplacement de `S2`.
-6. Lancer l’expérience avec le bouton de lecture.
-7. À la fin de la simulation, afficher le tableau des mesures puis, si nécessaire, télécharger le fichier CSV.
+The default suspended mass is `0.5 kg`.
 
-La masse suspendue sélectionnée par défaut est `0.5 kg`.
+## Languages and Number Formatting
 
-## Langues
+The landing page provides two language choices:
 
-L’interface prend en charge :
+- French, selected by default;
+- English.
 
-- le **français**, sélectionné par défaut ;
-- l’**anglais**.
+The language selector is available only before entering a simulation mode. Returning to the landing page with the home button makes the selector available again.
 
-Le sélecteur `FR / EN`, affiché dans le coin supérieur gauche, reste disponible sur l’écran d’accueil et pendant la simulation. Le changement de langue est immédiat et ne réinitialise ni l’expérience, ni la masse sélectionnée, ni les mesures déjà enregistrées.
+The active language applies to:
 
-La traduction couvre notamment :
+- the mode-selection screen;
+- command labels, tooltips, and accessible names;
+- result readouts;
+- the measurement table;
+- CSV headers and filenames;
+- accessible SVG descriptions.
 
-- l’écran de choix du mode ;
-- les noms accessibles et les infobulles des commandes ;
-- les cadrans de résultats ;
-- le tableau des mesures ;
-- les en-têtes et le nom du fichier CSV ;
-- les descriptions accessibles du montage SVG et des capteurs.
+French readouts and table cells use a comma as the decimal separator, for example `1,23`. English readouts and table cells use a decimal point, for example `1.23`.
 
-Les valeurs numériques du tableau et du CSV conservent le point comme séparateur décimal afin de faciliter leur exploitation scientifique.
+CSV numerical values retain the decimal point and comma-separated columns to provide a stable machine-readable format in both languages.
 
-## Modes de simulation
+## Simulation Modes
 
-| Mode | Frottement | Mesure de la vitesse | Mesure du temps | Finalité pédagogique |
+| Mode | Friction coefficient | Speed measurement | Time measurement | Learning purpose |
 |---|---:|---:|---:|---|
-| **Cas idéal** | `μ = 0` | parfaite | parfaite | Identifier les concepts généraux et les deux phases du mouvement |
-| **Cas avec frottement** | `μ = 0.058` | bruit normal, `σ = 0.1 m·s⁻¹` | bruit normal, `σ = 0.1 s` | Estimer expérimentalement le coefficient de frottement par répétition des mesures |
+| **Ideal case** | `μ = 0` | perfect | perfect | Identify the two phases of motion and the main physical relationships |
+| **Case with friction** | `μ = 0.058` | Gaussian noise, `σ = 0.1 m·s⁻¹` | Gaussian noise, `σ = 0.1 s` | Estimate the unknown friction coefficient through repeated measurements |
 
-Dans le second mode, la valeur de `μ` n’est pas affichée dans l’interface. Une nouvelle réalisation du bruit est produite lors de chaque expérience réinitialisée.
+The friction coefficient is deliberately hidden from learners in the second mode. Resetting the experiment generates a new independent realization of the measurement noise.
 
-Les valeurs bruitées de vitesse et de temps sont bornées à zéro afin d’éviter des mesures négatives non physiques.
+Noisy time and speed measurements are bounded at zero to prevent nonphysical negative values.
 
-## Utilisation
+## Interaction
 
-### Choisir la masse suspendue
+### Suspended Mass Selection
 
-Quatre masses sont disponibles :
+Four suspended masses are available:
 
-- `0.2 kg` ;
-- `0.5 kg` ;
-- `1 kg` ;
+- `0.2 kg`;
+- `0.5 kg`;
+- `1 kg`;
 - `2 kg`.
 
-Chaque masse possède une couleur distincte. Elle peut être placée à la position de `S2` par glisser-déposer. L’ancienne masse revient automatiquement sur le support de rangement. Son emplacement vide conserve une étiquette grisée indiquant sa valeur.
+Each mass has a distinct color. Drag a mass from the rack to the suspended position. The previously selected mass automatically returns to its original place. The empty dashed placeholder continues to display its mass value in gray.
 
-La sélection est également utilisable au clavier : placer le focus sur une masse, puis appuyer sur `Entrée` ou `Espace`.
+Keyboard users can focus a mass and press `Enter` or `Space` to select it.
 
-### Piloter l’animation
+### Animation Controls
 
-Les commandes sont intégrées dans la partie inférieure du SVG :
+The controls are embedded in the lower part of the SVG:
 
-- lecture ou reprise ;
-- pause ;
-- progression pas à pas de `0.05 s` ;
-- réinitialisation ;
-- vitesse de lecture de `0.2×` à `1×`, par pas de `0.2×`.
+- play or resume;
+- pause;
+- advance by one `0.05 s` step;
+- reset;
+- playback speed from `0.2×` to `1×` in `0.2×` increments.
 
-Le bouton d’accueil, placé en haut à droite du SVG, ramène à l’écran de sélection du mode.
+The home button in the upper-right corner of the SVG returns to the mode-selection screen.
 
-### Lire les résultats
+### Result Readouts
 
-La zone de résultats affiche :
+The result area displays:
 
-- le temps courant avec deux décimales ;
-- la **Durée de chute** ;
-- la **Vitesse d’impact** ;
-- le bouton d’affichage du tableau des mesures.
+- current simulation time;
+- fall duration;
+- impact speed;
+- a button that opens the measurement table.
 
-La Durée de chute et la Vitesse d’impact correspondent aux mesures du capteur n° 5, situé à `0.60 m`. Dans le mode avec frottement, elles incluent donc les incertitudes de mesure temporelle et de vitesse.
+Fall duration and impact speed use the measurement recorded by sensor 5 at `0.60 m`. In friction mode, these displayed values therefore include the configured time and speed measurement noise.
 
-Ces deux résultats sont visibles mais grisés avant le franchissement du capteur n° 5. Ils sont renseignés et activés dès que sa mesure est disponible.
+The final-result fields remain visible but disabled and empty until sensor 5 is triggered.
 
-## Paramètres physiques
+## Fixed Physical Parameters
 
-### Paramètres fixes
-
-| Paramètre | Valeur |
+| Parameter | Value |
 |---|---:|
-| Masse de `S1` | `1 kg` |
-| Longueur de `S1` | `0.2 m` |
-| Hauteur de chute | `0.6 m` |
-| Longueur du banc | `2 m` |
-| Gravité | `9.81 m·s⁻²` |
-| Position initiale | `x₀ = 0` |
-| Vitesse initiale | `v₀ = 0` |
+| Cart mass | `1 kg` |
+| Cart length | `0.2 m` |
+| Drop height | `0.6 m` |
+| Track length | `2 m` |
+| Gravitational acceleration | `9.81 m·s⁻²` |
+| Initial position | `x₀ = 0` |
+| Initial speed | `v₀ = 0` |
 
-`S1` s’arrête lorsque son bord droit atteint l’extrémité du banc. Son bord gauche ne dépasse donc pas `1.8 m`.
+The cart stops when its right edge reaches the end of the track. Its left edge therefore never moves beyond `1.8 m`.
 
-### Capteurs
+## Sensor Positions
 
-Les onze capteurs sont placés aux positions suivantes :
+The eleven sensors are located at:
 
 ```text
 0.12, 0.24, 0.36, 0.48, 0.60, 0.80,
-1.00, 1.20, 1.40, 1.60 et 1.80 m
+1.00, 1.20, 1.40, 1.60, and 1.80 m
 ```
 
-Un capteur se déclenche lorsque le bord gauche de `S1` traverse son faisceau. Il passe alors directement au vert et n’enregistre qu’une mesure par expérience.
+A sensor triggers when the left edge of the cart crosses its beam. It then changes directly to green and records at most one measurement during an experiment.
 
-## Modèle physique
+## Physical Model
 
-Le modèle suppose :
+The model assumes:
 
-- un fil sans masse et inextensible ;
-- une poulie idéale, sans inertie ni frottement ;
-- un banc horizontal ;
-- un coefficient de frottement constant ;
-- aucune résistance de l’air ;
-- une vitesse identique pour `S1` et `S2` pendant la première phase.
+- a massless, inextensible string;
+- an ideal pulley with no inertia or friction;
+- a horizontal track;
+- a constant kinetic-friction coefficient;
+- no air resistance;
+- equal speeds for the cart and suspended mass during phase 1.
 
-### Phase 1 — descente de la masse suspendue
+### Phase 1: Suspended Mass Falling
 
-Tant que `S2` descend, l’accélération commune vaut :
+While the suspended mass is falling, the common acceleration is:
 
 ```text
 a₁ = (m₂g − μm₁g) / (m₁ + m₂)
 ```
 
-Si la force motrice ne suffit pas à vaincre le frottement, le système reste immobile.
+If the driving force is insufficient to overcome friction, the system remains at rest.
 
-### Phase 2 — masse suspendue sur le support
+### Phase 2: Suspended Mass on the Stop
 
-Lorsque `S2` atteint le support, le fil se détend et `S1` n’est plus entraîné :
+When the suspended mass reaches the stop, the string becomes slack and no longer pulls the cart:
 
 ```text
 a₂ = −μg
 ```
 
-Dans le cas idéal, `a₂ = 0` et la vitesse reste constante. Dans le cas avec frottement, la vitesse diminue jusqu’à l’arrêt ou jusqu’à l’extrémité du banc.
+In ideal mode, `a₂ = 0`, so the cart continues at constant speed. In friction mode, the speed decreases until the cart stops or reaches the end of the track.
 
-### Intégration et événements
+### Numerical Integration and Events
 
-Pour une accélération constante pendant un intervalle `Δt`, le moteur utilise les relations cinématiques exactes :
+For constant acceleration over a time interval `Δt`, the engine uses the exact kinematic equations:
 
 ```text
 x(t + Δt) = x(t) + v(t)Δt + ½aΔt²
 v(t + Δt) = v(t) + aΔt
 ```
 
-La boucle temporelle utilise un pas physique fixe. Le changement de phase, l’arrêt par frottement, le franchissement des capteurs et l’arrivée en bout de banc sont localisés à leur instant exact, même lorsqu’ils surviennent entre deux images de l’animation.
+The time loop uses a fixed physics step. Phase transition, sensor crossings, friction stopping, and arrival at the track end are located at their exact event times, even when they occur between rendered frames.
 
-## Tableau des mesures et export CSV
+## Measurement Table and CSV Export
 
-Le bouton du tableau devient actif lorsque la simulation atteint un état terminal. Il ouvre une fenêtre superposée à la simulation contenant les quatre valeurs enregistrées pour chaque capteur. Cette fenêtre peut être fermée avec son bouton de fermeture, en cliquant sur l’arrière-plan ou avec la touche `Échap`.
+The table button becomes active when the simulation reaches a terminal state. It opens a modal layer containing four columns:
 
-Un bouton de téléchargement reste disponible dans l’en-tête du tableau. Le fichier se nomme `mesures-capteurs.csv` en français et `sensor-measurements.csv` en anglais. Il contient exactement quatre colonnes, dont les en-têtes suivent la langue active :
+1. sensor number;
+2. sensor position;
+3. trigger time;
+4. measured speed.
+
+The dialog can be closed with its close button, by selecting the backdrop, or by pressing `Escape`.
+
+A download button in the dialog header exports the same measurements as a UTF-8 CSV file. The filename is:
+
+- `mesures-capteurs.csv` in French;
+- `sensor-measurements.csv` in English.
+
+Example:
 
 ```csv
-"Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"
+"Sensor number","Position (m)","Trigger time (s)","Measured speed (m/s)"
 1,0.12,0.431628,0.541907
 ```
 
-Caractéristiques de l’export :
+Export characteristics:
 
-- une ligne par capteur déclenché ;
-- tri par numéro de capteur ;
-- positions exprimées dans le même repère que la règle du SVG ;
-- point comme séparateur décimal ;
-- six décimales au maximum ;
-- encodage UTF-8 avec marque d’ordre des octets pour faciliter l’ouverture dans les tableurs.
+- one row per triggered sensor;
+- rows sorted by sensor number;
+- positions expressed in the same coordinate system as the SVG ruler;
+- decimal point in numerical CSV fields;
+- up to six decimal places;
+- UTF-8 byte-order mark for compatibility with common spreadsheet software.
 
-## Raccourcis clavier
+## Keyboard Shortcuts
 
-| Touche | Action |
+| Key | Action |
 |---|---|
-| `Espace` | Démarrer, reprendre ou mettre en pause |
-| `Flèche droite` | Avancer de `0.05 s` |
-| `Début` / `Home` | Réinitialiser l’expérience |
-| `Entrée` ou `Espace` sur une masse | Sélectionner cette masse suspendue |
+| `Space` | Start, resume, or pause |
+| `Right Arrow` | Advance by `0.05 s` |
+| `Home` | Reset the experiment |
+| `Enter` or `Space` on a mass | Select that suspended mass |
+| `Escape` | Close the measurement dialog |
 
-Les raccourcis globaux sont ignorés lorsqu’un champ de saisie ou un bouton possède le focus.
+Global shortcuts are ignored while an input or button has focus.
 
-## Architecture du projet
+## Project Structure
 
 ```text
 .
-├── index.html                     # Application autonome générée
-├── dist-standalone.js             # Bundle JavaScript généré
-├── package.json                   # Métadonnées et scripts npm
-├── README.md                      # Documentation du projet
-├── LICENSE                        # Licence CC BY 4.0 et attribution
+├── index.html                     # Generated standalone application
+├── dist-standalone.js             # Generated JavaScript bundle
+├── package.json                   # Project metadata and npm scripts
+├── README.md                      # Project documentation
+├── LICENSE                        # CC BY 4.0 license and attribution
 ├── scripts/
-│   ├── build-standalone.mjs       # Génération de index.html et du bundle
-│   └── smoke-standalone.mjs       # Test minimal de la version autonome
+│   ├── build-standalone.mjs       # Generates index.html and the bundle
+│   └── smoke-standalone.mjs       # Runs a minimal standalone smoke test
 ├── src/
-│   ├── animated-app.js            # Assemblage de l’application
-│   ├── app-state.js               # État central
-│   ├── apparatus-animation.js     # Animation de S1, S2 et du fil
-│   ├── apparatus-geometry.js      # Géométrie SVG et échelles physiques
-│   ├── apparatus-view.js          # Construction du montage SVG
-│   ├── apparatus.css              # Présentation et mise en page
-│   ├── constants.js               # Paramètres fixes et modes
-│   ├── i18n.js                    # Dictionnaires français et anglais
-│   ├── language-selector.js       # Sélecteur de langue et traduction du DOM
-│   ├── mass-selector.js           # Sélection des masses
-│   ├── measurement-export.js      # Tableau des mesures et téléchargement du CSV
-│   ├── measurement-recorder.js    # Calcul des mesures et du bruit
-│   ├── mode-selector.js           # Écran de choix du mode
-│   ├── parameter-controls.js      # Réglage de la vitesse de lecture
-│   ├── physics.js                 # Fonctions physiques élémentaires
-│   ├── sensor-controller.js       # Détection et état visuel des capteurs
-│   ├── simulation-controls.js     # Boutons et raccourcis clavier
-│   ├── time-loop.js               # Boucle temporelle à pas fixe
-│   └── transitions.js             # Gestion exacte des événements
-└── test/                          # Tests unitaires et d’intégration
+│   ├── animated-app.js            # Application composition and readouts
+│   ├── app-state.js               # Central application state
+│   ├── apparatus-animation.js     # Cart, mass, and string animation
+│   ├── apparatus-geometry.js      # SVG geometry and physical scales
+│   ├── apparatus-view.js          # Static SVG construction and localization
+│   ├── apparatus.css              # Layout and visual presentation
+│   ├── constants.js               # Fixed parameters and simulation modes
+│   ├── i18n.js                    # Translations and locale-aware formatting
+│   ├── language-selector.js       # Landing-page language selector
+│   ├── mass-selector.js           # Drag-and-drop mass selection
+│   ├── measurement-export.js      # Measurement dialog and CSV export
+│   ├── measurement-recorder.js    # Sensor values and measurement noise
+│   ├── mode-selector.js           # Mode-selection screen
+│   ├── parameter-controls.js      # Playback-speed setting
+│   ├── physics.js                 # Core physical functions
+│   ├── sensor-controller.js       # Sensor-crossing detection and display
+│   ├── simulation-controls.js     # Controls and keyboard shortcuts
+│   ├── time-loop.js               # Fixed-step time loop
+│   └── transitions.js             # Exact event transitions
+└── test/                          # Unit and integration tests
 ```
 
-`index.html` et `dist-standalone.js` sont générés par le script de construction. Les modifications fonctionnelles doivent être effectuées dans `src/`, puis propagées avec `npm run build`.
+`index.html` and `dist-standalone.js` are generated files. Functional changes should be made in `src/` or the standalone build script, followed by a rebuild.
 
-## Développement
+## Development
 
-### Prérequis
+### Requirements
 
-- Node.js `18` ou version ultérieure ;
-- Python 3 uniquement pour le serveur local fourni par `npm run serve`.
+- Node.js 18 or later;
+- Python 3 only when using the optional local server command.
 
-Le projet ne dépend d’aucun paquet npm tiers.
+The project has no third-party npm runtime dependencies.
 
-### Commandes
+### Commands
+
+Run the test suite:
 
 ```bash
 npm test
 ```
 
-Exécute les `214` tests unitaires et d’intégration avec le module natif `node:test`.
+Build the standalone application:
 
 ```bash
 npm run build
 ```
 
-Reconstruit [`index.html`](./index.html) et `dist-standalone.js` à partir des fichiers de `src/`.
+Run the standalone smoke test:
 
 ```bash
 npm run smoke
 ```
 
-Vérifie que le bundle autonome démarre, affiche l’écran de sélection du mode et permet une interaction minimale.
+Serve the project locally:
 
 ```bash
 npm run serve
 ```
 
-Démarre un serveur HTTP local sur le port `8000`.
+Then open `http://localhost:8000`.
 
-### Vérification avant contribution
+Opening `index.html` directly with a `file://` URL is also supported.
 
-```bash
-npm test
-npm run build
-npm run smoke
-```
+## Accessibility
 
-Une modification du modèle physique, des mesures, du bruit, de la géométrie ou de l’interface doit être accompagnée d’un test reproduisant le comportement attendu.
+The application includes:
 
-## Accessibilité
+- keyboard-operable controls and mass selection;
+- accessible names for icon-only buttons;
+- translated SVG titles and descriptions;
+- visible focus indicators;
+- table-based access to every exported measurement;
+- color changes that are supplemented by structural and textual states;
+- support for reduced-motion preferences where applicable.
 
-L’interface prévoit notamment :
+## Scientific Scope and Limitations
 
-- des noms accessibles pour les boutons représentés par des icônes ;
-- une navigation et une sélection des masses au clavier ;
-- des attributs `disabled`, `aria-disabled` et `aria-keyshortcuts` cohérents ;
-- une description textuelle du montage SVG, disponible en français et en anglais ;
-- des états de capteurs persistants et non fondés uniquement sur une animation transitoire ;
-- un fonctionnement au pointeur, à la souris et au tactile ;
-- un sélecteur de langue utilisable au clavier et exposant son état avec `aria-pressed`.
+This is an educational model rather than a complete representation of a laboratory apparatus. It does not include:
 
-## Limites connues
+- pulley inertia;
+- pulley friction;
+- string elasticity or mass;
+- air resistance;
+- variable friction;
+- track inclination;
+- deformation or collision dynamics at the stop.
 
-Cette simulation constitue un modèle pédagogique et non un dispositif de métrologie réel. En particulier :
+Measurement noise is generated from independent normal distributions. It represents a controlled pedagogical uncertainty model, not a calibration model for a particular physical sensor.
 
-- les frottements sont représentés par un coefficient constant ;
-- la poulie et le fil sont idéalisés ;
-- les incertitudes sont des bruits normaux indépendants ;
-- aucune erreur systématique, corrélation entre capteurs ou dérive instrumentale n’est modélisée ;
-- les mesures négatives produites par le bruit sont ramenées à zéro ;
-- le coefficient de frottement du mode expérimental est fixé dans le code.
+## Testing
 
-## Contribution
+The automated suite covers:
 
-Pour proposer une modification :
+- physical equations and parameter validation;
+- exact phase and stopping events;
+- fixed-step timing behavior;
+- SVG geometry and animation;
+- sensor positions and crossings;
+- drag-and-drop and keyboard mass selection;
+- noisy time and speed measurements;
+- central state transitions;
+- mode selection;
+- bilingual localization and decimal formatting;
+- measurement table and CSV export;
+- standalone bundle generation.
 
-1. créer une branche dédiée ;
-2. conserver la séparation entre physique, état central, mesures et rendu ;
-3. ajouter ou mettre à jour les tests concernés ;
-4. exécuter la chaîne de vérification complète ;
-5. documenter la justification scientifique et les effets visibles de la modification.
+## Contributing
 
-Pour un dépôt public accueillant des contributions externes, ces consignes devraient être déplacées et développées dans un fichier `CONTRIBUTING.md`. Un `CODE_OF_CONDUCT.md` et une politique de sécurité peuvent également être ajoutés selon les besoins du projet.
+Contributions should preserve:
 
-## Licence
+- scientific consistency between the physical engine, animation, and exported data;
+- offline operation of the generated page;
+- keyboard accessibility;
+- both French and English translations;
+- automated tests for changed behavior.
 
-Ce projet est distribué sous la licence **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
+Recommended workflow:
 
-Toute réutilisation, adaptation ou redistribution doit mentionner l’attribution suivante :
+1. create a focused branch;
+2. make source changes;
+3. add or update tests;
+4. run `npm test`;
+5. run `npm run build`;
+6. run `npm run smoke`;
+7. submit a pull request describing the scientific and interface effects.
+
+## License and Attribution
+
+This project is licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
+
+Required attribution:
 
 > Jean-Francois Parmentier, IPSA, IRIT
 
-Le texte de la licence et les conditions applicables sont précisés dans le fichier [`LICENSE`](./LICENSE).
-
-Identifiant SPDX : `CC-BY-4.0`.
+See [`LICENSE`](./LICENSE) for the full license notice and attribution requirements.

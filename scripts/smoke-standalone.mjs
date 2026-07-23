@@ -209,7 +209,7 @@ if (!elements.get("#mode-selection").hidden || elements.get("#simulation-screen"
 if (!host.svg.nodes.get("#string-path").attributes.get("d")) {
   throw new Error("Le fil n'a pas reçu son tracé initial.");
 }
-if (elements.get("#time-value").textContent !== "0.00 s") {
+if (elements.get("#time-value").textContent !== "0,00 s") {
   throw new Error("L'affichage initial du temps est incorrect.");
 }
 if (!host._innerHTML.includes(">0.5 kg</text>")) {

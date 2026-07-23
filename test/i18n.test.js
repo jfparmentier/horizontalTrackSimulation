@@ -5,6 +5,7 @@ import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
   createI18n,
+  formatNumber,
   normalizeLocale,
   translate,
 } from "../src/i18n.js";
@@ -36,4 +37,12 @@ test("le gestionnaire de langue notifie uniquement les changements effectifs", (
   assert.equal(i18n.setLocale("en"), true);
   assert.equal(i18n.t("readout.time"), "Time");
   assert.deepEqual(events, [["en", "fr"]]);
+});
+
+
+test("les nombres suivent la convention décimale de la langue active", () => {
+  const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+  assert.equal(formatNumber("fr", 1.23, options), "1,23");
+  assert.equal(formatNumber("en", 1.23, options), "1.23");
+  assert.throws(() => formatNumber("fr", Number.NaN), /nombre fini/i);
 });

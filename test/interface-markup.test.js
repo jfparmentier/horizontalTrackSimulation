@@ -160,6 +160,18 @@ test("la valeur inconnue du coefficient de frottement n'est pas révélée dans 
 });
 
 
+test("le choix de langue est limité à l'écran d'accueil", () => {
+  const visibleMarkup = html.slice(0, html.indexOf("<script>"));
+  const modeSelection = visibleMarkup.match(/<section id="mode-selection"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const simulationScreen = visibleMarkup.match(/<section id="simulation-screen"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(modeSelection, /id="language-switcher"/);
+  assert.doesNotMatch(simulationScreen, /id="language-switcher"/);
+});
+
+test("les cadrans utilisent la virgule décimale par défaut en français", () => {
+  assert.match(html, /id="time-value">0,00 s<\/dd>/);
+});
+
 test("l'interface propose le français et l'anglais avec le français par défaut", () => {
   assert.match(html, /<html lang="fr">/);
   assert.match(html, /id="language-switcher"[^>]+data-i18n-aria-label="language.label"/);

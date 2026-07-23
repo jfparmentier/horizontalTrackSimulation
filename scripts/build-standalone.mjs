@@ -9,7 +9,7 @@ const manifests = [
     key: "i18n",
     file: "src/i18n.js",
     dependencies: [],
-    exports: ["DEFAULT_LOCALE", "SUPPORTED_LOCALES", "normalizeLocale", "translate", "createI18n"],
+    exports: ["DEFAULT_LOCALE", "SUPPORTED_LOCALES", "normalizeLocale", "translate", "formatNumber", "createI18n"],
   },
   {
     key: "languageSelector",
@@ -150,7 +150,7 @@ const manifests = [
   {
     key: "measurementExport",
     file: "src/measurement-export.js",
-    dependencies: [["i18n", ["createI18n", "translate"]]],
+    dependencies: [["i18n", ["createI18n", "formatNumber", "translate"]]],
     exports: [
       "buildMeasurementsTableRows", "buildMeasurementsCsv", "downloadMeasurementsCsv", "bindMeasurementResults", "bindMeasurementExport",
     ],
@@ -163,7 +163,7 @@ const manifests = [
       ["animation", ["createApparatusAnimator"]],
       ["view", ["localizeStaticApparatus", "mountStaticApparatus"]],
       ["appState", ["createAppState"]],
-      ["i18n", ["createI18n"]],
+      ["i18n", ["createI18n", "formatNumber"]],
       ["languageSelector", ["bindLanguageSelector"]],
       ["modeSelector", ["bindModeSelector"]],
       ["parameterControls", ["bindParameterControls"]],
@@ -205,12 +205,12 @@ ${css}
   </style>
 </head>
 <body>
-  <nav id="language-switcher" class="language-switcher" aria-label="Langue" data-i18n-aria-label="language.label">
-    <button id="language-fr-button" class="language-button language-button--active" type="button" lang="fr" aria-pressed="true" aria-label="Français" data-i18n-aria-label="language.fr">FR</button>
-    <button id="language-en-button" class="language-button" type="button" lang="en" aria-pressed="false" aria-label="Anglais" data-i18n-aria-label="language.en">EN</button>
-  </nav>
   <main class="page-shell">
     <section id="mode-selection" class="mode-selection" aria-labelledby="mode-selection-title">
+      <nav id="language-switcher" class="language-switcher" aria-label="Langue" data-i18n-aria-label="language.label">
+        <button id="language-fr-button" class="language-button language-button--active" type="button" lang="fr" aria-pressed="true" aria-label="Français" data-i18n-aria-label="language.fr">FR</button>
+        <button id="language-en-button" class="language-button" type="button" lang="en" aria-pressed="false" aria-label="Anglais" data-i18n-aria-label="language.en">EN</button>
+      </nav>
       <div class="mode-selection-panel">
         <p class="mode-selection-eyebrow" data-i18n="mode.eyebrow">Simulation du banc horizontal</p>
         <h1 id="mode-selection-title" data-i18n="mode.title">Choisir un mode d’exploration</h1>
@@ -286,7 +286,7 @@ ${css}
             </div>
             <div class="readout-actions">
               <dl class="animation-readout">
-                <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0.00 s</dd></div>
+                <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0,00 s</dd></div>
                 <div id="s2-stop-time-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.fallDuration">Durée de chute</dt><dd id="s2-stop-time-value"></dd></div>
                 <div id="s2-contact-velocity-item" class="readout-item readout-item--result readout-item--pending" aria-disabled="true"><dt data-i18n="readout.impactVelocity">Vitesse d’impact</dt><dd id="s2-contact-velocity-value"></dd></div>
               </dl>

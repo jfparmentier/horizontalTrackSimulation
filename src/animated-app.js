@@ -2,7 +2,7 @@ import { computeApparatusLayout } from "./apparatus-geometry.js";
 import { createApparatusAnimator } from "./apparatus-animation.js";
 import { localizeStaticApparatus, mountStaticApparatus } from "./apparatus-view.js";
 import { createAppState } from "./app-state.js";
-import { createI18n } from "./i18n.js";
+import { createI18n, formatNumber } from "./i18n.js";
 import { bindLanguageSelector } from "./language-selector.js";
 import { bindModeSelector } from "./mode-selector.js";
 import { bindParameterControls } from "./parameter-controls.js";
@@ -12,16 +12,6 @@ import { createSensorController } from "./sensor-controller.js";
 import { createMeasurementRecorder } from "./measurement-recorder.js";
 import { bindMeasurementResults } from "./measurement-export.js";
 import { createTimeLoop } from "./time-loop.js";
-
-const TIME_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const VELOCITY_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 export const IMPACT_SENSOR_ID = 5;
 
@@ -67,8 +57,15 @@ export function createAnimatedApp(root = document, options = {}) {
   let simulationControls = null;
   let destroyed = false;
 
+  function formatReadoutNumber(value) {
+    return formatNumber(i18n.getLocale(), value, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
   function clearReadout() {
-    timeValue.textContent = "0.00 s";
+    timeValue.textContent = `${formatReadoutNumber(0)} s`;
     for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
       item.classList.toggle("readout-item--pending", true);
       item.setAttribute("aria-disabled", "true");
@@ -78,7 +75,7 @@ export function createAnimatedApp(root = document, options = {}) {
   }
 
   function updateReadout(state) {
-    timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
+    timeValue.textContent = `${formatReadoutNumber(state.time)} s`;
 
     const impactMeasurement = getImpactSensorMeasurement(
       appState.getSnapshot().measurements,
@@ -95,8 +92,8 @@ export function createAnimatedApp(root = document, options = {}) {
       return;
     }
 
-    s2StopTimeValue.textContent = `${TIME_FORMAT.format(impactMeasurement.time)} s`;
-    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(impactMeasurement.velocity)} m/s`;
+    s2StopTimeValue.textContent = `${formatReadoutNumber(impactMeasurement.time)} s`;
+    s2ContactVelocityValue.textContent = `${formatReadoutNumber(impactMeasurement.velocity)} m/s`;
   }
 
   function destroyRuntime({ clearHost = false } = {}) {
@@ -216,7 +213,12 @@ export function createAnimatedApp(root = document, options = {}) {
   });
   const parameterControls = bindParameterControls(root, appState);
   const unsubscribeLanguage = i18n.subscribe(() => {
-    if (runtime) localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+    if (runtime) {
+      localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+      updateReadout(runtime.loop.getState());
+    } else {
+      clearReadout();
+    }
   });
 
   const initialSnapshot = appState.getSnapshot();

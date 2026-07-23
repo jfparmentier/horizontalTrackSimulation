@@ -131,6 +131,17 @@ export function translate(locale, key, parameters = {}) {
   return interpolate(template, parameters);
 }
 
+export function formatNumber(locale, value, options = {}) {
+  const normalizedValue = Number(value);
+  if (!Number.isFinite(normalizedValue)) {
+    throw new TypeError("La valeur à formater doit être un nombre fini.");
+  }
+
+  const normalizedLocale = normalizeLocale(locale);
+  const localeId = normalizedLocale === "fr" ? "fr-FR" : "en-US";
+  return new Intl.NumberFormat(localeId, options).format(normalizedValue);
+}
+
 export function createI18n(initialLocale = DEFAULT_LOCALE) {
   let locale = normalizeLocale(initialLocale);
   const subscribers = new Set();

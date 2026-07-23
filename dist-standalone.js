@@ -136,6 +136,17 @@ function translate(locale, key, parameters = {}) {
   return interpolate(template, parameters);
 }
 
+function formatNumber(locale, value, options = {}) {
+  const normalizedValue = Number(value);
+  if (!Number.isFinite(normalizedValue)) {
+    throw new TypeError("La valeur à formater doit être un nombre fini.");
+  }
+
+  const normalizedLocale = normalizeLocale(locale);
+  const localeId = normalizedLocale === "fr" ? "fr-FR" : "en-US";
+  return new Intl.NumberFormat(localeId, options).format(normalizedValue);
+}
+
 function createI18n(initialLocale = DEFAULT_LOCALE) {
   let locale = normalizeLocale(initialLocale);
   const subscribers = new Set();
@@ -179,7 +190,7 @@ function createI18n(initialLocale = DEFAULT_LOCALE) {
   });
 }
 
-return Object.freeze({ DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale, translate, createI18n });
+return Object.freeze({ DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale, translate, formatNumber, createI18n });
 })();
 
 modules.languageSelector = (() => {
@@ -3789,7 +3800,7 @@ return Object.freeze({ sampleStandardNormal, addVelocityMeasurementNoise, addTim
 })();
 
 modules.measurementExport = (() => {
-const { createI18n, translate } = modules.i18n;
+const { createI18n, formatNumber, translate } = modules.i18n;
 const CSV_HEADER_KEYS = Object.freeze([
   "measurements.sensorNumber",
   "measurements.position",
@@ -3864,13 +3875,19 @@ function normalizeMeasurements(measurements) {
  * Retourne les quatre valeurs textuelles utilisées à la fois dans le tableau
  * et dans le fichier CSV. Les lignes sont triées par numéro de capteur.
  */
-function buildMeasurementsTableRows(measurements) {
+function buildMeasurementsTableRows(measurements, options = {}) {
+  const i18n = resolveTranslator(options);
+  const numberOptions = Object.freeze({
+    minimumFractionDigits: 0,
+    maximumFractionDigits: CSV_NUMBER_PRECISION,
+  });
+
   return Object.freeze(
     normalizeMeasurements(measurements).map((measurement) => Object.freeze([
       String(measurement.sensorId),
-      formatCsvNumber(measurement.position),
-      formatCsvNumber(measurement.time),
-      formatCsvNumber(measurement.velocity),
+      formatNumber(i18n.getLocale(), measurement.position, numberOptions),
+      formatNumber(i18n.getLocale(), measurement.time, numberOptions),
+      formatNumber(i18n.getLocale(), measurement.velocity, numberOptions),
     ])),
   );
 }
@@ -3881,7 +3898,12 @@ function buildMeasurementsTableRows(measurements) {
  */
 function buildMeasurementsCsv(measurements, options = {}) {
   const i18n = resolveTranslator(options);
-  const rows = buildMeasurementsTableRows(measurements);
+  const rows = normalizeMeasurements(measurements).map((measurement) => [
+    String(measurement.sensorId),
+    formatCsvNumber(measurement.position),
+    formatCsvNumber(measurement.time),
+    formatCsvNumber(measurement.velocity),
+  ]);
   const headers = CSV_HEADER_KEYS.map((key) => i18n.t(key));
   const lines = [headers.map((header) => `"${header}"`).join(",")];
 
@@ -3931,7 +3953,7 @@ function downloadMeasurementsCsv(measurements, options = {}) {
 }
 
 function renderMeasurementRows(tableBody, measurements, i18n) {
-  const rows = buildMeasurementsTableRows(measurements);
+  const rows = buildMeasurementsTableRows(measurements, { i18n });
   if (rows.length === 0) {
     tableBody.innerHTML = `<tr><td class="measurement-table-empty" colspan="4">${i18n.t("measurements.empty")}</td></tr>`;
     return rows;
@@ -4076,7 +4098,7 @@ const { computeApparatusLayout } = modules.geometry;
 const { createApparatusAnimator } = modules.animation;
 const { localizeStaticApparatus, mountStaticApparatus } = modules.view;
 const { createAppState } = modules.appState;
-const { createI18n } = modules.i18n;
+const { createI18n, formatNumber } = modules.i18n;
 const { bindLanguageSelector } = modules.languageSelector;
 const { bindModeSelector } = modules.modeSelector;
 const { bindParameterControls } = modules.parameterControls;
@@ -4086,16 +4108,6 @@ const { createSensorController } = modules.sensorController;
 const { createMeasurementRecorder } = modules.measurementRecorder;
 const { bindMeasurementResults } = modules.measurementExport;
 const { createTimeLoop } = modules.timeLoop;
-const TIME_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const VELOCITY_FORMAT = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 const IMPACT_SENSOR_ID = 5;
 
 /** Retourne la mesure du capteur placé à la fin de la chute, si elle existe. */
@@ -4140,8 +4152,15 @@ function createAnimatedApp(root = document, options = {}) {
   let simulationControls = null;
   let destroyed = false;
 
+  function formatReadoutNumber(value) {
+    return formatNumber(i18n.getLocale(), value, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
   function clearReadout() {
-    timeValue.textContent = "0.00 s";
+    timeValue.textContent = `${formatReadoutNumber(0)} s`;
     for (const item of [s2StopTimeItem, s2ContactVelocityItem]) {
       item.classList.toggle("readout-item--pending", true);
       item.setAttribute("aria-disabled", "true");
@@ -4151,7 +4170,7 @@ function createAnimatedApp(root = document, options = {}) {
   }
 
   function updateReadout(state) {
-    timeValue.textContent = `${TIME_FORMAT.format(state.time)} s`;
+    timeValue.textContent = `${formatReadoutNumber(state.time)} s`;
 
     const impactMeasurement = getImpactSensorMeasurement(
       appState.getSnapshot().measurements,
@@ -4168,8 +4187,8 @@ function createAnimatedApp(root = document, options = {}) {
       return;
     }
 
-    s2StopTimeValue.textContent = `${TIME_FORMAT.format(impactMeasurement.time)} s`;
-    s2ContactVelocityValue.textContent = `${VELOCITY_FORMAT.format(impactMeasurement.velocity)} m/s`;
+    s2StopTimeValue.textContent = `${formatReadoutNumber(impactMeasurement.time)} s`;
+    s2ContactVelocityValue.textContent = `${formatReadoutNumber(impactMeasurement.velocity)} m/s`;
   }
 
   function destroyRuntime({ clearHost = false } = {}) {
@@ -4289,7 +4308,12 @@ function createAnimatedApp(root = document, options = {}) {
   });
   const parameterControls = bindParameterControls(root, appState);
   const unsubscribeLanguage = i18n.subscribe(() => {
-    if (runtime) localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+    if (runtime) {
+      localizeStaticApparatus(runtime.svg, runtime.layout, i18n);
+      updateReadout(runtime.loop.getState());
+    } else {
+      clearReadout();
+    }
   });
 
   const initialSnapshot = appState.getSnapshot();

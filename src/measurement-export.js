@@ -1,4 +1,4 @@
-import { createI18n, translate } from "./i18n.js";
+import { createI18n, formatNumber, translate } from "./i18n.js";
 
 const CSV_HEADER_KEYS = Object.freeze([
   "measurements.sensorNumber",
@@ -74,13 +74,19 @@ function normalizeMeasurements(measurements) {
  * Retourne les quatre valeurs textuelles utilisées à la fois dans le tableau
  * et dans le fichier CSV. Les lignes sont triées par numéro de capteur.
  */
-export function buildMeasurementsTableRows(measurements) {
+export function buildMeasurementsTableRows(measurements, options = {}) {
+  const i18n = resolveTranslator(options);
+  const numberOptions = Object.freeze({
+    minimumFractionDigits: 0,
+    maximumFractionDigits: CSV_NUMBER_PRECISION,
+  });
+
   return Object.freeze(
     normalizeMeasurements(measurements).map((measurement) => Object.freeze([
       String(measurement.sensorId),
-      formatCsvNumber(measurement.position),
-      formatCsvNumber(measurement.time),
-      formatCsvNumber(measurement.velocity),
+      formatNumber(i18n.getLocale(), measurement.position, numberOptions),
+      formatNumber(i18n.getLocale(), measurement.time, numberOptions),
+      formatNumber(i18n.getLocale(), measurement.velocity, numberOptions),
     ])),
   );
 }
@@ -91,7 +97,12 @@ export function buildMeasurementsTableRows(measurements) {
  */
 export function buildMeasurementsCsv(measurements, options = {}) {
   const i18n = resolveTranslator(options);
-  const rows = buildMeasurementsTableRows(measurements);
+  const rows = normalizeMeasurements(measurements).map((measurement) => [
+    String(measurement.sensorId),
+    formatCsvNumber(measurement.position),
+    formatCsvNumber(measurement.time),
+    formatCsvNumber(measurement.velocity),
+  ]);
   const headers = CSV_HEADER_KEYS.map((key) => i18n.t(key));
   const lines = [headers.map((header) => `"${header}"`).join(",")];
 
@@ -141,7 +152,7 @@ export function downloadMeasurementsCsv(measurements, options = {}) {
 }
 
 function renderMeasurementRows(tableBody, measurements, i18n) {
-  const rows = buildMeasurementsTableRows(measurements);
+  const rows = buildMeasurementsTableRows(measurements, { i18n });
   if (rows.length === 0) {
     tableBody.innerHTML = `<tr><td class="measurement-table-empty" colspan="4">${i18n.t("measurements.empty")}</td></tr>`;
     return rows;

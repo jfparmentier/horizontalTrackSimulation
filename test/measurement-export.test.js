@@ -97,23 +97,30 @@ function measurementsForStore() {
   }));
 }
 
-test("les lignes du tableau et du CSV utilisent les mêmes valeurs triées", () => {
-  const rows = buildMeasurementsTableRows(MEASUREMENTS);
+test("le tableau localise les décimales tandis que le CSV conserve le point", () => {
+  const rows = buildMeasurementsTableRows(MEASUREMENTS, { locale: "fr" });
   const csv = buildMeasurementsCsv(MEASUREMENTS);
   const lines = csv.trim().split("\r\n");
 
   assert.deepEqual(rows, [
-    ["1", "0.222222", "0.512", "0.8"],
-    ["2", "0.444444", "0.812346", "1.234568"],
+    ["1", "0,222222", "0,512", "0,8"],
+    ["2", "0,444444", "0,812346", "1,234568"],
   ]);
   assert.equal(lines.length, 3);
   assert.equal(
     lines[0],
     '"Numéro du capteur","Position (m)","Instant de déclenchement (s)","Vitesse mesurée (m/s)"',
   );
-  assert.equal(lines[1], rows[0].join(","));
-  assert.equal(lines[2], rows[1].join(","));
+  assert.equal(lines[1], "1,0.222222,0.512,0.8");
+  assert.equal(lines[2], "2,0.444444,0.812346,1.234568");
   assert.ok(lines.every((line) => line.split(",").length === 4));
+});
+
+test("le tableau anglais utilise le point décimal", () => {
+  assert.deepEqual(buildMeasurementsTableRows(MEASUREMENTS, { locale: "en" }), [
+    ["1", "0.222222", "0.512", "0.8"],
+    ["2", "0.444444", "0.812346", "1.234568"],
+  ]);
 });
 
 test("un tableau vide produit un CSV avec uniquement l'en-tête", () => {
@@ -200,8 +207,8 @@ test("le bouton ouvre le tableau uniquement après la fin de la simulation", () 
   assert.equal(overlay.attributes.get("aria-hidden"), "false");
   assert.equal(showButton.attributes.get("aria-expanded"), "true");
   assert.equal(closeButton.focused, true);
-  assert.match(tableBody.innerHTML, /<td>1<\/td><td>0\.222222<\/td><td>0\.512<\/td><td>0\.8<\/td>/);
-  assert.match(tableBody.innerHTML, /<td>2<\/td><td>0\.444444<\/td><td>0\.812346<\/td><td>1\.234568<\/td>/);
+  assert.match(tableBody.innerHTML, /<td>1<\/td><td>0,222222<\/td><td>0,512<\/td><td>0,8<\/td>/);
+  assert.match(tableBody.innerHTML, /<td>2<\/td><td>0,444444<\/td><td>0,812346<\/td><td>1,234568<\/td>/);
 
   downloadButton.click();
   assert.equal(exported.length, 1);
