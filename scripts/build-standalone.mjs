@@ -261,7 +261,7 @@ ${css}
           </summary>
           <aside class="project-info-panel">
             <h2 data-i18n="home.infoTitle">À propos</h2>
-            <a href="https://github.com/jfparmentier/experimentationMasses" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/jfparmentier/horizontalTrackSimulation" target="_blank" rel="noopener noreferrer">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M12 .7a11.3 11.3 0 0 0-3.6 22c.6.1.8-.2.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.4-1.3-5.4-5.6 0-1.2.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C14.2 4.6 15.2 5 15.2 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.3-2.8 5.3-5.4 5.6.4.4.8 1.1.8 2.1v3.2c0 .4.2.7.8.6A11.3 11.3 0 0 0 12 .7Z" />
               </svg>

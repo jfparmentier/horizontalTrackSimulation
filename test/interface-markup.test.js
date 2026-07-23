@@ -189,7 +189,7 @@ test("la page d’accueil place le dépôt GitHub et la licence dans un panneau 
   assert.match(modeSelection, /<details class="project-info">/);
   assert.match(modeSelection, /<summary[^>]+data-i18n-aria-label="home\.info"/);
   assert.match(modeSelection, /class="project-info-panel"/);
-  assert.match(modeSelection, /href="https:\/\/github\.com\/jfparmentier\/experimentationMasses"/);
+  assert.match(modeSelection, /href="https:\/\/github\.com\/jfparmentier\/horizontalTrackSimulation"/);
   assert.match(modeSelection, /data-i18n="home\.github"/);
   assert.match(modeSelection, /href="https:\/\/creativecommons\.org\/licenses\/by\/4\.0\/"/);
   assert.match(modeSelection, /data-i18n="home\.license"/);
