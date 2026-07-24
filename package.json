@@ -1,6 +1,6 @@
 {
   "name": "simulation-banc-horizontal-animated-svg",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "private": true,
   "type": "module",
   "description": "Standalone bilingual horizontal-track physics simulation with ideal and noisy friction modes.",

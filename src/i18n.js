@@ -43,7 +43,7 @@ const MESSAGES = Object.freeze({
     "readout.time": "Temps",
     "readout.fallDuration": "Durée de chute",
     "readout.impactVelocity": "V impact",
-    "mass.mobileTitle": "Masse suspendue S2",
+    "mass.mobileTitle": "Masse suspendue",
     "mass.select": "Sélectionner la masse de {mass} kilogramme",
 
     "measurements.show": "Afficher le tableau des mesures",

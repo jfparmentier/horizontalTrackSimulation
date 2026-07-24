@@ -238,6 +238,8 @@ test("la largeur maximale de la simulation sur ordinateur reste fixée à 1440 p
 test("la disposition mobile propose quatre grands boutons de masse", () => {
   const selector = html.match(/<fieldset id="mobile-mass-selector"[\s\S]*?<\/fieldset>/)?.[0] ?? "";
   assert.match(selector, /data-i18n="mass\.mobileTitle"/);
+  assert.match(selector, /<legend[^>]*>Masse suspendue<\/legend>/);
+  assert.doesNotMatch(selector, /Masse suspendue S2/);
   assert.equal((selector.match(/data-mobile-mass-value=/g) ?? []).length, 4);
   assert.match(html, /\.mobile-mass-selector \{[\s\S]*?display: none;/);
   assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.mobile-mass-selector \{[\s\S]*?display: block;/);

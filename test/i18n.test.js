@@ -24,6 +24,8 @@ test("les traductions françaises et anglaises sont disponibles", () => {
   assert.equal(translate("fr", "home.info"), "Informations sur le projet");
   assert.equal(translate("en", "home.info"), "Project information");
   assert.equal(translate("fr", "home.github"), "Code source sur GitHub");
+  assert.equal(translate("fr", "mass.mobileTitle"), "Masse suspendue");
+  assert.equal(translate("en", "mass.mobileTitle"), "Suspended mass S2");
   assert.equal(translate("en", "home.github"), "Source code on GitHub");
   assert.match(translate("fr", "home.license"), /CC BY 4\.0/);
   assert.equal(

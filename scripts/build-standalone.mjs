@@ -305,7 +305,7 @@ ${css}
             </svg>
           </button>
           <fieldset id="mobile-mass-selector" class="mobile-mass-selector">
-            <legend data-i18n="mass.mobileTitle">Masse suspendue S2</legend>
+            <legend data-i18n="mass.mobileTitle">Masse suspendue</legend>
             <div class="mobile-mass-buttons">
               <button class="mobile-mass-button mobile-mass-button--0-2" type="button" data-mobile-mass-value="0.2" aria-pressed="false"><span>0.2 kg</span></button>
               <button class="mobile-mass-button mobile-mass-button--0-5" type="button" data-mobile-mass-value="0.5" aria-pressed="true"><span>0.5 kg</span></button>
