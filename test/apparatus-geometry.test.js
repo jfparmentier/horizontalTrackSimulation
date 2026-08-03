@@ -68,10 +68,23 @@ test("la corde est horizontale avant la poulie puis verticale après un quart de
   assert.equal(layout.string.endX, layout.string.pulleyExitX);
 });
 
-test("l'indication de hauteur est placée à droite du socle", () => {
+test("l'indication de hauteur est placée à gauche de S2 et du personnage", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
-  assert.ok(layout.heightGuide.x > layout.socle.x + layout.socle.width);
+  assert.ok(layout.heightGuide.x < layout.socle.x);
+  assert.ok(layout.heightGuide.x > layout.massRack.x + layout.massRack.width);
+});
+
+test("le personnage pose la masse sur sa paume et ses pieds sur le socle", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+  const scale = layout.person.height / 983;
+  const palmCenterX = layout.person.holding.x + 80 * scale;
+  const feetY = layout.person.y + 962 * scale;
+
+  assert.ok(Math.abs(palmCenterX - (layout.hangingMass.x + layout.hangingMass.width / 2)) < 1e-9);
+  assert.ok(Math.abs(feetY - layout.socle.y) < 1e-9);
+  assert.ok(layout.person.resting.x + layout.person.resting.width < layout.viewBox.width);
+  assert.ok(layout.socle.x + layout.socle.width <= layout.viewBox.width - 16);
 });
 
 test("la masse suspendue est carrée à coins arrondis", () => {

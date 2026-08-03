@@ -140,6 +140,12 @@ const manifests = [
     exports: ["DEFAULT_MANUAL_STEP_DURATION", "bindSimulationControls"],
   },
   {
+    key: "personController",
+    file: "src/person-controller.js",
+    dependencies: [],
+    exports: ["createPersonController"],
+  },
+  {
     key: "sensorController",
     file: "src/sensor-controller.js",
     dependencies: [],
@@ -179,6 +185,7 @@ const manifests = [
       ["languageSelector", ["bindLanguageSelector"]],
       ["modeSelector", ["bindModeSelector"]],
       ["parameterControls", ["bindParameterControls"]],
+      ["personController", ["createPersonController"]],
       ["massSelector", ["createMassSelector"]],
       ["mobileMassSelector", ["bindMobileMassSelector"]],
       ["responsiveApparatus", ["createResponsiveApparatusViewport"]],
@@ -204,7 +211,15 @@ function transformModule(manifest) {
   return `modules.${manifest.key} = (() => {\n${dependencyLines.join("\n")}\n${source}\nreturn Object.freeze({ ${manifest.exports.join(", ")} });\n})();`;
 }
 
-const bundle = `(() => {\n"use strict";\nconst modules = {};\n${manifests.map(transformModule).join("\n\n")}\nmodules.app.createAnimatedApp(document);\n})();`;
+let bundle = `(() => {\n"use strict";\nconst modules = {};\n${manifests.map(transformModule).join("\n\n")}\nmodules.app.createAnimatedApp(document);\n})();`;
+
+for (const [assetPath, mimeType] of [
+  ["assets/person-holding.webp", "image/webp"],
+  ["assets/person-resting.webp", "image/webp"],
+]) {
+  const asset = fs.readFileSync(path.join(root, assetPath)).toString("base64");
+  bundle = bundle.replaceAll(assetPath, `data:${mimeType};base64,${asset}`);
+}
 
 const css = fs.readFileSync(path.join(root, "src/apparatus.css"), "utf8");
 const html = `<!doctype html>

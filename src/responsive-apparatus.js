@@ -5,11 +5,11 @@ export const APPARATUS_VIEWPORTS = Object.freeze({
   }),
   mobilePortrait: Object.freeze({
     id: "mobile-portrait",
-    viewBox: "70 60 1100 535",
+    viewBox: "70 60 1130 535",
   }),
   shortLandscape: Object.freeze({
     id: "short-landscape",
-    viewBox: "45 55 1120 545",
+    viewBox: "45 55 1155 545",
   }),
 });
 

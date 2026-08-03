@@ -69,6 +69,9 @@ class FakeSvg extends FakeElement {
       ["#layer-hanging-mass", new FakeElement("layer-hanging-mass")],
       ["#string-path", new FakeElement("string-path")],
       ["#apparatus-description", new FakeElement("apparatus-description")],
+      ["#layer-person", new FakeElement("layer-person")],
+      ["#person-title", new FakeElement("person-title")],
+      ["#person-click-cue-label", new FakeElement("person-click-cue-label")],
       ...Array.from({ length: 16 }, (_, index) => [
         `#sensor-${index + 1}`,
         new FakeElement(`sensor-${index + 1}`),

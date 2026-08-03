@@ -69,6 +69,8 @@ const MESSAGES = Object.freeze({
     "svg.massChoice": "Masse de {mass} kilogramme à placer comme masse suspendue",
     "svg.massPlaceholder": "Emplacement de la masse de {mass} kilogramme",
     "svg.dropHeight": "Hauteur de chute {height} mètre",
+    "svg.personStart": "Cliquer sur la personne pour démarrer la simulation",
+    "svg.personResume": "Cliquer sur la personne pour reprendre la simulation",
   }),
   en: Object.freeze({
     "meta.title": "Horizontal track simulation",
@@ -137,6 +139,8 @@ const MESSAGES = Object.freeze({
     "svg.massChoice": "{mass} kilogram mass to use as the suspended mass",
     "svg.massPlaceholder": "Location of the {mass} kilogram mass",
     "svg.dropHeight": "Drop height {height} metres",
+    "svg.personStart": "Click the person to start the simulation",
+    "svg.personResume": "Click the person to resume the simulation",
   }),
 });
 

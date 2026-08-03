@@ -362,6 +362,94 @@ h1 {
   stroke-width: 3;
 }
 
+.person-figure {
+  cursor: pointer;
+  outline: none;
+}
+
+.person-figure[aria-disabled="true"] {
+  cursor: default;
+}
+
+.person-hit-area {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.person-focus-ring {
+  fill: rgba(255, 203, 48, 0.08);
+  stroke: #247da9;
+  stroke-dasharray: 8 6;
+  stroke-width: 4;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.person-pose {
+  pointer-events: none;
+  transition: filter 160ms ease, opacity 260ms ease;
+}
+
+.person-pose--holding {
+  opacity: 1;
+}
+
+.person-pose--resting {
+  opacity: 0;
+}
+
+#apparatus-svg[data-person-state="released"] .person-pose--holding {
+  opacity: 0;
+}
+
+#apparatus-svg[data-person-state="released"] .person-pose--resting {
+  opacity: 1;
+}
+
+.person-click-cue {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(5px);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.person-click-cue rect {
+  fill: #ffffff;
+  stroke: #247da9;
+  stroke-width: 2;
+  filter: url(#soft-shadow);
+}
+
+.person-click-cue circle {
+  fill: #247da9;
+}
+
+.person-click-cue path {
+  fill: #ffffff;
+}
+
+.person-click-cue text {
+  fill: #174d69;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.person-figure:not([aria-disabled="true"]):hover .person-pose,
+.person-figure:not([aria-disabled="true"]):focus-visible .person-pose {
+  filter: drop-shadow(0 0 8px rgba(36, 125, 169, 0.5));
+}
+
+.person-figure:not([aria-disabled="true"]):hover .person-click-cue,
+.person-figure:not([aria-disabled="true"]):focus-visible .person-click-cue {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.person-figure:focus-visible .person-focus-ring {
+  opacity: 1;
+}
+
 .height-label {
   fill: #496675;
 }
@@ -1998,4 +2086,3 @@ summary {
     outline-offset: 2px;
   }
 }
-

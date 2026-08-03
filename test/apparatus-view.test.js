@@ -48,9 +48,23 @@ test("les éléments destinés à l'animation disposent d'identifiants stables",
     'id="layer-hanging-mass"',
     'id="hanging-mass-body"',
     'id="string-path"',
+    'id="layer-person"',
+    'id="person-holding"',
+    'id="person-resting"',
   ]) {
     assert.ok(svg.includes(required), `${required} doit être présent`);
   }
+});
+
+test("le personnage possède deux poses et une affordance de démarrage accessible", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.match(svg, /id="layer-person"[^>]+tabindex="0"[^>]+role="button"/);
+  assert.match(svg, /aria-label="Cliquer sur la personne pour démarrer la simulation"/);
+  assert.match(svg, /href="assets\/person-holding\.webp"/);
+  assert.match(svg, /href="assets\/person-resting\.webp"/);
+  assert.match(svg, /id="person-click-cue-label"[^>]*>Démarrer<\/text>/);
+  assert.match(svg, /data-person-state="holding"/);
 });
 
 test("le SVG affiche seulement les indications souhaitées", () => {

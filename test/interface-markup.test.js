@@ -248,9 +248,9 @@ test("la disposition mobile propose quatre grands boutons de masse", () => {
 
 test("les téléphones disposent de cadrages SVG portrait et paysage", () => {
   assert.match(html, /mobile-portrait/);
-  assert.match(html, /70 60 1100 535/);
+  assert.match(html, /70 60 1130 535/);
   assert.match(html, /short-landscape/);
-  assert.match(html, /45 55 1120 545/);
+  assert.match(html, /45 55 1155 545/);
   assert.match(html, /@media \(orientation: landscape\) and \(max-height: 500px\) and \(max-width: 1000px\)/);
 });
 

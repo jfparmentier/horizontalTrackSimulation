@@ -6,6 +6,9 @@ const US_NUMBER_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
+const PERSON_HOLDING_ASSET = "assets/person-holding.webp";
+const PERSON_RESTING_ASSET = "assets/person-resting.webp";
+
 function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -90,6 +93,30 @@ function buildStringPath(layout) {
     L ${rope.endX} ${rope.endY}`;
 }
 
+function buildPerson(layout, t) {
+  const { person } = layout;
+  const cueTextX = person.cue.x + person.cue.width / 2 + 7;
+  const cueTextY = person.cue.y + person.cue.height / 2 + 4;
+  const playCenterX = person.cue.x + 17;
+  const playCenterY = person.cue.y + person.cue.height / 2;
+  const label = escapeXml(t("svg.personStart"));
+
+  return `
+    <g id="layer-person" class="person-figure" data-role="simulation-starter" tabindex="0" role="button" aria-label="${label}" aria-disabled="false">
+      <title id="person-title">${label}</title>
+      <rect class="person-hit-area" x="${person.hitArea.x}" y="${person.hitArea.y}" width="${person.hitArea.width}" height="${person.hitArea.height}" rx="24" />
+      <rect class="person-focus-ring" x="${person.hitArea.x + 3}" y="${person.hitArea.y + 3}" width="${person.hitArea.width - 6}" height="${person.hitArea.height - 6}" rx="22" />
+      <image id="person-holding" class="person-pose person-pose--holding" href="${PERSON_HOLDING_ASSET}" x="${person.holding.x}" y="${person.y}" width="${person.holding.width}" height="${person.height}" preserveAspectRatio="none" draggable="false" />
+      <image id="person-resting" class="person-pose person-pose--resting" href="${PERSON_RESTING_ASSET}" x="${person.resting.x}" y="${person.y}" width="${person.resting.width}" height="${person.height}" preserveAspectRatio="none" draggable="false" />
+      <g class="person-click-cue" aria-hidden="true">
+        <rect x="${person.cue.x}" y="${person.cue.y}" width="${person.cue.width}" height="${person.cue.height}" rx="15" />
+        <circle cx="${playCenterX}" cy="${playCenterY}" r="10" />
+        <path d="M ${playCenterX - 3} ${playCenterY - 5} L ${playCenterX + 5} ${playCenterY} L ${playCenterX - 3} ${playCenterY + 5} Z" />
+        <text id="person-click-cue-label" x="${cueTextX}" y="${cueTextY}" text-anchor="middle">${escapeXml(t("controls.start"))}</text>
+      </g>
+    </g>`;
+}
+
 function buildMassRack(layout, t) {
   const slots = layout.massRack.choices
     .map((choice) => `
@@ -128,7 +155,7 @@ export function buildStaticApparatusSvg(options = {}) {
   const { locale, t } = resolveLocalization(options);
   const description = t("svg.description", { count: layout.sensorCount });
 
-  return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet">
+  return `<svg id="apparatus-svg" class="apparatus-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.viewBox.width} ${layout.viewBox.height}" role="img" aria-labelledby="apparatus-title apparatus-description" preserveAspectRatio="xMidYMid meet" data-person-state="holding">
     <title id="apparatus-title">${escapeXml(t("svg.title"))}</title>
     <desc id="apparatus-description">${escapeXml(description)}</desc>
 
@@ -200,14 +227,16 @@ export function buildStaticApparatusSvg(options = {}) {
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
+    <g id="layer-socle" data-role="socle">
+      <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
+    </g>
+
+    ${buildPerson(layout, t)}
+
     <g id="layer-hanging-mass" class="${massColorClass(parameters.m2)}" data-role="hanging-mass" data-mass-value="${parameters.m2}" transform="translate(${layout.hangingMass.x} ${layout.hangingMass.y})">
       <rect id="mass-drop-target" class="mass-drop-target" x="-9" y="-9" width="${layout.hangingMass.width + 18}" height="${layout.hangingMass.height + 18}" rx="20" aria-hidden="true" />
       <rect id="hanging-mass-body" class="hanging-mass-body" data-role="hanging-mass-body" x="0" y="0" width="${layout.hangingMass.width}" height="${layout.hangingMass.height}" rx="14" />
       <text class="object-label mass-value-label" x="${layout.hangingMass.width / 2}" y="50" text-anchor="middle">${formatUsNumber(parameters.m2)} kg</text>
-    </g>
-
-    <g id="layer-socle" data-role="socle">
-      <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
 
     ${buildMassRack(layout, t)}

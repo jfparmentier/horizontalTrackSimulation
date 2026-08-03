@@ -6,6 +6,7 @@ import { createI18n, formatNumber } from "./i18n.js";
 import { bindLanguageSelector } from "./language-selector.js";
 import { bindModeSelector } from "./mode-selector.js";
 import { bindParameterControls } from "./parameter-controls.js";
+import { createPersonController } from "./person-controller.js";
 import { createMassSelector } from "./mass-selector.js";
 import { bindMobileMassSelector } from "./mobile-mass-selector.js";
 import { createResponsiveApparatusViewport } from "./responsive-apparatus.js";
@@ -100,6 +101,7 @@ export function createAnimatedApp(root = document, options = {}) {
 
   function destroyRuntime({ clearHost = false } = {}) {
     if (runtime) {
+      runtime.personController?.destroy();
       runtime.massSelector?.destroy();
       runtime.responsiveViewport?.destroy();
       runtime.sensorController?.destroy();
@@ -153,6 +155,7 @@ export function createAnimatedApp(root = document, options = {}) {
     });
     host.setAttribute("data-measurement-count", String(snapshot.measurements.length));
     host.setAttribute("data-simulation-mode", snapshot.mode);
+    let personController = null;
     const loop = createTimeLoop({
       parameters: snapshot.parameters,
       physicsStep: options.physicsStep ?? 0.002,
@@ -167,6 +170,11 @@ export function createAnimatedApp(root = document, options = {}) {
         simulationControls?.update(state, meta);
       },
     });
+    personController = createPersonController(svg, {
+      i18n,
+      initialState: loop.getState(),
+      onActivate: () => simulationControls?.start() ?? false,
+    });
 
     runtime = Object.freeze({
       loop,
@@ -177,8 +185,10 @@ export function createAnimatedApp(root = document, options = {}) {
       responsiveViewport,
       sensorController,
       measurementRecorder,
+      personController,
     });
     simulationControls?.update(loop.getState(), loop.getDiagnostics());
+    personController.update(loop.getState(), loop.getDiagnostics());
     return runtime;
   }
 
@@ -201,6 +211,7 @@ export function createAnimatedApp(root = document, options = {}) {
       host.setAttribute("data-measurement-count", "0");
       runtime.measurementRecorder.reset();
       runtime.loop.reset(snapshot.parameters);
+      runtime.personController.update(runtime.loop.getState(), runtime.loop.getDiagnostics());
       clearReadout();
     }
   });
@@ -218,6 +229,9 @@ export function createAnimatedApp(root = document, options = {}) {
     getLoop: () => runtime?.loop,
     manualStepDuration: options.manualStepDuration,
     keyboardTarget: options.keyboardTarget,
+    onUpdate(state, meta) {
+      runtime?.personController.update(state, meta);
+    },
   });
   const parameterControls = bindParameterControls(root, appState);
   const unsubscribeLanguage = i18n.subscribe(() => {

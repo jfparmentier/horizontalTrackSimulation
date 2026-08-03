@@ -148,7 +148,9 @@ export function bindSimulationControls(root, configuration = {}) {
     startButton.setAttribute("aria-pressed", String(running));
     pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
     const announcementKey = announceState(state, running, terminal, initial);
-    return Object.freeze({ running, terminal, initial, announcementKey });
+    const result = Object.freeze({ running, terminal, initial, announcementKey });
+    configuration.onUpdate?.(state, { ...meta, running }, result);
+    return result;
   }
 
   function start() {

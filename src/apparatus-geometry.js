@@ -162,11 +162,39 @@ export function computeApparatusLayout(options = {}) {
     width: mobileSize,
     height: mobileSize,
   });
+  const socleX = hangingMass.x - 34;
   const socle = Object.freeze({
-    x: hangingMass.x - 34,
+    x: socleX,
     y: hangingMass.y + hangingMass.height + parameters.dropHeight * pixelsPerMeter,
-    width: hangingMass.width + 68,
+    // Le support se prolonge jusqu'au bord droit de la scène afin d'accueillir
+    // le personnage sans modifier le point de réception de S2.
+    width: APPARATUS_VIEWBOX.width - 16 - socleX,
     height: 28,
+  });
+  const personScale = 393 / 983;
+  const person = Object.freeze({
+    y: socle.y - 962 * personScale,
+    height: 393,
+    holding: Object.freeze({
+      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
+      width: 492 * personScale,
+    }),
+    resting: Object.freeze({
+      x: hangingMass.x + hangingMass.width / 2 + 140 * personScale,
+      width: 266 * personScale,
+    }),
+    hitArea: Object.freeze({
+      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
+      y: socle.y - 962 * personScale,
+      width: 492 * personScale,
+      height: 393,
+    }),
+    cue: Object.freeze({
+      x: APPARATUS_VIEWBOX.width - 126,
+      y: socle.y - 962 * personScale - 34,
+      width: 108,
+      height: 30,
+    }),
   });
   const massRackGap = 18;
   const massRackStartX = 520;
@@ -235,6 +263,7 @@ export function computeApparatusLayout(options = {}) {
     pulley,
     hangingMass,
     socle,
+    person,
     massRack,
     sensors: Object.freeze(sensors),
     motionScale: Object.freeze({
@@ -254,7 +283,9 @@ export function computeApparatusLayout(options = {}) {
       endY: hangingMass.y,
     }),
     heightGuide: Object.freeze({
-      x: socle.x + socle.width + 30,
+      // La cote est placée dans l'intervalle entre le support de masses et S2,
+      // à gauche du socle et du personnage.
+      x: socle.x - 20,
       topY: hangingMass.y + hangingMass.height,
       bottomY: socle.y,
     }),
