@@ -36,7 +36,6 @@ export function bindModeSelector(root, appState) {
   const idealButton = getRequiredElement(root, "#mode-ideal-button");
   const frictionButton = getRequiredElement(root, "#mode-friction-button");
   const homeButton = getRequiredElement(root, "#mode-home-button");
-  const startButton = root.querySelector("#start-button");
   const listeners = [];
   let returnFocusTarget = idealButton;
 
@@ -66,7 +65,10 @@ export function bindModeSelector(root, appState) {
     returnFocusTarget = sourceButton;
     appState.selectMode(mode);
     scrollViewportToTop();
-    startButton?.focus?.({ preventScroll: true });
+    const primarySimulationAction = root.querySelector("#start-button")
+      ?? root.querySelector("#layer-person")
+      ?? root.querySelector("#apparatus-host");
+    primarySimulationAction?.focus?.({ preventScroll: true });
   }
 
   listen(idealButton, "click", () => enterMode("ideal", idealButton));

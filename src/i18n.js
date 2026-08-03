@@ -47,6 +47,7 @@ const MESSAGES = Object.freeze({
     "mass.select": "Sélectionner la masse de {mass} kilogramme",
 
     "measurements.show": "Afficher le tableau des mesures",
+    "measurements.panelTitle": "Mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
     "measurements.title": "Mesures des capteurs de vitesse",
     "measurements.download": "Télécharger les mesures au format CSV",
@@ -72,6 +73,7 @@ const MESSAGES = Object.freeze({
     "svg.dropHeight": "Hauteur de chute {height} mètre",
     "svg.personStart": "Cliquer sur la personne pour démarrer la simulation",
     "svg.personResume": "Cliquer sur la personne pour reprendre la simulation",
+    "svg.personReset": "Cliquer sur la personne pour réinitialiser la simulation",
   }),
   en: Object.freeze({
     "meta.title": "Horizontal track simulation",
@@ -118,6 +120,7 @@ const MESSAGES = Object.freeze({
     "mass.select": "Select the {mass} kilogram mass",
 
     "measurements.show": "Show the measurement table",
+    "measurements.panelTitle": "Measurements",
     "measurements.eyebrow": "Experimental results",
     "measurements.title": "Speed sensor measurements",
     "measurements.download": "Download measurements as CSV",
@@ -143,6 +146,7 @@ const MESSAGES = Object.freeze({
     "svg.dropHeight": "Drop height {height} metres",
     "svg.personStart": "Click the person to start the simulation",
     "svg.personResume": "Click the person to resume the simulation",
+    "svg.personReset": "Click the person to reset the simulation",
   }),
 });
 

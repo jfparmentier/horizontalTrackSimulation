@@ -64,6 +64,7 @@ test("un clic sur le personnage démarre la simulation et baisse son bras", () =
       activations += 1;
       return true;
     },
+    onReset: () => true,
   });
 
   fixture.person.dispatch("click", { preventDefault() {} });
@@ -75,15 +76,20 @@ test("un clic sur le personnage démarre la simulation et baisse son bras", () =
   i18n.destroy();
 });
 
-test("Entrée active le personnage, tandis qu'un état terminal le désactive", () => {
+test("Entrée active le personnage, tandis qu'un clic terminal réinitialise", () => {
   const fixture = createFixture();
   const i18n = createI18n("fr");
   let activations = 0;
+  let resets = 0;
   const controller = createPersonController(fixture.svg, {
     i18n,
     initialState: READY,
     onActivate() {
       activations += 1;
+      return true;
+    },
+    onReset() {
+      resets += 1;
       return true;
     },
   });
@@ -92,9 +98,13 @@ test("Entrée active le personnage, tandis qu'un état terminal le désactive", 
   assert.equal(activations, 1);
 
   controller.update({ ...READY, status: "finished" }, { running: false });
+  assert.equal(fixture.cue.textContent, "Réinitialiser");
+  assert.equal(fixture.person.getAttribute("aria-disabled"), "false");
   fixture.person.dispatch("click", { preventDefault() {} });
   assert.equal(activations, 1);
-  assert.equal(fixture.person.getAttribute("aria-disabled"), "true");
+  assert.equal(resets, 1);
+  assert.equal(fixture.svg.getAttribute("data-person-state"), "holding");
+  assert.equal(fixture.person.getAttribute("aria-disabled"), "false");
   controller.destroy();
   i18n.destroy();
 });
@@ -106,6 +116,7 @@ test("une réinitialisation relève le bras et la langue actualise l'indication"
     i18n,
     initialState: { ...READY, time: 0.2, position: 0.1, status: "paused" },
     onActivate: () => true,
+    onReset: () => true,
   });
 
   assert.equal(fixture.svg.getAttribute("data-person-state"), "released");

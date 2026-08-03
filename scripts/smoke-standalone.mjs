@@ -301,6 +301,21 @@ elements.get("#measurement-table-close-button").dispatch("click");
 if (!elements.get("#measurement-table-overlay").hidden) {
   throw new Error("Le tableau des mesures ne s'est pas fermé.");
 }
+const terminalPerson = host.svg.nodes.get("#layer-person");
+if (
+  terminalPerson.attributes.get("aria-disabled") !== "false"
+  || !terminalPerson.attributes.get("aria-label").includes("réinitialiser")
+) {
+  throw new Error("Le personnage devrait proposer la réinitialisation à la fin de la simulation.");
+}
+terminalPerson.dispatch("click", { preventDefault() {} });
+if (
+  elements.get("#time-value").textContent !== "0,00 s"
+  || host.svg.attributes.get("data-person-state") !== "holding"
+  || elements.get("#show-data-button").disabled !== true
+) {
+  throw new Error("Le clic terminal sur le personnage n'a pas réinitialisé la simulation.");
+}
 
 elements.get("#mode-home-button").dispatch("click");
 if (host.svg || elements.get("#mode-selection").hidden || !elements.get("#simulation-screen").hidden) {

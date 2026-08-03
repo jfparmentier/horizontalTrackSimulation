@@ -549,22 +549,45 @@ h1 {
   backdrop-filter: blur(5px);
 }
 
-.main-control-buttons {
-  display: flex;
+.playback-floating-control {
+  position: absolute;
+  z-index: 9;
+  top: 3.5%;
+  left: 3.5%;
+  display: grid;
+  width: min(300px, 45%);
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(129, 166, 185, 0.75);
+  border-radius: 12px;
+  background: rgba(248, 252, 254, 0.94);
+  box-shadow: 0 6px 18px rgba(34, 76, 98, 0.14);
+  backdrop-filter: blur(5px);
+}
+
+.playback-control-label,
+.measurements-panel-title {
+  color: #315d73;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.measurements-panel-title {
+  margin: 0;
 }
 
 .playback-control {
   display: grid;
-  flex: 1 1 auto;
   grid-template-columns: 20px minmax(64px, 1fr) 66px;
   align-items: center;
   gap: 7px;
   min-width: 0;
-  margin-left: 4px;
-  padding-left: 10px;
-  border-left: 1px solid #d0e2eb;
 }
 
 .playback-control input[type="range"] {
@@ -1576,17 +1599,25 @@ summary {
     backdrop-filter: none;
   }
 
-  .main-control-buttons {
+  .playback-floating-control {
+    position: static;
     display: grid;
-    grid-template-columns: repeat(4, 44px) minmax(0, 1fr);
-    gap: 8px;
     width: 100%;
+    max-width: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    background: #f2f9fc;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .playback-control {
     width: 100%;
     min-width: 0;
-    margin-left: 0;
     grid-template-columns: 20px minmax(64px, 1fr) 66px;
   }
 
@@ -1625,19 +1656,8 @@ summary {
 }
 
 @media (max-width: 520px) {
-  .main-control-buttons {
-    grid-template-columns: repeat(4, 44px);
-    justify-content: center;
-  }
-
   .playback-control {
-    grid-column: 1 / -1;
     grid-template-columns: 22px minmax(0, 1fr) 72px;
-    margin-top: 2px;
-    padding-top: 10px;
-    padding-left: 0;
-    border-top: 1px solid #d0e2eb;
-    border-left: 0;
   }
 
   .animation-readout {
@@ -1761,6 +1781,7 @@ summary {
     grid-template-areas:
       "apparatus"
       "masses"
+      "speed"
       "controls";
   }
 
@@ -1778,6 +1799,10 @@ summary {
 
   .animation-controls {
     grid-area: controls;
+  }
+
+  .playback-floating-control {
+    grid-area: speed;
   }
 
   /* The larger HTML controls replace the miniature rack in the SVG on phones. */
@@ -1903,9 +1928,10 @@ summary {
     display: grid;
     grid-template-areas:
       "apparatus masses"
+      "apparatus speed"
       "apparatus controls";
     grid-template-columns: minmax(0, 1fr) minmax(286px, 42%);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     align-items: stretch;
   }
 
@@ -1949,18 +1975,23 @@ summary {
     backdrop-filter: none;
   }
 
-  .main-control-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 44px);
-    justify-content: center;
+  .playback-floating-control {
+    position: static;
+    width: 100%;
+    max-width: none;
+    padding: 7px 10px;
+    border-top: 1px solid #d7e8f0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid #d7e8f0;
+    border-radius: 0;
+    background: #f2f9fc;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .playback-control {
-    grid-column: 1 / -1;
-    margin: 0;
-    padding: 7px 0 0;
-    border-top: 1px solid #d0e2eb;
-    border-left: 0;
+    grid-template-columns: 20px minmax(64px, 1fr) 66px;
   }
 
   .readout-actions {
@@ -2008,6 +2039,10 @@ summary {
     grid-area: controls;
   }
 
+  .playback-floating-control {
+    grid-area: speed;
+  }
+
   #layer-mass-rack {
     display: none;
   }
@@ -2044,12 +2079,9 @@ summary {
     padding: 6px 7px;
   }
 
-  .main-control-buttons {
+  .playback-floating-control {
     gap: 6px;
-  }
-
-  .playback-control {
-    padding-top: 5px;
+    padding: 5px 7px;
   }
 
   .animation-readout {

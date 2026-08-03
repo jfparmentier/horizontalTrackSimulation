@@ -294,7 +294,7 @@ export function computeApparatusLayout(options = {}) {
       x: DRAWING.trackEndX,
       y: trackTopY - 26,
       width: 17,
-      height: 26,
+      height: DRAWING.trackHeight + 26,
       contactX: DRAWING.trackEndX,
     }),
     massRack,

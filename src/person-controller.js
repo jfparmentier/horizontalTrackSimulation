@@ -26,6 +26,9 @@ export function createPersonController(svg, configuration = {}) {
   if (typeof configuration.onActivate !== "function") {
     throw new TypeError("onActivate doit être une fonction.");
   }
+  if (typeof configuration.onReset !== "function") {
+    throw new TypeError("onReset doit être une fonction.");
+  }
   if (!configuration.i18n || typeof configuration.i18n.t !== "function") {
     throw new TypeError("Un gestionnaire de langue valide est requis.");
   }
@@ -56,12 +59,17 @@ export function createPersonController(svg, configuration = {}) {
   }
 
   function localize() {
+    const terminal = isTerminalState(lastState);
     const initial = isInitialState(lastState) && lastState.status === "ready";
-    const label = i18n.t(initial ? "svg.personStart" : "svg.personResume");
+    const label = i18n.t(terminal
+      ? "svg.personReset"
+      : (initial ? "svg.personStart" : "svg.personResume"));
     person.setAttribute("aria-label", label);
     person.setAttribute("title", label);
     personTitle.textContent = label;
-    cueLabel.textContent = i18n.t(initial ? "controls.start" : "controls.resume");
+    cueLabel.textContent = i18n.t(terminal
+      ? "controls.reset"
+      : (initial ? "controls.start" : "controls.resume"));
     return label;
   }
 
@@ -73,9 +81,14 @@ export function createPersonController(svg, configuration = {}) {
     const released = state.status !== "ready" || !isInitialState(state) || running || terminal;
 
     svg.setAttribute("data-person-state", released ? "released" : "holding");
-    person.setAttribute("aria-disabled", String(running || terminal));
+    person.setAttribute("aria-disabled", String(running));
     localize();
-    return Object.freeze({ running, terminal, released });
+    return Object.freeze({
+      running,
+      terminal,
+      released,
+      action: terminal ? "reset" : "start",
+    });
   }
 
   function activate(event) {
@@ -83,10 +96,13 @@ export function createPersonController(svg, configuration = {}) {
       return false;
     }
     event?.preventDefault?.();
-    const changed = Boolean(configuration.onActivate());
+    const terminal = isTerminalState(lastState);
+    const changed = Boolean(terminal
+      ? configuration.onReset()
+      : configuration.onActivate());
     if (changed) {
-      svg.setAttribute("data-person-state", "released");
-      person.setAttribute("aria-disabled", "true");
+      svg.setAttribute("data-person-state", terminal ? "holding" : "released");
+      person.setAttribute("aria-disabled", String(!terminal));
     }
     return changed;
   }

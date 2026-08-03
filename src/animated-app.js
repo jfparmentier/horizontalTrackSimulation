@@ -174,6 +174,7 @@ export function createAnimatedApp(root = document, options = {}) {
       i18n,
       initialState: loop.getState(),
       onActivate: () => simulationControls?.start() ?? false,
+      onReset: () => simulationControls?.reset() ?? false,
     });
 
     runtime = Object.freeze({

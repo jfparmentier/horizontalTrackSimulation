@@ -557,22 +557,45 @@ h1 {
   backdrop-filter: blur(5px);
 }
 
-.main-control-buttons {
-  display: flex;
+.playback-floating-control {
+  position: absolute;
+  z-index: 9;
+  top: 3.5%;
+  left: 3.5%;
+  display: grid;
+  width: min(300px, 45%);
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(129, 166, 185, 0.75);
+  border-radius: 12px;
+  background: rgba(248, 252, 254, 0.94);
+  box-shadow: 0 6px 18px rgba(34, 76, 98, 0.14);
+  backdrop-filter: blur(5px);
+}
+
+.playback-control-label,
+.measurements-panel-title {
+  color: #315d73;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.measurements-panel-title {
+  margin: 0;
 }
 
 .playback-control {
   display: grid;
-  flex: 1 1 auto;
   grid-template-columns: 20px minmax(64px, 1fr) 66px;
   align-items: center;
   gap: 7px;
   min-width: 0;
-  margin-left: 4px;
-  padding-left: 10px;
-  border-left: 1px solid #d0e2eb;
 }
 
 .playback-control input[type="range"] {
@@ -1584,17 +1607,25 @@ summary {
     backdrop-filter: none;
   }
 
-  .main-control-buttons {
+  .playback-floating-control {
+    position: static;
     display: grid;
-    grid-template-columns: repeat(4, 44px) minmax(0, 1fr);
-    gap: 8px;
     width: 100%;
+    max-width: none;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 0;
+    background: #f2f9fc;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .playback-control {
     width: 100%;
     min-width: 0;
-    margin-left: 0;
     grid-template-columns: 20px minmax(64px, 1fr) 66px;
   }
 
@@ -1633,19 +1664,8 @@ summary {
 }
 
 @media (max-width: 520px) {
-  .main-control-buttons {
-    grid-template-columns: repeat(4, 44px);
-    justify-content: center;
-  }
-
   .playback-control {
-    grid-column: 1 / -1;
     grid-template-columns: 22px minmax(0, 1fr) 72px;
-    margin-top: 2px;
-    padding-top: 10px;
-    padding-left: 0;
-    border-top: 1px solid #d0e2eb;
-    border-left: 0;
   }
 
   .animation-readout {
@@ -1769,6 +1789,7 @@ summary {
     grid-template-areas:
       "apparatus"
       "masses"
+      "speed"
       "controls";
   }
 
@@ -1786,6 +1807,10 @@ summary {
 
   .animation-controls {
     grid-area: controls;
+  }
+
+  .playback-floating-control {
+    grid-area: speed;
   }
 
   /* The larger HTML controls replace the miniature rack in the SVG on phones. */
@@ -1911,9 +1936,10 @@ summary {
     display: grid;
     grid-template-areas:
       "apparatus masses"
+      "apparatus speed"
       "apparatus controls";
     grid-template-columns: minmax(0, 1fr) minmax(286px, 42%);
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     align-items: stretch;
   }
 
@@ -1957,18 +1983,23 @@ summary {
     backdrop-filter: none;
   }
 
-  .main-control-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 44px);
-    justify-content: center;
+  .playback-floating-control {
+    position: static;
+    width: 100%;
+    max-width: none;
+    padding: 7px 10px;
+    border-top: 1px solid #d7e8f0;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid #d7e8f0;
+    border-radius: 0;
+    background: #f2f9fc;
+    box-shadow: none;
+    backdrop-filter: none;
   }
 
   .playback-control {
-    grid-column: 1 / -1;
-    margin: 0;
-    padding: 7px 0 0;
-    border-top: 1px solid #d0e2eb;
-    border-left: 0;
+    grid-template-columns: 20px minmax(64px, 1fr) 66px;
   }
 
   .readout-actions {
@@ -2016,6 +2047,10 @@ summary {
     grid-area: controls;
   }
 
+  .playback-floating-control {
+    grid-area: speed;
+  }
+
   #layer-mass-rack {
     display: none;
   }
@@ -2052,12 +2087,9 @@ summary {
     padding: 6px 7px;
   }
 
-  .main-control-buttons {
+  .playback-floating-control {
     gap: 6px;
-  }
-
-  .playback-control {
-    padding-top: 5px;
+    padding: 5px 7px;
   }
 
   .animation-readout {
@@ -2207,27 +2239,16 @@ summary {
               <button class="mobile-mass-button mobile-mass-button--2" type="button" data-mobile-mass-value="2" aria-pressed="false"><span>2 kg</span></button>
             </div>
           </fieldset>
-          <div class="animation-controls" aria-label="Commandes et résultats de la simulation" data-i18n-aria-label="controls.group">
-            <div class="main-control-buttons">
-              <button id="start-button" class="control-button control-button--primary" type="button" aria-label="Démarrer" title="Démarrer">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z" /></svg>
-              </button>
-              <button id="pause-button" class="control-button" type="button" aria-label="Pause" title="Pause" data-i18n-aria-label="controls.pause" data-i18n-title="controls.pause">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
-              </button>
-              <button id="step-button" class="control-button" type="button" aria-label="Pas à pas" title="Pas à pas">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5v14l10-7zM17 5h2v14h-2z" /></svg>
-              </button>
-              <button id="reset-button" class="control-button" type="button" aria-label="Réinitialiser" title="Réinitialiser" data-i18n-aria-label="controls.reset" data-i18n-title="controls.reset">
-                <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9A8 8 0 1 1 6 17.5M4.5 9V4.5M4.5 9H9" /></svg>
-              </button>
-              <div class="playback-control">
-                <label class="visually-hidden" for="playback-speed-range" data-i18n="controls.playback">Vitesse de lecture</label>
-                <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
-                <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
-                <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.2" max="1" step="0.2" value="1" aria-label="Valeur de la vitesse de lecture" data-i18n-aria-label="controls.playbackValue"><span>×</span></span>
-              </div>
+          <div class="playback-floating-control" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
+            <span class="playback-control-label" data-i18n="controls.playback">Vitesse de lecture</span>
+            <div class="playback-control">
+              <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
+              <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
+              <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.2" max="1" step="0.2" value="1" aria-label="Valeur de la vitesse de lecture" data-i18n-aria-label="controls.playbackValue"><span>×</span></span>
             </div>
+          </div>
+          <section class="animation-controls measurements-panel" aria-labelledby="measurements-panel-title">
+            <h2 id="measurements-panel-title" class="measurements-panel-title" data-i18n="measurements.panelTitle">Mesures</h2>
             <div class="readout-actions">
               <dl class="animation-readout">
                 <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0,00 s</dd></div>
@@ -2241,7 +2262,7 @@ summary {
                 </svg>
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
@@ -2338,6 +2359,7 @@ const MESSAGES = Object.freeze({
     "mass.select": "Sélectionner la masse de {mass} kilogramme",
 
     "measurements.show": "Afficher le tableau des mesures",
+    "measurements.panelTitle": "Mesures",
     "measurements.eyebrow": "Résultats expérimentaux",
     "measurements.title": "Mesures des capteurs de vitesse",
     "measurements.download": "Télécharger les mesures au format CSV",
@@ -2363,6 +2385,7 @@ const MESSAGES = Object.freeze({
     "svg.dropHeight": "Hauteur de chute {height} mètre",
     "svg.personStart": "Cliquer sur la personne pour démarrer la simulation",
     "svg.personResume": "Cliquer sur la personne pour reprendre la simulation",
+    "svg.personReset": "Cliquer sur la personne pour réinitialiser la simulation",
   }),
   en: Object.freeze({
     "meta.title": "Horizontal track simulation",
@@ -2409,6 +2432,7 @@ const MESSAGES = Object.freeze({
     "mass.select": "Select the {mass} kilogram mass",
 
     "measurements.show": "Show the measurement table",
+    "measurements.panelTitle": "Measurements",
     "measurements.eyebrow": "Experimental results",
     "measurements.title": "Speed sensor measurements",
     "measurements.download": "Download measurements as CSV",
@@ -2434,6 +2458,7 @@ const MESSAGES = Object.freeze({
     "svg.dropHeight": "Drop height {height} metres",
     "svg.personStart": "Click the person to start the simulation",
     "svg.personResume": "Click the person to resume the simulation",
+    "svg.personReset": "Click the person to reset the simulation",
   }),
 });
 
@@ -4050,7 +4075,7 @@ function computeApparatusLayout(options = {}) {
       x: DRAWING.trackEndX,
       y: trackTopY - 26,
       width: 17,
-      height: 26,
+      height: DRAWING.trackHeight + 26,
       contactX: DRAWING.trackEndX,
     }),
     massRack,
@@ -4206,9 +4231,9 @@ function buildTrackStop(layout, t) {
   const stop = layout.trackStop;
   return `
     <g id="layer-track-stop" data-role="track-stop" role="img" aria-label="${escapeXml(t("svg.trackStop"))}">
-      <rect class="track-stop-base" x="${stop.x - 5}" y="${layout.track.y - 6}" width="${stop.width + 10}" height="8" rx="3" />
+      <rect class="track-stop-base" x="${stop.x - 5}" y="${layout.track.y + layout.track.height - 8}" width="${stop.width + 10}" height="8" rx="3" />
       <rect class="track-stop-body" x="${stop.x}" y="${stop.y}" width="${stop.width}" height="${stop.height}" rx="3" />
-      <path class="track-stop-grain" d="M ${stop.x + 5} ${stop.y + 5} Q ${stop.x + 11} ${stop.y + 8} ${stop.x + 6} ${stop.y + 12} M ${stop.x + 10} ${stop.y + 16} Q ${stop.x + 4} ${stop.y + 19} ${stop.x + 11} ${stop.y + 22}" />
+      <path class="track-stop-grain" d="M ${stop.x + 5} ${stop.y + 5} Q ${stop.x + 11} ${stop.y + 8} ${stop.x + 6} ${stop.y + 12} M ${stop.x + 10} ${stop.y + 18} Q ${stop.x + 4} ${stop.y + 22} ${stop.x + 11} ${stop.y + 27} M ${stop.x + 5} ${stop.y + 34} Q ${stop.x + 12} ${stop.y + 39} ${stop.x + 6} ${stop.y + 44} M ${stop.x + 10} ${stop.y + 51} Q ${stop.x + 4} ${stop.y + 57} ${stop.x + 11} ${stop.y + 64}" />
     </g>`;
 }
 
@@ -5093,7 +5118,6 @@ function bindModeSelector(root, appState) {
   const idealButton = getRequiredElement(root, "#mode-ideal-button");
   const frictionButton = getRequiredElement(root, "#mode-friction-button");
   const homeButton = getRequiredElement(root, "#mode-home-button");
-  const startButton = root.querySelector("#start-button");
   const listeners = [];
   let returnFocusTarget = idealButton;
 
@@ -5123,7 +5147,10 @@ function bindModeSelector(root, appState) {
     returnFocusTarget = sourceButton;
     appState.selectMode(mode);
     scrollViewportToTop();
-    startButton?.focus?.({ preventScroll: true });
+    const primarySimulationAction = root.querySelector("#start-button")
+      ?? root.querySelector("#layer-person")
+      ?? root.querySelector("#apparatus-host");
+    primarySimulationAction?.focus?.({ preventScroll: true });
   }
 
   listen(idealButton, "click", () => enterMode("ideal", idealButton));
@@ -5715,14 +5742,6 @@ modules.simulationControls = (() => {
 const { createI18n } = modules.i18n;
 const DEFAULT_MANUAL_STEP_DURATION = 0.05;
 
-function getRequiredElement(root, selector) {
-  const element = root.querySelector(selector);
-  if (!element) {
-    throw new Error(`Élément de commande introuvable : ${selector}`);
-  }
-  return element;
-}
-
 function isTerminalState(state) {
   return ["blocked", "finished"].includes(state.status);
 }
@@ -5743,7 +5762,9 @@ function shouldIgnoreKeyboardShortcut(event) {
 }
 
 /**
- * Relie les quatre commandes principales à la boucle temporelle courante.
+ * Expose les commandes de la boucle temporelle et relie, lorsqu'ils sont
+ * présents, les boutons correspondants. Les raccourcis clavier restent actifs
+ * même lorsque l'interface confie le pilotage au personnage.
  * La boucle est obtenue à la demande afin que la liaison reste valide après
  * toute reconstruction du montage provoquée par un changement de paramètre.
  */
@@ -5765,10 +5786,10 @@ function bindSimulationControls(root, configuration = {}) {
     throw new RangeError("La durée du pas manuel doit être strictement positive.");
   }
 
-  const startButton = getRequiredElement(root, "#start-button");
-  const pauseButton = getRequiredElement(root, "#pause-button");
-  const stepButton = getRequiredElement(root, "#step-button");
-  const resetButton = getRequiredElement(root, "#reset-button");
+  const startButton = root.querySelector("#start-button");
+  const pauseButton = root.querySelector("#pause-button");
+  const stepButton = root.querySelector("#step-button");
+  const resetButton = root.querySelector("#reset-button");
   const announcer = root.querySelector("#simulation-announcer");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
@@ -5780,10 +5801,10 @@ function bindSimulationControls(root, configuration = {}) {
   let lastAnnouncementKey = null;
   let destroyed = false;
 
-  startButton.setAttribute("aria-keyshortcuts", "Space");
-  pauseButton.setAttribute("aria-keyshortcuts", "Space");
-  stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
-  resetButton.setAttribute("aria-keyshortcuts", "Home");
+  startButton?.setAttribute("aria-keyshortcuts", "Space");
+  pauseButton?.setAttribute("aria-keyshortcuts", "Space");
+  stepButton?.setAttribute("aria-keyshortcuts", "ArrowRight");
+  resetButton?.setAttribute("aria-keyshortcuts", "Home");
 
 
   function getAnnouncementKey(state, running, terminal, initial) {
@@ -5815,12 +5836,12 @@ function bindSimulationControls(root, configuration = {}) {
     const pauseLabel = i18n.t("controls.pause");
     const stepLabel = i18n.t("controls.step", { duration: localizedDuration() });
     const resetLabel = i18n.t("controls.reset");
-    pauseButton.setAttribute("aria-label", pauseLabel);
-    pauseButton.setAttribute("title", pauseLabel);
-    stepButton.setAttribute("aria-label", stepLabel);
-    stepButton.setAttribute("title", stepLabel);
-    resetButton.setAttribute("aria-label", resetLabel);
-    resetButton.setAttribute("title", resetLabel);
+    pauseButton?.setAttribute("aria-label", pauseLabel);
+    pauseButton?.setAttribute("title", pauseLabel);
+    stepButton?.setAttribute("aria-label", stepLabel);
+    stepButton?.setAttribute("title", stepLabel);
+    resetButton?.setAttribute("aria-label", resetLabel);
+    resetButton?.setAttribute("title", resetLabel);
     const loop = getLoop();
     lastAnnouncementKey = null;
     update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
@@ -5849,17 +5870,17 @@ function bindSimulationControls(root, configuration = {}) {
     const terminal = isTerminalState(state);
     const initial = isInitialState(state);
 
-    startButton.disabled = running || terminal;
-    pauseButton.disabled = !running;
-    stepButton.disabled = running || terminal;
-    resetButton.disabled = initial && !running;
+    if (startButton) startButton.disabled = running || terminal;
+    if (pauseButton) pauseButton.disabled = !running;
+    if (stepButton) stepButton.disabled = running || terminal;
+    if (resetButton) resetButton.disabled = initial && !running;
 
     const startLabel = i18n.t(initial ? "controls.start" : "controls.resume");
-    startButton.setAttribute("aria-label", startLabel);
-    startButton.setAttribute("title", startLabel);
-    startButton.dataset.actionState = initial ? "start" : "resume";
-    startButton.setAttribute("aria-pressed", String(running));
-    pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
+    startButton?.setAttribute("aria-label", startLabel);
+    startButton?.setAttribute("title", startLabel);
+    if (startButton) startButton.dataset.actionState = initial ? "start" : "resume";
+    startButton?.setAttribute("aria-pressed", String(running));
+    pauseButton?.setAttribute("aria-pressed", String(!running && !initial && !terminal));
     const announcementKey = announceState(state, running, terminal, initial);
     const result = Object.freeze({ running, terminal, initial, announcementKey });
     configuration.onUpdate?.(state, { ...meta, running }, result);
@@ -5919,10 +5940,10 @@ function bindSimulationControls(root, configuration = {}) {
     }
   }
 
-  listen(startButton, "click", start);
-  listen(pauseButton, "click", pause);
-  listen(stepButton, "click", step);
-  listen(resetButton, "click", reset);
+  if (startButton) listen(startButton, "click", start);
+  if (pauseButton) listen(pauseButton, "click", pause);
+  if (stepButton) listen(stepButton, "click", step);
+  if (resetButton) listen(resetButton, "click", reset);
   if (keyboardTarget && typeof keyboardTarget.addEventListener === "function") {
     listen(keyboardTarget, "keydown", onKeyDown);
   }
@@ -5981,6 +6002,9 @@ function createPersonController(svg, configuration = {}) {
   if (typeof configuration.onActivate !== "function") {
     throw new TypeError("onActivate doit être une fonction.");
   }
+  if (typeof configuration.onReset !== "function") {
+    throw new TypeError("onReset doit être une fonction.");
+  }
   if (!configuration.i18n || typeof configuration.i18n.t !== "function") {
     throw new TypeError("Un gestionnaire de langue valide est requis.");
   }
@@ -6011,12 +6035,17 @@ function createPersonController(svg, configuration = {}) {
   }
 
   function localize() {
+    const terminal = isTerminalState(lastState);
     const initial = isInitialState(lastState) && lastState.status === "ready";
-    const label = i18n.t(initial ? "svg.personStart" : "svg.personResume");
+    const label = i18n.t(terminal
+      ? "svg.personReset"
+      : (initial ? "svg.personStart" : "svg.personResume"));
     person.setAttribute("aria-label", label);
     person.setAttribute("title", label);
     personTitle.textContent = label;
-    cueLabel.textContent = i18n.t(initial ? "controls.start" : "controls.resume");
+    cueLabel.textContent = i18n.t(terminal
+      ? "controls.reset"
+      : (initial ? "controls.start" : "controls.resume"));
     return label;
   }
 
@@ -6028,9 +6057,14 @@ function createPersonController(svg, configuration = {}) {
     const released = state.status !== "ready" || !isInitialState(state) || running || terminal;
 
     svg.setAttribute("data-person-state", released ? "released" : "holding");
-    person.setAttribute("aria-disabled", String(running || terminal));
+    person.setAttribute("aria-disabled", String(running));
     localize();
-    return Object.freeze({ running, terminal, released });
+    return Object.freeze({
+      running,
+      terminal,
+      released,
+      action: terminal ? "reset" : "start",
+    });
   }
 
   function activate(event) {
@@ -6038,10 +6072,13 @@ function createPersonController(svg, configuration = {}) {
       return false;
     }
     event?.preventDefault?.();
-    const changed = Boolean(configuration.onActivate());
+    const terminal = isTerminalState(lastState);
+    const changed = Boolean(terminal
+      ? configuration.onReset()
+      : configuration.onActivate());
     if (changed) {
-      svg.setAttribute("data-person-state", "released");
-      person.setAttribute("aria-disabled", "true");
+      svg.setAttribute("data-person-state", terminal ? "holding" : "released");
+      person.setAttribute("aria-disabled", String(!terminal));
     }
     return changed;
   }
@@ -7241,6 +7278,7 @@ function createAnimatedApp(root = document, options = {}) {
       i18n,
       initialState: loop.getState(),
       onActivate: () => simulationControls?.start() ?? false,
+      onReset: () => simulationControls?.reset() ?? false,
     });
 
     runtime = Object.freeze({

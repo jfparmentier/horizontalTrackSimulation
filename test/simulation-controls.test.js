@@ -108,6 +108,24 @@ function createFixture() {
   return { elements, keyboard, root };
 }
 
+test("le pilotage reste disponible sans les quatre boutons visibles", () => {
+  const loop = createFakeLoop();
+  const store = createAppState();
+  const keyboard = new FakeElement("div");
+  const root = { querySelector: () => null };
+  const controls = bindSimulationControls(root, {
+    appState: store,
+    getLoop: () => loop,
+    keyboardTarget: keyboard,
+  });
+
+  assert.equal(controls.start(), true);
+  assert.equal(loop.getDiagnostics().running, true);
+  assert.equal(controls.pause(), true);
+  assert.equal(controls.reset(), true);
+  assert.equal(store.getSnapshot().simulation.time, 0);
+});
+
 test("les commandes sont initialisées dans l'état prêt", () => {
   const loop = createFakeLoop();
   const store = createAppState();

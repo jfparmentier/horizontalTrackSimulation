@@ -2,14 +2,6 @@ import { createI18n } from "./i18n.js";
 
 export const DEFAULT_MANUAL_STEP_DURATION = 0.05;
 
-function getRequiredElement(root, selector) {
-  const element = root.querySelector(selector);
-  if (!element) {
-    throw new Error(`Élément de commande introuvable : ${selector}`);
-  }
-  return element;
-}
-
 function isTerminalState(state) {
   return ["blocked", "finished"].includes(state.status);
 }
@@ -30,7 +22,9 @@ function shouldIgnoreKeyboardShortcut(event) {
 }
 
 /**
- * Relie les quatre commandes principales à la boucle temporelle courante.
+ * Expose les commandes de la boucle temporelle et relie, lorsqu'ils sont
+ * présents, les boutons correspondants. Les raccourcis clavier restent actifs
+ * même lorsque l'interface confie le pilotage au personnage.
  * La boucle est obtenue à la demande afin que la liaison reste valide après
  * toute reconstruction du montage provoquée par un changement de paramètre.
  */
@@ -52,10 +46,10 @@ export function bindSimulationControls(root, configuration = {}) {
     throw new RangeError("La durée du pas manuel doit être strictement positive.");
   }
 
-  const startButton = getRequiredElement(root, "#start-button");
-  const pauseButton = getRequiredElement(root, "#pause-button");
-  const stepButton = getRequiredElement(root, "#step-button");
-  const resetButton = getRequiredElement(root, "#reset-button");
+  const startButton = root.querySelector("#start-button");
+  const pauseButton = root.querySelector("#pause-button");
+  const stepButton = root.querySelector("#step-button");
+  const resetButton = root.querySelector("#reset-button");
   const announcer = root.querySelector("#simulation-announcer");
   const keyboardTarget = configuration.keyboardTarget
     ?? (typeof root.addEventListener === "function" ? root : null);
@@ -67,10 +61,10 @@ export function bindSimulationControls(root, configuration = {}) {
   let lastAnnouncementKey = null;
   let destroyed = false;
 
-  startButton.setAttribute("aria-keyshortcuts", "Space");
-  pauseButton.setAttribute("aria-keyshortcuts", "Space");
-  stepButton.setAttribute("aria-keyshortcuts", "ArrowRight");
-  resetButton.setAttribute("aria-keyshortcuts", "Home");
+  startButton?.setAttribute("aria-keyshortcuts", "Space");
+  pauseButton?.setAttribute("aria-keyshortcuts", "Space");
+  stepButton?.setAttribute("aria-keyshortcuts", "ArrowRight");
+  resetButton?.setAttribute("aria-keyshortcuts", "Home");
 
 
   function getAnnouncementKey(state, running, terminal, initial) {
@@ -102,12 +96,12 @@ export function bindSimulationControls(root, configuration = {}) {
     const pauseLabel = i18n.t("controls.pause");
     const stepLabel = i18n.t("controls.step", { duration: localizedDuration() });
     const resetLabel = i18n.t("controls.reset");
-    pauseButton.setAttribute("aria-label", pauseLabel);
-    pauseButton.setAttribute("title", pauseLabel);
-    stepButton.setAttribute("aria-label", stepLabel);
-    stepButton.setAttribute("title", stepLabel);
-    resetButton.setAttribute("aria-label", resetLabel);
-    resetButton.setAttribute("title", resetLabel);
+    pauseButton?.setAttribute("aria-label", pauseLabel);
+    pauseButton?.setAttribute("title", pauseLabel);
+    stepButton?.setAttribute("aria-label", stepLabel);
+    stepButton?.setAttribute("title", stepLabel);
+    resetButton?.setAttribute("aria-label", resetLabel);
+    resetButton?.setAttribute("title", resetLabel);
     const loop = getLoop();
     lastAnnouncementKey = null;
     update(loop?.getState?.() ?? lastState, loop?.getDiagnostics?.() ?? lastMeta);
@@ -136,17 +130,17 @@ export function bindSimulationControls(root, configuration = {}) {
     const terminal = isTerminalState(state);
     const initial = isInitialState(state);
 
-    startButton.disabled = running || terminal;
-    pauseButton.disabled = !running;
-    stepButton.disabled = running || terminal;
-    resetButton.disabled = initial && !running;
+    if (startButton) startButton.disabled = running || terminal;
+    if (pauseButton) pauseButton.disabled = !running;
+    if (stepButton) stepButton.disabled = running || terminal;
+    if (resetButton) resetButton.disabled = initial && !running;
 
     const startLabel = i18n.t(initial ? "controls.start" : "controls.resume");
-    startButton.setAttribute("aria-label", startLabel);
-    startButton.setAttribute("title", startLabel);
-    startButton.dataset.actionState = initial ? "start" : "resume";
-    startButton.setAttribute("aria-pressed", String(running));
-    pauseButton.setAttribute("aria-pressed", String(!running && !initial && !terminal));
+    startButton?.setAttribute("aria-label", startLabel);
+    startButton?.setAttribute("title", startLabel);
+    if (startButton) startButton.dataset.actionState = initial ? "start" : "resume";
+    startButton?.setAttribute("aria-pressed", String(running));
+    pauseButton?.setAttribute("aria-pressed", String(!running && !initial && !terminal));
     const announcementKey = announceState(state, running, terminal, initial);
     const result = Object.freeze({ running, terminal, initial, announcementKey });
     configuration.onUpdate?.(state, { ...meta, running }, result);
@@ -206,10 +200,10 @@ export function bindSimulationControls(root, configuration = {}) {
     }
   }
 
-  listen(startButton, "click", start);
-  listen(pauseButton, "click", pause);
-  listen(stepButton, "click", step);
-  listen(resetButton, "click", reset);
+  if (startButton) listen(startButton, "click", start);
+  if (pauseButton) listen(pauseButton, "click", pause);
+  if (stepButton) listen(stepButton, "click", step);
+  if (resetButton) listen(resetButton, "click", reset);
   if (keyboardTarget && typeof keyboardTarget.addEventListener === "function") {
     listen(keyboardTarget, "keydown", onKeyDown);
   }

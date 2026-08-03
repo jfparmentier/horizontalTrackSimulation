@@ -96,6 +96,8 @@ test("le montage est décalé à gauche et la butée coïncide avec la fin de co
 
   assert.ok(layout.sceneOffset.x < 0);
   assert.equal(layout.trackStop.contactX, layout.track.endX);
+  assert.equal(layout.trackStop.y + layout.trackStop.height, layout.track.y + layout.track.height);
+  assert.ok(layout.trackStop.height > layout.track.height);
   assert.ok(
     layout.person.holding.x + layout.person.holding.width + layout.sceneOffset.x
       <= layout.viewBox.width - 16,

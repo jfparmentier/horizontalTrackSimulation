@@ -16,7 +16,7 @@ test("le bouton des résultats affiche une icône de tableau accessible", () => 
 });
 
 test("les résultats finaux puis le bouton du tableau sont ordonnés à droite du chronomètre", () => {
-  const section = html.match(/<div class="readout-actions">([\s\S]*?)<\/div>\s*<\/div>/)?.[1] ?? "";
+  const section = html.match(/<div class="readout-actions">([\s\S]*?)<\/div>\s*<\/section>/)?.[1] ?? "";
   const time = section.indexOf('id="time-value"');
   const stopTime = section.indexOf('id="s2-stop-time-value"');
   const velocity = section.indexOf('id="s2-contact-velocity-value"');
@@ -72,28 +72,29 @@ test("la masse de S1, la hauteur et les onze capteurs sont fixes sans contrôles
   assert.doesNotMatch(html, />Nombre de capteurs</);
 });
 
-test("le curseur de vitesse de lecture est à droite des boutons de pilotage", () => {
-  const controls = html.match(/<div class="main-control-buttons">([\s\S]*?)<\/div>\s*<div class="readout-actions">/)?.[1] ?? "";
-  assert.ok(controls.indexOf('id="reset-button"') >= 0);
-  assert.ok(controls.indexOf('id="playback-speed-range"') > controls.indexOf('id="reset-button"'));
-  assert.match(controls, /class="playback-control"/);
+test("le réglage de vitesse est dans un panneau ergonomique distinct des mesures", () => {
+  const speedPanel = html.match(/<div class="playback-floating-control"([\s\S]*?)<\/div>\s*<section class="animation-controls measurements-panel"/)?.[1] ?? "";
+  assert.match(speedPanel, /Vitesse de lecture/);
+  assert.match(speedPanel, /id="playback-speed-range"/);
+  assert.match(html, /class="playback-floating-control"[\s\S]*?class="animation-controls measurements-panel"/);
 });
 
 
 
-test("les commandes restent superposées sur grand écran et passent dans le flux sur écran étroit", () => {
-  assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls"/);
+test("les mesures restent superposées sur grand écran et les panneaux passent dans le flux sur écran étroit", () => {
+  assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls measurements-panel"/);
   assert.match(html, /\.apparatus-stage \{[\s\S]*?position: relative/);
   assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: auto[\s\S]*?bottom: 5\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: min\(430px, 93%\)/);
+  assert.match(html, /\.playback-floating-control \{[\s\S]*?position: absolute[\s\S]*?top: 3\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: min\(300px, 45%\)/);
   assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.animation-controls \{[\s\S]*?position: static;[\s\S]*?width: 100%;/);
+  assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.playback-floating-control \{[\s\S]*?position: static;[\s\S]*?width: 100%;/);
 });
 
-test("les quatre commandes principales utilisent uniquement des icônes visibles", () => {
-  const controls = html.match(/<div class="main-control-buttons">([\s\S]*?)<div class="playback-control">/)?.[1] ?? "";
+test("les quatre boutons de pilotage ont été retirés et le cadre s'intitule Mesures", () => {
   for (const id of ["start-button", "pause-button", "step-button", "reset-button"]) {
-    assert.match(controls, new RegExp(`id="${id}"[^>]+aria-label="[^"]+"[\\s\\S]*?<svg`));
+    assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   }
-  assert.doesNotMatch(controls, />\s*(Démarrer|Pause|Pas à pas|Réinitialiser)\s*</);
+  assert.match(html, /id="measurements-panel-title"[^>]*>Mesures<\/h2>/);
 });
 
 test("la vitesse de lecture varie de 0,2× à 1× par pas de 0,2×", () => {

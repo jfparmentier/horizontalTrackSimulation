@@ -328,27 +328,16 @@ ${css}
               <button class="mobile-mass-button mobile-mass-button--2" type="button" data-mobile-mass-value="2" aria-pressed="false"><span>2 kg</span></button>
             </div>
           </fieldset>
-          <div class="animation-controls" aria-label="Commandes et résultats de la simulation" data-i18n-aria-label="controls.group">
-            <div class="main-control-buttons">
-              <button id="start-button" class="control-button control-button--primary" type="button" aria-label="Démarrer" title="Démarrer">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14l11-7z" /></svg>
-              </button>
-              <button id="pause-button" class="control-button" type="button" aria-label="Pause" title="Pause" data-i18n-aria-label="controls.pause" data-i18n-title="controls.pause">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 5h4v14H6zM14 5h4v14h-4z" /></svg>
-              </button>
-              <button id="step-button" class="control-button" type="button" aria-label="Pas à pas" title="Pas à pas">
-                <svg class="control-icon control-icon--filled" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5v14l10-7zM17 5h2v14h-2z" /></svg>
-              </button>
-              <button id="reset-button" class="control-button" type="button" aria-label="Réinitialiser" title="Réinitialiser" data-i18n-aria-label="controls.reset" data-i18n-title="controls.reset">
-                <svg class="control-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 9A8 8 0 1 1 6 17.5M4.5 9V4.5M4.5 9H9" /></svg>
-              </button>
-              <div class="playback-control">
-                <label class="visually-hidden" for="playback-speed-range" data-i18n="controls.playback">Vitesse de lecture</label>
-                <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
-                <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
-                <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.2" max="1" step="0.2" value="1" aria-label="Valeur de la vitesse de lecture" data-i18n-aria-label="controls.playbackValue"><span>×</span></span>
-              </div>
+          <div class="playback-floating-control" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
+            <span class="playback-control-label" data-i18n="controls.playback">Vitesse de lecture</span>
+            <div class="playback-control">
+              <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
+              <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
+              <span class="number-with-unit playback-value"><input id="playback-speed-number" type="number" min="0.2" max="1" step="0.2" value="1" aria-label="Valeur de la vitesse de lecture" data-i18n-aria-label="controls.playbackValue"><span>×</span></span>
             </div>
+          </div>
+          <section class="animation-controls measurements-panel" aria-labelledby="measurements-panel-title">
+            <h2 id="measurements-panel-title" class="measurements-panel-title" data-i18n="measurements.panelTitle">Mesures</h2>
             <div class="readout-actions">
               <dl class="animation-readout">
                 <div class="readout-item"><dt data-i18n="readout.time">Temps</dt><dd id="time-value">0,00 s</dd></div>
@@ -362,7 +351,7 @@ ${css}
                 </svg>
               </button>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
