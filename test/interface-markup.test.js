@@ -74,8 +74,8 @@ test("la masse de S1, la hauteur et les onze capteurs sont fixes sans contrôles
 
 test("le réglage de vitesse est dans un panneau ergonomique distinct des mesures", () => {
   const speedPanel = html.match(/<div class="playback-floating-control"([\s\S]*?)<\/div>\s*<section class="animation-controls measurements-panel"/)?.[1] ?? "";
-  assert.match(speedPanel, /Vitesse de lecture/);
   assert.match(speedPanel, /id="playback-speed-range"/);
+  assert.doesNotMatch(speedPanel, /class="playback-control-label"/);
   assert.match(html, /class="playback-floating-control"[\s\S]*?class="animation-controls measurements-panel"/);
 });
 
@@ -85,7 +85,7 @@ test("les mesures restent superposées sur grand écran et les panneaux passent 
   assert.match(html, /class="apparatus-stage"[\s\S]*?id="apparatus-host"[\s\S]*?class="animation-controls measurements-panel"/);
   assert.match(html, /\.apparatus-stage \{[\s\S]*?position: relative/);
   assert.match(html, /\.animation-controls \{[\s\S]*?position: absolute[\s\S]*?right: auto[\s\S]*?bottom: 5\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: min\(430px, 93%\)/);
-  assert.match(html, /\.playback-floating-control \{[\s\S]*?position: absolute[\s\S]*?top: 3\.5%[\s\S]*?left: 3\.5%[\s\S]*?width: min\(300px, 45%\)/);
+  assert.match(html, /\.playback-floating-control \{[\s\S]*?position: absolute[\s\S]*?top: 78px;[\s\S]*?right: 18px;[\s\S]*?left: auto;[\s\S]*?width: min\(200px, 45%\)/);
   assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.animation-controls \{[\s\S]*?position: static;[\s\S]*?width: 100%;/);
   assert.match(html, /@media \(max-width: 760px\) \{[\s\S]*?\.playback-floating-control \{[\s\S]*?position: static;[\s\S]*?width: 100%;/);
 });

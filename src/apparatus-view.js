@@ -56,7 +56,7 @@ function buildRuler(layout, t) {
       const highlighted = tick.isDropHeight;
       const tickHeight = major || highlighted ? 16 : 10;
       const label = tick.index % 2 === 0 || tick.index === 10
-        ? `<text class="ruler-label" x="${tick.x}" y="${ruler.y + 39}" text-anchor="middle">${escapeXml(tick.label)}</text>`
+        ? `<text class="ruler-label" x="${tick.x}" y="${ruler.y + 33}" text-anchor="middle">${escapeXml(tick.label)}</text>`
         : "";
 
       return `
@@ -69,7 +69,7 @@ function buildRuler(layout, t) {
     <g id="layer-ruler" data-role="ruler" aria-label="${escapeXml(t("svg.ruler"))}">
       <rect class="ruler-body" x="${ruler.x}" y="${ruler.y}" width="${ruler.width}" height="${ruler.height}" rx="8" />
       ${ticks}
-      <text class="ruler-unit" x="${ruler.x + ruler.width + 18}" y="${ruler.y + 39}">m</text>
+      <text class="ruler-unit" x="${ruler.x + ruler.width + 18}" y="${ruler.y + 33}">m</text>
     </g>`;
 }
 
@@ -121,7 +121,6 @@ function buildTrackStop(layout, t) {
   const stop = layout.trackStop;
   return `
     <g id="layer-track-stop" data-role="track-stop" role="img" aria-label="${escapeXml(t("svg.trackStop"))}">
-      <rect class="track-stop-base" x="${stop.x - 5}" y="${layout.track.y + layout.track.height - 8}" width="${stop.width + 10}" height="8" rx="3" />
       <rect class="track-stop-body" x="${stop.x}" y="${stop.y}" width="${stop.width}" height="${stop.height}" rx="3" />
       <path class="track-stop-grain" d="M ${stop.x + 5} ${stop.y + 5} Q ${stop.x + 11} ${stop.y + 8} ${stop.x + 6} ${stop.y + 12} M ${stop.x + 10} ${stop.y + 18} Q ${stop.x + 4} ${stop.y + 22} ${stop.x + 11} ${stop.y + 27} M ${stop.x + 5} ${stop.y + 34} Q ${stop.x + 12} ${stop.y + 39} ${stop.x + 6} ${stop.y + 44} M ${stop.x + 10} ${stop.y + 51} Q ${stop.x + 4} ${stop.y + 57} ${stop.x + 11} ${stop.y + 64}" />
     </g>`;

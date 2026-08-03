@@ -210,9 +210,9 @@ export function computeApparatusLayout(options = {}) {
       height: personHeight,
     }),
     cue: Object.freeze({
-      x: APPARATUS_VIEWBOX.width - 126,
+      x: APPARATUS_VIEWBOX.width - 164,
       y: personY - 34,
-      width: 108,
+      width: 146,
       height: 30,
     }),
     anchors: Object.freeze({

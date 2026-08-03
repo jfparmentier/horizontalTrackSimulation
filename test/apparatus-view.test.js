@@ -65,6 +65,7 @@ test("le montage est translaté dans le cadre et une butée en bois ferme le ban
   assert.match(svg, /id="layer-track-stop"[^>]+aria-label="Butée en bois arrêtant le mobile au bout du banc"/);
   assert.match(svg, /class="track-stop-body"/);
   assert.match(svg, /class="track-stop-grain"/);
+  assert.doesNotMatch(svg, /class="track-stop-base"/);
 });
 
 test("le personnage possède deux poses et une affordance de démarrage accessible", () => {
@@ -75,6 +76,7 @@ test("le personnage possède deux poses et une affordance de démarrage accessib
   assert.match(svg, /href="assets\/person-holding\.webp"/);
   assert.match(svg, /href="assets\/person-resting\.webp"/);
   assert.match(svg, /id="person-click-cue-label"[^>]*>Démarrer<\/text>/);
+  assert.match(svg, /class="person-click-cue"[\s\S]*?width="146"/);
   assert.match(svg, /data-person-state="holding"/);
 });
 
@@ -104,6 +106,7 @@ test("le trait de règle correspondant à 0,6 m est marqué en bleu par une clas
 
   assert.equal((svg.match(/ruler-tick--drop-height/g) ?? []).length, 1);
   assert.match(svg, /class="ruler-tick ruler-tick--drop-height"[^>]+x1="349\.4"/);
+  assert.match(svg, /class="ruler-label"[^>]+y="303\.1"/);
 });
 
 test("la poulie, son support et la corde respectent la nouvelle géométrie", () => {

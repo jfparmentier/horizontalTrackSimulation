@@ -329,7 +329,6 @@ ${css}
             </div>
           </fieldset>
           <div class="playback-floating-control" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
-            <span class="playback-control-label" data-i18n="controls.playback">Vitesse de lecture</span>
             <div class="playback-control">
               <svg class="playback-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 16a8 8 0 0 1 16 0M12 12l4-4M7 18h10" /></svg>
               <input id="playback-speed-range" type="range" min="0.2" max="1" step="0.2" value="1" aria-label="Vitesse de lecture" data-i18n-aria-label="controls.playback">
