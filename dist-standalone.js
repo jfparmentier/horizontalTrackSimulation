@@ -2153,6 +2153,47 @@ function interpolate(left, right, alpha) {
   return left + (right - left) * alpha;
 }
 
+function approximateSlackCurveLength(horizontalSpan, sag, segments = 48) {
+  let length = 0;
+  let previousX = 0;
+  let previousY = 0;
+
+  for (let index = 1; index <= segments; index += 1) {
+    const t = index / segments;
+    const oneMinusT = 1 - t;
+    const x = 3 * oneMinusT ** 2 * t * horizontalSpan * 0.34
+      + 3 * oneMinusT * t ** 2 * horizontalSpan * 0.7
+      + t ** 3 * horizontalSpan;
+    const y = 3 * oneMinusT * t * sag;
+    length += Math.hypot(x - previousX, y - previousY);
+    previousX = x;
+    previousY = y;
+  }
+
+  return length;
+}
+
+function solveSlackSag(horizontalSpan, targetLength) {
+  if (targetLength <= horizontalSpan + 1e-6) return 0;
+
+  let lowerSag = 0;
+  let upperSag = Math.max(16, targetLength / 2);
+  while (approximateSlackCurveLength(horizontalSpan, upperSag) < targetLength) {
+    upperSag *= 2;
+  }
+
+  for (let iteration = 0; iteration < 32; iteration += 1) {
+    const candidate = (lowerSag + upperSag) / 2;
+    if (approximateSlackCurveLength(horizontalSpan, candidate) < targetLength) {
+      lowerSag = candidate;
+    } else {
+      upperSag = candidate;
+    }
+  }
+
+  return (lowerSag + upperSag) / 2;
+}
+
 /**
  * Calcule la géométrie affichée entre deux états physiques consécutifs.
  * Cette fonction pure permet de tester l'animation sans navigateur.
@@ -2210,22 +2251,23 @@ function computeAnimatedApparatusFrame(
   const ropeExitY = layout.string.pulleyExitY;
   const ropeEndY = hangingMassY;
   const afterDropDistance = Math.max(0, position - layout.parameters.dropHeight);
-  const afterDropRatio = layout.parameters.trackLength > layout.parameters.dropHeight
-    ? clamp(
-        afterDropDistance
-          / (layout.parameters.trackLength - layout.parameters.dropHeight),
-        0,
-        1,
-      )
-    : 0;
   const slack = currentState.phase === 2 || afterDropDistance > 0;
 
   let ropePath;
+  let slackCurveLength = null;
   if (slack) {
     const horizontalSpan = Math.max(1, ropeEntryX - ropeStartX);
-    const sag = 10 + 34 * afterDropRatio;
+    // S2 étant immobile, la portion verticale et l'arc sur la poulie gardent
+    // une longueur fixe. La courbe détendue conserve donc la longueur qu'avait
+    // la portion horizontale au moment où S2 a atteint son support : plus S1
+    // approche de la poulie, plus la flèche augmente au lieu d'étirer le fil.
+    const transitionRopeStartX = layout.mobile.x + layout.mobile.width
+      + layout.parameters.dropHeight * pixelsPerMeter;
+    const targetSlackLength = Math.max(1, ropeEntryX - transitionRopeStartX);
+    const sag = solveSlackSag(horizontalSpan, targetSlackLength);
     const firstControlX = ropeStartX + horizontalSpan * 0.34;
     const secondControlX = ropeStartX + horizontalSpan * 0.7;
+    slackCurveLength = approximateSlackCurveLength(horizontalSpan, sag);
 
     ropePath = `M ${ropeStartX} ${ropeY}
       C ${firstControlX} ${ropeY + sag}, ${secondControlX} ${ropeY + sag}, ${ropeEntryX} ${ropeEntryY}
@@ -2247,6 +2289,7 @@ function computeAnimatedApparatusFrame(
     hangingMassY,
     ropePath,
     slack,
+    slackCurveLength,
   });
 }
 

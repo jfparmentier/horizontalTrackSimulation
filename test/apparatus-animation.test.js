@@ -109,6 +109,29 @@ test("le fil est rectiligne en phase 1 et s'incurve en phase 2", () => {
   assert.equal(slack.slack, true);
 });
 
+test("la longueur de la portion détendue reste quasi constante pendant la phase 2", () => {
+  const layout = computeApparatusLayout(PARAMETERS);
+  const shortlyAfterContact = computeAnimatedApparatusFrame(
+    layout,
+    state({ position: 0.65, hangingDisplacement: 0.5, phase: 2 }),
+  );
+  const nearTrackEnd = computeAnimatedApparatusFrame(
+    layout,
+    state({
+      position: layout.motionScale.maximumMobilePosition,
+      hangingDisplacement: 0.5,
+      phase: 2,
+    }),
+  );
+
+  assert.ok(shortlyAfterContact.slackCurveLength > 0);
+  closeTo(
+    nearTrackEnd.slackCurveLength,
+    shortlyAfterContact.slackCurveLength,
+    0.05,
+  );
+});
+
 test("l'animateur modifie les trois éléments SVG ciblés", () => {
   class FakeElement {
     constructor() {
