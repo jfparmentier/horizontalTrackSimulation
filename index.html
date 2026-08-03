@@ -194,6 +194,21 @@ h1 {
   stroke-linejoin: round;
 }
 
+.track-stop-base,
+.track-stop-body {
+  fill: url(#wood-gradient);
+  stroke: #7c451f;
+  stroke-width: 3;
+}
+
+.track-stop-grain {
+  fill: none;
+  stroke: #8c4f25;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  opacity: 0.72;
+}
+
 .ruler-body {
   fill: #fff8d9;
   stroke: #ceb95d;
@@ -2341,6 +2356,7 @@ const MESSAGES = Object.freeze({
     "svg.sensors": "{count} capteurs de vitesse",
     "svg.sensor": "Capteur {id}, position {position} mètre",
     "svg.string": "Fil tendu",
+    "svg.trackStop": "Butée en bois arrêtant le mobile au bout du banc",
     "svg.massRack": "Masses disponibles",
     "svg.massChoice": "Masse de {mass} kilogramme à placer comme masse suspendue",
     "svg.massPlaceholder": "Emplacement de la masse de {mass} kilogramme",
@@ -2411,6 +2427,7 @@ const MESSAGES = Object.freeze({
     "svg.sensors": "{count} speed sensors",
     "svg.sensor": "Sensor {id}, position {position} metres",
     "svg.string": "Taut string",
+    "svg.trackStop": "Wooden stop that blocks the cart at the end of the track",
     "svg.massRack": "Available masses",
     "svg.massChoice": "{mass} kilogram mass to use as the suspended mass",
     "svg.massPlaceholder": "Location of the {mass} kilogram mass",
@@ -3764,6 +3781,18 @@ const DRAWING = Object.freeze({
   hangingMassTopY: 260,
 });
 
+const SCENE_CONTENT_OFFSET_X = -24;
+const PERSON_SPRITE = Object.freeze({
+  sourceHeight: 983,
+  palmCenterX: 80,
+  palmTopY: 333,
+  rightShoeBottomY: 941,
+  leftShoeBottomY: 960,
+  holdingWidth: 492,
+  restingWidth: 266,
+  restingOffsetX: 140,
+});
+
 function assertIntegerInRange(name, value, limits) {
   const normalized = Number(value);
 
@@ -3910,29 +3939,42 @@ function computeApparatusLayout(options = {}) {
     width: APPARATUS_VIEWBOX.width - 16 - socleX,
     height: 28,
   });
-  const personScale = 393 / 983;
+  const hangingMassBottomY = hangingMass.y + hangingMass.height;
+  // La paume et la chaussure droite servent de deux ancres. Cette mise à
+  // l'échelle conserve S2 sur la main tout en posant exactement la semelle
+  // droite sur le dessus du socle. La chaussure gauche, plus basse dans le
+  // dessin en perspective, recouvre alors légèrement le socle.
+  const personScale = (socle.y - hangingMassBottomY)
+    / (PERSON_SPRITE.rightShoeBottomY - PERSON_SPRITE.palmTopY);
+  const personY = hangingMassBottomY - PERSON_SPRITE.palmTopY * personScale;
+  const personHeight = PERSON_SPRITE.sourceHeight * personScale;
   const person = Object.freeze({
-    y: socle.y - 962 * personScale,
-    height: 393,
+    y: personY,
+    height: personHeight,
     holding: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
-      width: 492 * personScale,
+      x: hangingMass.x + hangingMass.width / 2 - PERSON_SPRITE.palmCenterX * personScale,
+      width: PERSON_SPRITE.holdingWidth * personScale,
     }),
     resting: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 + 140 * personScale,
-      width: 266 * personScale,
+      x: hangingMass.x + hangingMass.width / 2 + PERSON_SPRITE.restingOffsetX * personScale,
+      width: PERSON_SPRITE.restingWidth * personScale,
     }),
     hitArea: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
-      y: socle.y - 962 * personScale,
-      width: 492 * personScale,
-      height: 393,
+      x: hangingMass.x + hangingMass.width / 2 - PERSON_SPRITE.palmCenterX * personScale,
+      y: personY,
+      width: PERSON_SPRITE.holdingWidth * personScale,
+      height: personHeight,
     }),
     cue: Object.freeze({
       x: APPARATUS_VIEWBOX.width - 126,
-      y: socle.y - 962 * personScale - 34,
+      y: personY - 34,
       width: 108,
       height: 30,
+    }),
+    anchors: Object.freeze({
+      palmTopY: personY + PERSON_SPRITE.palmTopY * personScale,
+      rightShoeBottomY: personY + PERSON_SPRITE.rightShoeBottomY * personScale,
+      leftShoeBottomY: personY + PERSON_SPRITE.leftShoeBottomY * personScale,
     }),
   });
   const massRackGap = 18;
@@ -3982,6 +4024,7 @@ function computeApparatusLayout(options = {}) {
 
   return Object.freeze({
     viewBox: APPARATUS_VIEWBOX,
+    sceneOffset: Object.freeze({ x: SCENE_CONTENT_OFFSET_X, y: 0 }),
     parameters,
     sensorCount,
     track: Object.freeze({
@@ -4003,6 +4046,13 @@ function computeApparatusLayout(options = {}) {
     hangingMass,
     socle,
     person,
+    trackStop: Object.freeze({
+      x: DRAWING.trackEndX,
+      y: trackTopY - 26,
+      width: 17,
+      height: 26,
+      contactX: DRAWING.trackEndX,
+    }),
     massRack,
     sensors: Object.freeze(sensors),
     motionScale: Object.freeze({
@@ -4022,9 +4072,8 @@ function computeApparatusLayout(options = {}) {
       endY: hangingMass.y,
     }),
     heightGuide: Object.freeze({
-      // La cote est placée dans l'intervalle entre le support de masses et S2,
-      // à gauche du socle et du personnage.
-      x: socle.x - 20,
+      // La cote part exactement de l'arête gauche du socle de réception.
+      x: socle.x,
       topY: hangingMass.y + hangingMass.height,
       bottomY: socle.y,
     }),
@@ -4153,6 +4202,16 @@ function buildPerson(layout, t) {
     </g>`;
 }
 
+function buildTrackStop(layout, t) {
+  const stop = layout.trackStop;
+  return `
+    <g id="layer-track-stop" data-role="track-stop" role="img" aria-label="${escapeXml(t("svg.trackStop"))}">
+      <rect class="track-stop-base" x="${stop.x - 5}" y="${layout.track.y - 6}" width="${stop.width + 10}" height="8" rx="3" />
+      <rect class="track-stop-body" x="${stop.x}" y="${stop.y}" width="${stop.width}" height="${stop.height}" rx="3" />
+      <path class="track-stop-grain" d="M ${stop.x + 5} ${stop.y + 5} Q ${stop.x + 11} ${stop.y + 8} ${stop.x + 6} ${stop.y + 12} M ${stop.x + 10} ${stop.y + 16} Q ${stop.x + 4} ${stop.y + 19} ${stop.x + 11} ${stop.y + 22}" />
+    </g>`;
+}
+
 function buildMassRack(layout, t) {
   const slots = layout.massRack.choices
     .map((choice) => `
@@ -4216,6 +4275,11 @@ function buildStaticApparatusSvg(options = {}) {
         <stop offset="0" stop-color="#ff9797" />
         <stop offset="1" stop-color="#d84b56" />
       </linearGradient>
+      <linearGradient id="wood-gradient" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#c97832" />
+        <stop offset="0.52" stop-color="#f1ad58" />
+        <stop offset="1" stop-color="#b9672b" />
+      </linearGradient>
       <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="160%">
         <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.2" />
       </filter>
@@ -4231,6 +4295,7 @@ function buildStaticApparatusSvg(options = {}) {
       <rect class="scene-background" x="16" y="16" width="1168" height="${layout.viewBox.height - 32}" rx="28" />
     </g>
 
+    <g id="layer-apparatus" transform="translate(${layout.sceneOffset.x} ${layout.sceneOffset.y})">
 
     <g id="layer-track" data-role="track">
       <rect class="bench-top" x="${layout.track.x}" y="${layout.track.y}" width="${layout.track.width}" height="${layout.track.height}" rx="8" />
@@ -4263,6 +4328,8 @@ function buildStaticApparatusSvg(options = {}) {
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
+    ${buildTrackStop(layout, t)}
+
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
@@ -4280,6 +4347,8 @@ function buildStaticApparatusSvg(options = {}) {
     <g id="layer-height-guide" aria-label="${escapeXml(t("svg.dropHeight", { height: formatLocaleNumber(parameters.dropHeight, locale) }))}">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />
       <text class="dimension-label height-label" x="${layout.heightGuide.x + 14}" y="${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2}" text-anchor="middle" transform="rotate(-90 ${layout.heightGuide.x + 14} ${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2})">${formatUsNumber(parameters.dropHeight)} m</text>
+    </g>
+
     </g>
 
   </svg>`;
@@ -4309,6 +4378,7 @@ function localizeStaticApparatus(svg, layout, i18n) {
   setLabel("#layer-ruler", i18n.t("svg.ruler"));
   setLabel("#layer-sensors", i18n.t("svg.sensors", { count: layout.sensorCount }));
   setLabel("#layer-string", i18n.t("svg.string"));
+  setLabel("#layer-track-stop", i18n.t("svg.trackStop"));
   setLabel("#layer-mass-rack", i18n.t("svg.massRack"));
   setLabel("#layer-height-guide", i18n.t("svg.dropHeight", {
     height: formatLocaleNumber(layout.parameters.dropHeight, locale),

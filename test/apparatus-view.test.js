@@ -48,12 +48,23 @@ test("les éléments destinés à l'animation disposent d'identifiants stables",
     'id="layer-hanging-mass"',
     'id="hanging-mass-body"',
     'id="string-path"',
+    'id="layer-apparatus"',
+    'id="layer-track-stop"',
     'id="layer-person"',
     'id="person-holding"',
     'id="person-resting"',
   ]) {
     assert.ok(svg.includes(required), `${required} doit être présent`);
   }
+});
+
+test("le montage est translaté dans le cadre et une butée en bois ferme le banc", () => {
+  const svg = buildStaticApparatusSvg(DEFAULTS);
+
+  assert.match(svg, /id="layer-apparatus" transform="translate\(-24 0\)"/);
+  assert.match(svg, /id="layer-track-stop"[^>]+aria-label="Butée en bois arrêtant le mobile au bout du banc"/);
+  assert.match(svg, /class="track-stop-body"/);
+  assert.match(svg, /class="track-stop-grain"/);
 });
 
 test("le personnage possède deux poses et une affordance de démarrage accessible", () => {

@@ -25,6 +25,18 @@ const DRAWING = Object.freeze({
   hangingMassTopY: 260,
 });
 
+const SCENE_CONTENT_OFFSET_X = -24;
+const PERSON_SPRITE = Object.freeze({
+  sourceHeight: 983,
+  palmCenterX: 80,
+  palmTopY: 333,
+  rightShoeBottomY: 941,
+  leftShoeBottomY: 960,
+  holdingWidth: 492,
+  restingWidth: 266,
+  restingOffsetX: 140,
+});
+
 function assertIntegerInRange(name, value, limits) {
   const normalized = Number(value);
 
@@ -171,29 +183,42 @@ export function computeApparatusLayout(options = {}) {
     width: APPARATUS_VIEWBOX.width - 16 - socleX,
     height: 28,
   });
-  const personScale = 393 / 983;
+  const hangingMassBottomY = hangingMass.y + hangingMass.height;
+  // La paume et la chaussure droite servent de deux ancres. Cette mise à
+  // l'échelle conserve S2 sur la main tout en posant exactement la semelle
+  // droite sur le dessus du socle. La chaussure gauche, plus basse dans le
+  // dessin en perspective, recouvre alors légèrement le socle.
+  const personScale = (socle.y - hangingMassBottomY)
+    / (PERSON_SPRITE.rightShoeBottomY - PERSON_SPRITE.palmTopY);
+  const personY = hangingMassBottomY - PERSON_SPRITE.palmTopY * personScale;
+  const personHeight = PERSON_SPRITE.sourceHeight * personScale;
   const person = Object.freeze({
-    y: socle.y - 962 * personScale,
-    height: 393,
+    y: personY,
+    height: personHeight,
     holding: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
-      width: 492 * personScale,
+      x: hangingMass.x + hangingMass.width / 2 - PERSON_SPRITE.palmCenterX * personScale,
+      width: PERSON_SPRITE.holdingWidth * personScale,
     }),
     resting: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 + 140 * personScale,
-      width: 266 * personScale,
+      x: hangingMass.x + hangingMass.width / 2 + PERSON_SPRITE.restingOffsetX * personScale,
+      width: PERSON_SPRITE.restingWidth * personScale,
     }),
     hitArea: Object.freeze({
-      x: hangingMass.x + hangingMass.width / 2 - 80 * personScale,
-      y: socle.y - 962 * personScale,
-      width: 492 * personScale,
-      height: 393,
+      x: hangingMass.x + hangingMass.width / 2 - PERSON_SPRITE.palmCenterX * personScale,
+      y: personY,
+      width: PERSON_SPRITE.holdingWidth * personScale,
+      height: personHeight,
     }),
     cue: Object.freeze({
       x: APPARATUS_VIEWBOX.width - 126,
-      y: socle.y - 962 * personScale - 34,
+      y: personY - 34,
       width: 108,
       height: 30,
+    }),
+    anchors: Object.freeze({
+      palmTopY: personY + PERSON_SPRITE.palmTopY * personScale,
+      rightShoeBottomY: personY + PERSON_SPRITE.rightShoeBottomY * personScale,
+      leftShoeBottomY: personY + PERSON_SPRITE.leftShoeBottomY * personScale,
     }),
   });
   const massRackGap = 18;
@@ -243,6 +268,7 @@ export function computeApparatusLayout(options = {}) {
 
   return Object.freeze({
     viewBox: APPARATUS_VIEWBOX,
+    sceneOffset: Object.freeze({ x: SCENE_CONTENT_OFFSET_X, y: 0 }),
     parameters,
     sensorCount,
     track: Object.freeze({
@@ -264,6 +290,13 @@ export function computeApparatusLayout(options = {}) {
     hangingMass,
     socle,
     person,
+    trackStop: Object.freeze({
+      x: DRAWING.trackEndX,
+      y: trackTopY - 26,
+      width: 17,
+      height: 26,
+      contactX: DRAWING.trackEndX,
+    }),
     massRack,
     sensors: Object.freeze(sensors),
     motionScale: Object.freeze({
@@ -283,9 +316,8 @@ export function computeApparatusLayout(options = {}) {
       endY: hangingMass.y,
     }),
     heightGuide: Object.freeze({
-      // La cote est placée dans l'intervalle entre le support de masses et S2,
-      // à gauche du socle et du personnage.
-      x: socle.x - 20,
+      // La cote part exactement de l'arête gauche du socle de réception.
+      x: socle.x,
       topY: hangingMass.y + hangingMass.height,
       bottomY: socle.y,
     }),

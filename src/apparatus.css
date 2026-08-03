@@ -186,6 +186,21 @@ h1 {
   stroke-linejoin: round;
 }
 
+.track-stop-base,
+.track-stop-body {
+  fill: url(#wood-gradient);
+  stroke: #7c451f;
+  stroke-width: 3;
+}
+
+.track-stop-grain {
+  fill: none;
+  stroke: #8c4f25;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+  opacity: 0.72;
+}
+
 .ruler-body {
   fill: #fff8d9;
   stroke: #ceb95d;

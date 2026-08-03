@@ -71,20 +71,35 @@ test("la corde est horizontale avant la poulie puis verticale après un quart de
 test("l'indication de hauteur est placée à gauche de S2 et du personnage", () => {
   const layout = computeApparatusLayout(DEFAULTS);
 
-  assert.ok(layout.heightGuide.x < layout.socle.x);
+  assert.equal(layout.heightGuide.x, layout.socle.x);
   assert.ok(layout.heightGuide.x > layout.massRack.x + layout.massRack.width);
 });
 
-test("le personnage pose la masse sur sa paume et ses pieds sur le socle", () => {
+test("le personnage pose la masse sur sa paume et sa chaussure droite sur le socle", () => {
   const layout = computeApparatusLayout(DEFAULTS);
   const scale = layout.person.height / 983;
   const palmCenterX = layout.person.holding.x + 80 * scale;
-  const feetY = layout.person.y + 962 * scale;
 
   assert.ok(Math.abs(palmCenterX - (layout.hangingMass.x + layout.hangingMass.width / 2)) < 1e-9);
-  assert.ok(Math.abs(feetY - layout.socle.y) < 1e-9);
-  assert.ok(layout.person.resting.x + layout.person.resting.width < layout.viewBox.width);
+  assert.ok(Math.abs(layout.person.anchors.palmTopY - (layout.hangingMass.y + layout.hangingMass.height)) < 1e-9);
+  assert.ok(Math.abs(layout.person.anchors.rightShoeBottomY - layout.socle.y) < 1e-9);
+  assert.ok(layout.person.anchors.leftShoeBottomY > layout.socle.y);
+  assert.ok(
+    layout.person.resting.x + layout.person.resting.width + layout.sceneOffset.x
+      < layout.viewBox.width,
+  );
   assert.ok(layout.socle.x + layout.socle.width <= layout.viewBox.width - 16);
+});
+
+test("le montage est décalé à gauche et la butée coïncide avec la fin de course de S1", () => {
+  const layout = computeApparatusLayout(DEFAULTS);
+
+  assert.ok(layout.sceneOffset.x < 0);
+  assert.equal(layout.trackStop.contactX, layout.track.endX);
+  assert.ok(
+    layout.person.holding.x + layout.person.holding.width + layout.sceneOffset.x
+      <= layout.viewBox.width - 16,
+  );
 });
 
 test("la masse suspendue est carrée à coins arrondis", () => {

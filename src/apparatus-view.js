@@ -117,6 +117,16 @@ function buildPerson(layout, t) {
     </g>`;
 }
 
+function buildTrackStop(layout, t) {
+  const stop = layout.trackStop;
+  return `
+    <g id="layer-track-stop" data-role="track-stop" role="img" aria-label="${escapeXml(t("svg.trackStop"))}">
+      <rect class="track-stop-base" x="${stop.x - 5}" y="${layout.track.y - 6}" width="${stop.width + 10}" height="8" rx="3" />
+      <rect class="track-stop-body" x="${stop.x}" y="${stop.y}" width="${stop.width}" height="${stop.height}" rx="3" />
+      <path class="track-stop-grain" d="M ${stop.x + 5} ${stop.y + 5} Q ${stop.x + 11} ${stop.y + 8} ${stop.x + 6} ${stop.y + 12} M ${stop.x + 10} ${stop.y + 16} Q ${stop.x + 4} ${stop.y + 19} ${stop.x + 11} ${stop.y + 22}" />
+    </g>`;
+}
+
 function buildMassRack(layout, t) {
   const slots = layout.massRack.choices
     .map((choice) => `
@@ -180,6 +190,11 @@ export function buildStaticApparatusSvg(options = {}) {
         <stop offset="0" stop-color="#ff9797" />
         <stop offset="1" stop-color="#d84b56" />
       </linearGradient>
+      <linearGradient id="wood-gradient" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#c97832" />
+        <stop offset="0.52" stop-color="#f1ad58" />
+        <stop offset="1" stop-color="#b9672b" />
+      </linearGradient>
       <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="160%">
         <feDropShadow dx="0" dy="6" stdDeviation="5" flood-opacity="0.2" />
       </filter>
@@ -195,6 +210,7 @@ export function buildStaticApparatusSvg(options = {}) {
       <rect class="scene-background" x="16" y="16" width="1168" height="${layout.viewBox.height - 32}" rx="28" />
     </g>
 
+    <g id="layer-apparatus" transform="translate(${layout.sceneOffset.x} ${layout.sceneOffset.y})">
 
     <g id="layer-track" data-role="track">
       <rect class="bench-top" x="${layout.track.x}" y="${layout.track.y}" width="${layout.track.width}" height="${layout.track.height}" rx="8" />
@@ -227,6 +243,8 @@ export function buildStaticApparatusSvg(options = {}) {
       <text class="object-label mass-value-label" x="${layout.mobile.width / 2}" y="${layout.mobile.height / 2 + 7}" text-anchor="middle">1 kg</text>
     </g>
 
+    ${buildTrackStop(layout, t)}
+
     <g id="layer-socle" data-role="socle">
       <rect class="socle-top" x="${layout.socle.x}" y="${layout.socle.y}" width="${layout.socle.width}" height="${layout.socle.height}" rx="8" />
     </g>
@@ -244,6 +262,8 @@ export function buildStaticApparatusSvg(options = {}) {
     <g id="layer-height-guide" aria-label="${escapeXml(t("svg.dropHeight", { height: formatLocaleNumber(parameters.dropHeight, locale) }))}">
       <line class="height-guide" x1="${layout.heightGuide.x}" y1="${layout.heightGuide.topY}" x2="${layout.heightGuide.x}" y2="${layout.heightGuide.bottomY}" marker-start="url(#arrow-head)" marker-end="url(#arrow-head)" />
       <text class="dimension-label height-label" x="${layout.heightGuide.x + 14}" y="${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2}" text-anchor="middle" transform="rotate(-90 ${layout.heightGuide.x + 14} ${(layout.heightGuide.topY + layout.heightGuide.bottomY) / 2})">${formatUsNumber(parameters.dropHeight)} m</text>
+    </g>
+
     </g>
 
   </svg>`;
@@ -273,6 +293,7 @@ export function localizeStaticApparatus(svg, layout, i18n) {
   setLabel("#layer-ruler", i18n.t("svg.ruler"));
   setLabel("#layer-sensors", i18n.t("svg.sensors", { count: layout.sensorCount }));
   setLabel("#layer-string", i18n.t("svg.string"));
+  setLabel("#layer-track-stop", i18n.t("svg.trackStop"));
   setLabel("#layer-mass-rack", i18n.t("svg.massRack"));
   setLabel("#layer-height-guide", i18n.t("svg.dropHeight", {
     height: formatLocaleNumber(layout.parameters.dropHeight, locale),
