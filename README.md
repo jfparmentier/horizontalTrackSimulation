@@ -6,14 +6,16 @@ The application is intended for classroom investigation of accelerated motion, m
 
 ## Preview
 
-![Horizontal track motion simulation showing the cart, sensors, pulley, selectable masses, and controls.](./docs/simulation-preview.png)
+![Current horizontal-track simulation showing the cart, eleven sensors, pulley, selectable masses, measurement panel, playback-speed setting, and interactive character holding S2.](./docs/simulation-preview.png)
 
 ## Features
 
 - Two pedagogical modes: ideal and frictional.
 - Animated SVG apparatus with a cart, pulley, string, suspended mass, and speed sensors.
+- An interactive cartoon character who holds S2 before release, starts the experiment, and resets it after completion.
 - Four selectable suspended masses available by tap, click, keyboard, or drag and drop.
 - Exact event handling for sensor crossings, impact, phase transition, stopping, and track end.
+- A visually inextensible string whose slack section keeps an almost constant length after S2 lands.
 - Perfect measurements in ideal mode.
 - Gaussian measurement noise in friction mode.
 - On-screen measurement table and CSV export.
@@ -28,8 +30,8 @@ The application is intended for classroom investigation of accelerated motion, m
 3. Select the interface language on the landing page. French is selected by default.
 4. Choose an exploration mode.
 5. Select a suspended mass by tapping or clicking it. Drag and drop remains available on larger screens.
-6. Start the simulation with the play control.
-7. When the experiment ends, open the measurement table and optionally download the CSV file.
+6. Click the character to release S2 and start the simulation.
+7. When the experiment ends, open the measurement table and optionally download the CSV file. Click the character again to reset the experiment.
 
 The default suspended mass is `0.5 kg`.
 
@@ -44,15 +46,15 @@ Current responsive behavior includes:
 - a tighter SVG viewport on portrait phones, preserving the physical coordinate system while enlarging the useful scene;
 - a dedicated four-button suspended-mass selector on narrow and short-landscape screens;
 - direct tap or click selection in addition to drag and drop and keyboard selection;
-- readouts placed before the commands on portrait phones;
-- a two-column composition on short landscape screens, with the apparatus on the left and controls on the right;
+- the mass selector, playback-speed setting, and measurement panel placed in a clear vertical sequence on portrait phones;
+- a two-column composition on short landscape screens, with the apparatus on the left and the mass, speed, and measurement panels on the right;
 - a card-based measurement presentation below `560 px`, without horizontal table scrolling;
 - safe-area-aware spacing, dynamic viewport units, and `44 × 44 px` or larger primary targets;
 - automatic SVG recropping after viewport resizing, page restoration, Visual Viewport changes, or orientation changes;
 - a compact two-column layout for very short landscape screens down to `568 × 320 px`;
-- focus transfer between the landing page and the simulation controls after mode changes.
+- focus transfer between the landing page and the interactive character after mode changes.
 
-The desktop interface is intentionally unchanged: its full SVG mass rack, overlaid controls, and historical `1200 × 620` SVG viewBox remain active on wide screens.
+On desktop, the full SVG mass rack and historical `1200 × 620` SVG viewBox remain active. The measurement panel is overlaid in the lower-left corner, the playback-speed setting sits below the home button, and the character is the primary simulation control.
 
 ## Languages and Number Formatting
 
@@ -66,7 +68,7 @@ The language selector is available only before entering a simulation mode. On la
 The active language applies to:
 
 - the mode-selection screen;
-- command labels, tooltips, and accessible names;
+- interaction labels, tooltips, and accessible names;
 - result readouts;
 - the measurement table;
 - CSV headers and filenames;
@@ -102,21 +104,23 @@ Each mass has a distinct color. On desktop, click a mass or drag it from the rac
 
 Keyboard users can focus a mass and press `Enter` or `Space` to select it.
 
-### Animation Controls
+### Running and Resetting the Simulation
 
-On wide screens, the controls are overlaid in the lower-left area of the apparatus. In portrait at widths up to `760 px`, the readouts, mass selector, and controls form a vertical interface below the SVG. On short landscape screens, the apparatus and command area are arranged in two columns:
+The visible Play, Pause, Step, and Reset buttons have been removed. The character is the primary simulation control:
 
-- play or resume;
-- pause;
-- advance by one `0.05 s` step;
-- reset;
-- playback speed from `0.2×` to `1×` in `0.2×` increments.
+- before the experiment, click the character to release S2 and start the simulation;
+- while paused, click the character to resume;
+- after the experiment reaches a terminal state, click the character to reset the complete experiment.
+
+Hovering over or focusing the character displays the available action. The character can also be activated with `Enter` or `Space`.
+
+Playback speed remains adjustable from `0.2×` to `1×` in `0.2×` increments. On wide screens, its compact panel is positioned just below the home button. On narrow screens, it moves into the interface flow between the suspended-mass selector and the measurement panel.
 
 On larger screens, the home button in the upper-right corner of the SVG returns to the mode-selection screen. It is hidden on phone layouts in both portrait and landscape orientations to avoid overlap and conflicts with mobile browser gestures.
 
 ### Result Readouts
 
-The result area displays:
+The panel titled **Measurements** displays:
 
 - current simulation time;
 - fall duration;
@@ -183,6 +187,8 @@ a₂ = −μg
 
 In ideal mode, `a₂ = 0`, so the cart continues at constant speed. In friction mode, the speed decreases until the cart stops or reaches the end of the track.
 
+During this phase, the displayed slack section of string keeps almost the same length it had when S2 reached the support. Its curve deepens as S1 approaches the pulley instead of visually stretching or shrinking the string.
+
 ### Numerical Integration and Events
 
 For constant acceleration over a time interval `Δt`, the engine uses the exact kinematic equations:
@@ -238,9 +244,10 @@ Export characteristics:
 
 | Key | Action |
 |---|---|
-| `Space` | Start, resume, or pause |
+| `Space` | Start, resume, or pause (outside editable controls) |
 | `Right Arrow` | Advance by `0.05 s` |
 | `Home` | Reset the experiment |
+| `Enter` or `Space` on the character | Start, resume, or reset according to the current state |
 | `Enter` or `Space` on a mass | Select that suspended mass |
 | `Escape` | Close the measurement dialog |
 
@@ -278,7 +285,7 @@ Global shortcuts are ignored while an input or button has focus.
 │   ├── responsive-apparatus.js    # Portrait and short-landscape SVG viewport
 │   ├── physics.js                 # Core physical functions
 │   ├── sensor-controller.js       # Sensor-crossing detection and display
-│   ├── simulation-controls.js     # Controls and keyboard shortcuts
+│   ├── simulation-controls.js     # Simulation commands and keyboard shortcuts
 │   ├── time-loop.js               # Fixed-step time loop
 │   └── transitions.js             # Exact event transitions
 └── test/                          # Unit and integration tests
@@ -330,8 +337,8 @@ Opening `index.html` directly with a `file://` URL is also supported.
 The application includes:
 
 - a keyboard-visible skip link to the main content;
-- keyboard-operable controls and mass selection;
-- focus transfer to the start control after entering a mode and back to the selected mode card on return;
+- a keyboard-operable character, playback-speed setting, and mass selection;
+- focus transfer to the character after entering a mode and back to the selected mode card on return;
 - accessible names for icon-only buttons;
 - translated SVG titles and descriptions;
 - a polite, visually hidden simulation-status region;
@@ -364,6 +371,7 @@ The automated suite covers:
 - exact phase and stopping events;
 - fixed-step timing behavior;
 - SVG geometry and animation;
+- interactive-character start/reset behavior and slack-string length preservation;
 - sensor positions and crossings;
 - tap, click, drag-and-drop, keyboard, and mobile-button mass selection;
 - noisy time and speed measurements;
